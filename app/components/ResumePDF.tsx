@@ -18,7 +18,7 @@ import {
   Document, Page, Text, View, StyleSheet, Font,
   pdf,
 } from '@react-pdf/renderer'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 Font.register({
   family: 'Roboto',
@@ -454,32 +454,62 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
  * Работает только на клиенте, поэтому оберни в dynamic import с ssr: false
  */
 export function ResumePreview({ data, template }: { data: ResumeData; template: TemplateId }) {
-  const [url, setUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    let objectUrl: string
-    const generate = async () => {
-      const blob = await pdf(<ResumeDocument data={data} template={template} />).toBlob()
-      objectUrl = URL.createObjectURL(blob)
-      setUrl(objectUrl)
-    }
-    generate()
-    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
-  }, [data, template])
-
-  if (!url) return (
-    <div style={{ height: 700, background: '#f9fafb', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 14 }}>
-      Загружаем превью...
-    </div>
-  )
-
+  void template
   return (
-    <iframe
-      src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
-      width="100%"
-      height="700px"
-      style={{ border: 'none', borderRadius: 12 }}
-    />
+    <div style={{
+      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12,
+      padding: '40px 48px', maxWidth: 680, margin: '0 auto', textAlign: 'left',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.06)'
+    }}>
+      <h2 style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{data.name}</h2>
+      <p style={{ fontSize: 12, color: '#6b7280', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 }}>{data.title}</p>
+
+      <div style={{ height: 1, background: '#111', marginBottom: 20 }} />
+
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>О себе</p>
+      <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 24 }}>{data.summary}</p>
+
+      <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
+
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Опыт работы</p>
+      {data.experience?.map((exp, i) => (
+        <div key={i} style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+            <span style={{ fontSize: 15, fontWeight: 700 }}>{exp.company}</span>
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>{exp.period}</span>
+          </div>
+          <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8, fontStyle: 'italic' }}>{exp.role}</p>
+          {exp.achievements?.map((a, j) => (
+            <div key={j} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+              <span style={{ color: '#111', marginTop: 2 }}>—</span>
+              <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{a}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+
+      <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
+
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Навыки</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+        {data.skills?.technical?.map((s, i) => (
+          <span key={i} style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 4 }}>{s}</span>
+        ))}
+      </div>
+
+      <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
+
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Образование</p>
+      {data.education?.map((ed, i) => (
+        <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600 }}>{ed.institution}</p>
+            <p style={{ fontSize: 13, color: '#6b7280' }}>{ed.degree}</p>
+          </div>
+          <span style={{ fontSize: 12, color: '#9ca3af' }}>{ed.year}</span>
+        </div>
+      ))}
+    </div>
   )
 }
 
