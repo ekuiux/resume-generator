@@ -2,8 +2,8 @@
 
 import dynamic from 'next/dynamic'
 
-const ResumeForm = dynamic(() => import('./components/ResumeForm'), { ssr: false })
+const ResumeBuilder = dynamic(() => import('./components/ResumeBuilder'), { ssr: false })
 
 export default function Home() {
-  return <ResumeForm />
+  return <ResumeBuilder />
 }

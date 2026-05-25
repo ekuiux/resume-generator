@@ -4,6 +4,19 @@
   box-sizing: border-box;
 }
 
+:root {
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-border-secondary: #e5e7eb;
+  --color-border-tertiary: #f3f4f6;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --font-sans: inherit;
+}
+
 body {
   background: #ffffff;
   color: #111111;

@@ -55,6 +55,8 @@ export interface ResumeData {
   phone?: string
   location?: string
   linkedin?: string
+  github?: string
+  languages?: string[]
 }
 
 export type TemplateId = 'minimal' | 'business' | 'creative'
@@ -103,6 +105,7 @@ function MinimalResume({ data }: { data: ResumeData }) {
             {data.phone    && <Text style={minimalStyles.contact}>{data.phone}</Text>}
             {data.location && <Text style={minimalStyles.contact}>{data.location}</Text>}
             {data.linkedin && <Text style={minimalStyles.contact}>{data.linkedin}</Text>}
+            {data.github   && <Text style={minimalStyles.contact}>{data.github}</Text>}
           </View>
         </View>
 
@@ -110,7 +113,7 @@ function MinimalResume({ data }: { data: ResumeData }) {
 
         {/* Summary */}
         <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>О себе</Text>
+          <Text style={minimalStyles.sectionTitle}>Summary</Text>
           <Text style={minimalStyles.summary}>{data.summary}</Text>
         </View>
 
@@ -118,7 +121,7 @@ function MinimalResume({ data }: { data: ResumeData }) {
 
         {/* Experience */}
         <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>Опыт работы</Text>
+          <Text style={minimalStyles.sectionTitle}>Experience</Text>
           {data.experience.map((exp, i) => (
             <View key={i} style={{ marginBottom: 14 }}>
               <View style={minimalStyles.expRow}>
@@ -140,7 +143,7 @@ function MinimalResume({ data }: { data: ResumeData }) {
 
         {/* Skills */}
         <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>Навыки</Text>
+          <Text style={minimalStyles.sectionTitle}>Skills</Text>
           <View style={minimalStyles.skillsRow}>
             {data.skills.technical.map((s, i) => (
               <Text key={i} style={minimalStyles.skillTag}>{s}</Text>
@@ -152,7 +155,7 @@ function MinimalResume({ data }: { data: ResumeData }) {
 
         {/* Education */}
         <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>Образование</Text>
+          <Text style={minimalStyles.sectionTitle}>Education</Text>
           {data.education.map((ed, i) => (
             <View key={i} style={minimalStyles.eduRow}>
               <View>
@@ -163,6 +166,20 @@ function MinimalResume({ data }: { data: ResumeData }) {
             </View>
           ))}
         </View>
+
+        {data.languages && data.languages.length > 0 && (
+          <>
+            <View style={minimalStyles.thinDivider} />
+            <View style={minimalStyles.section}>
+              <Text style={minimalStyles.sectionTitle}>Languages</Text>
+              <View style={minimalStyles.skillsRow}>
+                {data.languages.map((l, i) => (
+                  <Text key={i} style={minimalStyles.skillTag}>{l}</Text>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
 
       </Page>
     </Document>
@@ -223,15 +240,16 @@ function BusinessResume({ data }: { data: ResumeData }) {
           <Text style={bizStyles.sbTitle}>{data.title}</Text>
 
           <View style={bizStyles.sbSection}>
-            <Text style={bizStyles.sbSectionT}>Контакты</Text>
+            <Text style={bizStyles.sbSectionT}>Contacts</Text>
             {data.email    && <Text style={bizStyles.sbItem}>✉  {data.email}</Text>}
             {data.phone    && <Text style={bizStyles.sbItem}>✆  {data.phone}</Text>}
             {data.location && <Text style={bizStyles.sbItem}>⌖  {data.location}</Text>}
             {data.linkedin && <Text style={bizStyles.sbItem}>in  {data.linkedin}</Text>}
+            {data.github   && <Text style={bizStyles.sbItem}>⌨  {data.github}</Text>}
           </View>
 
           <View style={bizStyles.sbSection}>
-            <Text style={bizStyles.sbSectionT}>Навыки</Text>
+            <Text style={bizStyles.sbSectionT}>Skills</Text>
             {data.skills.technical.slice(0, 8).map((s, i) => (
               <View key={i}>
                 <Text style={bizStyles.sbSkill}>{s}</Text>
@@ -243,7 +261,7 @@ function BusinessResume({ data }: { data: ResumeData }) {
           </View>
 
           <View style={bizStyles.sbSection}>
-            <Text style={bizStyles.sbSectionT}>Образование</Text>
+            <Text style={bizStyles.sbSectionT}>Education</Text>
             {data.education.map((ed, i) => (
               <View key={i} style={{ marginBottom: 8 }}>
                 <Text style={{ ...bizStyles.sbItem, color: '#e2e8f0', fontWeight: 'bold' }}>{ed.institution}</Text>
@@ -252,6 +270,15 @@ function BusinessResume({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
+
+          {data.languages && data.languages.length > 0 && (
+            <View style={bizStyles.sbSection}>
+              <Text style={bizStyles.sbSectionT}>Languages</Text>
+              {data.languages.map((l, i) => (
+                <Text key={i} style={bizStyles.sbItem}>{l}</Text>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Main */}
@@ -260,12 +287,12 @@ function BusinessResume({ data }: { data: ResumeData }) {
           <Text style={bizStyles.mainTitle}>{data.title}</Text>
 
           <View style={bizStyles.mSection}>
-            <Text style={bizStyles.mSectionT}>Профиль</Text>
+            <Text style={bizStyles.mSectionT}>Profile</Text>
             <Text style={bizStyles.summary}>{data.summary}</Text>
           </View>
 
           <View style={bizStyles.mSection}>
-            <Text style={bizStyles.mSectionT}>Опыт работы</Text>
+            <Text style={bizStyles.mSectionT}>Experience</Text>
             {data.experience.map((exp, i) => (
               <View key={i} style={bizStyles.expBlock}>
                 <View style={bizStyles.expHead}>
@@ -352,6 +379,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
             {data.phone    && <Text style={creStyles.topContact}>{data.phone}</Text>}
             {data.location && <Text style={creStyles.topContact}>{data.location}</Text>}
             {data.linkedin && <Text style={creStyles.topContact}>{data.linkedin}</Text>}
+            {data.github   && <Text style={creStyles.topContact}>{data.github}</Text>}
           </View>
         </View>
 
@@ -361,7 +389,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
           <View style={{ marginBottom: 24 }}>
             <View style={creStyles.sectionLabel}>
               <View style={creStyles.sectionDot} />
-              <Text style={creStyles.sectionT}>О себе</Text>
+              <Text style={creStyles.sectionT}>Summary</Text>
             </View>
             <Text style={creStyles.summary}>{data.summary}</Text>
           </View>
@@ -373,7 +401,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
             <View style={creStyles.colLeft}>
               <View style={creStyles.sectionLabel}>
                 <View style={creStyles.sectionDot} />
-                <Text style={creStyles.sectionT}>Опыт работы</Text>
+                <Text style={creStyles.sectionT}>Experience</Text>
               </View>
               {data.experience.map((exp, i) => (
                 <View key={i} style={creStyles.expBlock}>
@@ -397,7 +425,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
               <View style={{ ...creStyles.section }}>
                 <View style={creStyles.sectionLabel}>
                   <View style={creStyles.sectionDot} />
-                  <Text style={creStyles.sectionT}>Технологии</Text>
+                  <Text style={creStyles.sectionT}>Technologies</Text>
                 </View>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {data.skills.technical.map((s, i) => (
@@ -419,7 +447,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
               <View style={creStyles.section}>
                 <View style={creStyles.sectionLabel}>
                   <View style={creStyles.sectionDot} />
-                  <Text style={creStyles.sectionT}>Образование</Text>
+                  <Text style={creStyles.sectionT}>Education</Text>
                 </View>
                 {data.education.map((ed, i) => (
                   <View key={i} style={creStyles.eduBlock}>
@@ -429,6 +457,18 @@ function CreativeResume({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
+
+              {data.languages && data.languages.length > 0 && (
+                <View style={creStyles.section}>
+                  <View style={creStyles.sectionLabel}>
+                    <View style={creStyles.sectionDot} />
+                    <Text style={creStyles.sectionT}>Languages</Text>
+                  </View>
+                  {data.languages.map((l, i) => (
+                    <Text key={i} style={creStyles.softSkill}>{l}</Text>
+                  ))}
+                </View>
+              )}
             </View>
 
           </View>
@@ -462,16 +502,25 @@ export function ResumePreview({ data, template }: { data: ResumeData; template: 
       boxShadow: '0 4px 24px rgba(0,0,0,0.06)'
     }}>
       <h2 style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{data.name}</h2>
-      <p style={{ fontSize: 12, color: '#6b7280', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 }}>{data.title}</p>
+      <p style={{ fontSize: 12, color: '#6b7280', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>{data.title}</p>
+      {(data.email || data.phone || data.location || data.linkedin || data.github) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px', marginBottom: 16 }}>
+          {data.email    && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.email}</span>}
+          {data.phone    && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.phone}</span>}
+          {data.location && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.location}</span>}
+          {data.linkedin && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.linkedin}</span>}
+          {data.github   && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.github}</span>}
+        </div>
+      )}
 
       <div style={{ height: 1, background: '#111', marginBottom: 20 }} />
 
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>О себе</p>
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Summary</p>
       <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 24 }}>{data.summary}</p>
 
       <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
 
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Опыт работы</p>
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Experience</p>
       {data.experience?.map((exp, i) => (
         <div key={i} style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
@@ -490,7 +539,7 @@ export function ResumePreview({ data, template }: { data: ResumeData; template: 
 
       <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
 
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Навыки</p>
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Skills</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
         {data.skills?.technical?.map((s, i) => (
           <span key={i} style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 4 }}>{s}</span>
@@ -499,7 +548,7 @@ export function ResumePreview({ data, template }: { data: ResumeData; template: 
 
       <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
 
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Образование</p>
+      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Education</p>
       {data.education?.map((ed, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div>
@@ -509,6 +558,18 @@ export function ResumePreview({ data, template }: { data: ResumeData; template: 
           <span style={{ fontSize: 12, color: '#9ca3af' }}>{ed.year}</span>
         </div>
       ))}
+
+      {data.languages && data.languages.length > 0 && (
+        <>
+          <div style={{ height: 1, background: '#e5e7eb', marginTop: 20, marginBottom: 20 }} />
+          <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Languages</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {data.languages.map((l, i) => (
+              <span key={i} style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 4 }}>{l}</span>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -545,7 +606,7 @@ export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }
       background: loading ? '#a5b4fc' : '#4f46e5', color: '#fff',
       border: 'none', cursor: loading ? 'wait' : 'pointer', width: '100%',
     }}>
-      {loading ? 'Подготовка PDF...' : '⬇ Скачать резюме (PDF)'}
+      {loading ? 'Preparing PDF...' : '⬇ Download resume (PDF)'}
     </button>
   )
 }
