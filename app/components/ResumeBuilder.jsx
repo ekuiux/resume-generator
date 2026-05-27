@@ -3,18 +3,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
-const ResumePDFViewer = dynamic(
-  () => import('./ResumePDF').then(m => m.ResumePDFViewer),
-  {
-    ssr: false,
-    loading: () => (
-      <div style={{ width: '100%', aspectRatio: '210/297', background: '#2a2a3a',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: 8 }}>
-        <span style={{ color: '#94a3b8', fontSize: 13 }}>Loading preview…</span>
-      </div>
-    ),
-  }
+const ResumePreview = dynamic(
+  () => import('./ResumePDF').then(m => m.ResumePreview),
+  { ssr: false, loading: () => <div style={{ height: 600, background: '#f9fafb', borderRadius: 12 }} /> }
 )
 const ResumeDownloadButton = dynamic(
   () => import('./ResumePDF').then(m => m.ResumeDownloadButton),
@@ -558,6 +549,45 @@ function PageShell({ step, form, children, rightPanel }) {
 
 // ─── Template picker ──────────────────────────────────────────────────────────
 
+const DUMMY_RESUME = {
+  name: 'Alex Johnson',
+  title: 'Senior Product Designer',
+  summary: 'Design-driven professional with 6 years building intuitive digital products for B2B SaaS companies. Led end-to-end product design from discovery to delivery.',
+  experience: [
+    {
+      company: 'Acme Corp',
+      role: 'Senior Product Designer',
+      period: 'Jan 2021 — Present',
+      achievements: [
+        'Led core dashboard redesign, reducing task completion time by 34%',
+        'Built design system adopted across 4 product teams',
+        'Mentored 2 junior designers and ran weekly design critiques',
+      ],
+    },
+    {
+      company: 'Bright Studio',
+      role: 'Product Designer',
+      period: 'Mar 2018 — Dec 2020',
+      achievements: [
+        'Shipped mobile app from 0 to 50k downloads in 8 months',
+        'Collaborated with engineering on 12 major features',
+      ],
+    },
+  ],
+  skills: {
+    technical: ['Figma', 'Prototyping', 'User Research', 'Design Systems', 'Wireframing'],
+    soft: ['Leadership', 'Communication', 'Problem Solving'],
+  },
+  education: [
+    { institution: 'Boston University', degree: 'B.A. Graphic Design', year: '2018' },
+  ],
+  email: 'alex@email.com',
+  phone: '+1 (415) 000-0000',
+  location: 'San Francisco, CA',
+  linkedin: 'linkedin.com/in/alexjohnson',
+  languages: ['English (C2)', 'Spanish (B2)'],
+}
+
 function TemplatePicker({ form, patch, onNext }) {
   const [hovered, setHovered] = useState(null)
   const isMobile = useIsMobile()
@@ -576,60 +606,69 @@ function TemplatePicker({ form, patch, onNext }) {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '1.5rem 1rem 2rem' : '3rem 1.5rem 4rem' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '1.5rem 1rem 2rem' : '3rem 2rem 4rem' }}>
         <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, marginBottom: 8, letterSpacing: '-.02em' }}>Pick a template</h1>
         <p style={{ fontSize: T.f15, color: T.text2, marginBottom: '2.5rem', lineHeight: 1.6 }}>
           ATS-friendly. Exports to PDF in one click.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? 16 : 28 }}>
           {TEMPLATES.map(tpl => {
             const on = form.template === tpl.id
             const isHov = hovered === tpl.id
+            const pdfTemplate = PDF_TEMPLATE_MAP[tpl.id] ?? 'minimal'
             return (
-              <button
-                key={tpl.id} type="button"
-                onClick={() => { patch({ template: tpl.id }); onNext() }}
+              <div
+                key={tpl.id}
                 onMouseEnter={() => setHovered(tpl.id)}
                 onMouseLeave={() => setHovered(null)}
+                onClick={() => { patch({ template: tpl.id }); onNext() }}
                 style={{
-                  border: `2px solid ${isHov || on ? tpl.accent : T.border1}`,
-                  borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
-                  background: T.bg1, textAlign: 'left', padding: 0,
-                  transform: isHov || on ? 'translateY(-4px)' : 'none',
-                  boxShadow: isHov || on ? `0 12px 32px ${tpl.accent}28` : '0 1px 4px rgba(0,0,0,.05)',
-                  transition: 'all .18s ease',
+                  cursor: 'pointer',
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                  boxShadow: isHov ? `0 20px 48px ${tpl.accent}38` : on ? `0 8px 24px ${tpl.accent}28` : '0 2px 8px rgba(0,0,0,.05)',
+                  transform: isHov ? 'scale(1.05)' : on ? 'scale(1.01)' : 'scale(1)',
+                  transition: 'transform .2s ease, box-shadow .2s ease',
                 }}
               >
-                <div style={{ position: 'relative', aspectRatio: '3/4', background: tpl.swatch, overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 52, background: tpl.accent, opacity: .65 }} />
-                  {[0,1,2].map(i => (
-                    <div key={i} style={{ position: 'absolute', left: 14, right: 14 + i * 10, top: 16 + i * 12, height: 6, borderRadius: 3, background: 'rgba(255,255,255,.55)' }} />
-                  ))}
-                  {[0,1,2,3,4,5].map(i => (
-                    <div key={i} style={{ position: 'absolute', left: 14, right: 16 + (i % 3) * 20, top: 68 + i * 18, height: 5, borderRadius: 2, background: tpl.id === 'startup' ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.08)' }} />
-                  ))}
-                  {[0,1,2].map(i => (
-                    <div key={i} style={{ position: 'absolute', left: 14 + i * 52, bottom: 30, height: 16, width: 44, borderRadius: 8, background: tpl.id === 'startup' ? 'rgba(79,70,229,.4)' : 'rgba(0,0,0,.07)' }} />
-                  ))}
+                {/* Preview area */}
+                <div style={{ position: 'relative' }}>
+                  <A4Frame>
+                    <ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare />
+                  </A4Frame>
+
+                  {/* Badge */}
                   {tpl.badge && (
-                    <div style={{ position: 'absolute', top: 10, left: 10, fontSize: 10, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: tpl.badge.bg, color: tpl.badge.color }}>
-                      {tpl.badge.text}
-                    </div>
+                    <div style={{
+                      position: 'absolute', top: 12, left: 12, zIndex: 2,
+                      fontSize: 10, fontWeight: 600, padding: '3px 10px',
+                      borderRadius: 20, background: tpl.badge.bg, color: tpl.badge.color,
+                    }}>{tpl.badge.text}</div>
                   )}
+
+                  {/* Hover CTA overlay */}
+                  <div style={{
+                    position: 'absolute', inset: 0, zIndex: 3,
+                    background: 'rgba(0,0,0,.42)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    opacity: isHov ? 1 : 0,
+                    transition: 'opacity .18s ease',
+                    pointerEvents: isHov ? 'auto' : 'none',
+                  }}>
+                    <div style={{
+                      background: '#fff', color: T.text1,
+                      fontWeight: 600, fontSize: T.f14,
+                      padding: '11px 28px', borderRadius: T.r10,
+                      boxShadow: '0 4px 20px rgba(0,0,0,.25)',
+                      fontFamily: 'inherit',
+                    }}>
+                      Use this template →
+                    </div>
+                  </div>
                 </div>
-                <div style={{
-                  padding: '12px 14px 14px',
-                  borderTop: `0.5px solid ${T.border2}`,
-                  fontSize: T.f14, fontWeight: 600,
-                  textAlign: 'center',
-                  background: isHov || on ? tpl.accent : T.bg1,
-                  color: isHov || on ? '#fff' : T.text1,
-                  transition: 'background .18s, color .18s',
-                }}>
-                  {isHov ? 'Select →' : on ? '✓ ' + tpl.name : tpl.name}
-                </div>
-              </button>
+
+              </div>
             )
           })}
         </div>
@@ -1212,6 +1251,7 @@ function A4Frame({ children }) {
       <div style={{
         position: 'absolute', top: 0, left: 0,
         width: DESIGN_W,
+        minHeight: Math.round(DESIGN_W * 297 / 210),
         transformOrigin: 'top left',
         transform: `scale(${scale})`,
       }}>
@@ -1241,15 +1281,11 @@ function ResumeResult({ resume, template, onReset }) {
           display: isMobile ? 'block' : 'flex', gap: '2rem', alignItems: 'flex-start',
         }}>
 
-          {/* Preview: реальный PDF с A4-пропорциями */}
+          {/* Preview: A4-proportional */}
           <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%' }}>
-            <div style={{
-              width: '100%', aspectRatio: '210 / 297',
-              borderRadius: 4, overflow: 'hidden',
-              boxShadow: '0 6px 32px rgba(0,0,0,.14)',
-            }}>
-              <ResumePDFViewer data={resume} template={template} />
-            </div>
+            <A4Frame>
+              <ResumePreview data={resume} template={template} bare />
+            </A4Frame>
           </div>
 
           {/* Controls: floating card (desktop) / fixed footer (mobile) */}

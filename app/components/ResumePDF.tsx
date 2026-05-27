@@ -16,7 +16,7 @@
 
 import {
   Document, Page, Text, View, StyleSheet, Font,
-  pdf, PDFViewer,
+  pdf,
 } from '@react-pdf/renderer'
 import { useState } from 'react'
 
@@ -1017,94 +1017,343 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
   return <MinimalResume data={data} />
 }
 
-// ─── Public exports ───────────────────────────────────────────────────────────
+// ─── HTML Preview components (one per template) ──────────────────────────────
 
-/**
- * Inline PDF preview (iframe) — показывай до оплаты
- * Работает только на клиенте, поэтому оберни в dynamic import с ssr: false
- */
-export function ResumePreview({ data, template, bare }: { data: ResumeData; template: TemplateId; bare?: boolean }) {
-  void template
+function PreviewContacts({ data, style }: { data: ResumeData; style?: React.CSSProperties }) {
+  const items = [data.email, data.phone, data.location, data.linkedin, data.github].filter(Boolean)
+  if (!items.length) return null
   return (
-    <div style={{
-      background: '#fff', textAlign: 'left',
-      ...(bare ? {
-        padding: '40px 48px', width: '100%', boxSizing: 'border-box' as const,
-      } : {
-        border: '1px solid #e5e7eb', borderRadius: 12,
-        padding: '40px 48px', maxWidth: 680, margin: '0 auto',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-      }),
-    }}>
-      <h2 style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{data.name}</h2>
-      <p style={{ fontSize: 12, color: '#6b7280', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>{data.title}</p>
-      {(data.email || data.phone || data.location || data.linkedin || data.github) && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px', marginBottom: 16 }}>
-          {data.email    && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.email}</span>}
-          {data.phone    && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.phone}</span>}
-          {data.location && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.location}</span>}
-          {data.linkedin && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.linkedin}</span>}
-          {data.github   && <span style={{ fontSize: 12, color: '#9ca3af' }}>{data.github}</span>}
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', ...style }}>
+      {items.map((v, i) => <span key={i}>{v}</span>)}
+    </div>
+  )
+}
+
+function PreviewExp({ exp, bulletColor, dotChar = '—' }: { exp: ResumeData['experience'][0]; bulletColor: string; dotChar?: string }) {
+  return (
+    <>
+      {exp.achievements?.map((a, j) => (
+        <div key={j} style={{ display: 'flex', gap: 8, marginBottom: 3 }}>
+          <span style={{ color: bulletColor, flexShrink: 0 }}>{dotChar}</span>
+          <span style={{ fontSize: 13, lineHeight: 1.55 }}>{a}</span>
         </div>
-      )}
+      ))}
+    </>
+  )
+}
 
-      <div style={{ height: 1, background: '#111', marginBottom: 20 }} />
-
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Summary</p>
-      <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 24 }}>{data.summary}</p>
-
-      <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
-
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Experience</p>
+// ── 1. Minimal ────────────────────────────────────────────────────────────────
+function PreviewMinimal({ data }: { data: ResumeData }) {
+  const sec = { fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' as const, color: '#111', marginBottom: 10 }
+  const hr  = (thick?: boolean) => <div style={{ height: thick ? 1 : 0.5, background: thick ? '#111' : '#e5e7eb', margin: '18px 0' }} />
+  return (
+    <div style={{ fontFamily: 'system-ui, sans-serif', color: '#111', padding: '40px 48px' }}>
+      <p style={{ fontSize: 26, fontWeight: 700, marginBottom: 3, letterSpacing: 0.3 }}>{data.name}</p>
+      <p style={{ fontSize: 11, color: '#666', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>{data.title}</p>
+      <PreviewContacts data={data} style={{ fontSize: 11, color: '#888', gap: '3px 16px' }} />
+      {hr(true)}
+      {data.summary && <><p style={sec}>Summary</p><p style={{ fontSize: 13, color: '#444', lineHeight: 1.7, marginBottom: 4 }}>{data.summary}</p>{hr()}</>}
+      <p style={sec}>Experience</p>
       {data.experience?.map((exp, i) => (
-        <div key={i} style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-            <span style={{ fontSize: 15, fontWeight: 700 }}>{exp.company}</span>
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>{exp.period}</span>
+        <div key={i} style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>{exp.company}</span>
+            <span style={{ fontSize: 11, color: '#888' }}>{exp.period}</span>
           </div>
-          <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8, fontStyle: 'italic' }}>{exp.role}</p>
-          {exp.achievements?.map((a, j) => (
-            <div key={j} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-              <span style={{ color: '#111', marginTop: 2 }}>—</span>
-              <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{a}</span>
+          <p style={{ fontSize: 12, color: '#555', fontStyle: 'italic', margin: '2px 0 6px' }}>{exp.role}</p>
+          <PreviewExp exp={exp} bulletColor="#111" dotChar="—" />
+        </div>
+      ))}
+      {hr()}
+      <p style={sec}>Skills</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+          <span key={i} style={{ fontSize: 11, padding: '3px 9px', border: '0.5px solid #ccc', color: '#333' }}>{s}</span>
+        ))}
+      </div>
+      {data.education?.length > 0 && <>{hr()}<p style={sec}>Education</p>{data.education.map((ed, i) => (
+        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div><p style={{ fontSize: 13, fontWeight: 600 }}>{ed.institution}</p><p style={{ fontSize: 12, color: '#666' }}>{ed.degree}</p></div>
+          <span style={{ fontSize: 11, color: '#888' }}>{ed.year}</span>
+        </div>
+      ))}</>}
+      {data.languages?.length ? <>{hr()}<p style={sec}>Languages</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{data.languages.map((l, i) => <span key={i} style={{ fontSize: 11, padding: '3px 9px', border: '0.5px solid #ccc', color: '#333' }}>{l}</span>)}</div></> : null}
+    </div>
+  )
+}
+
+// ── 2. Corporate ─────────────────────────────────────────────────────────────
+function PreviewCorporate({ data }: { data: ResumeData }) {
+  const blue = '#1e3a8a', lightBlue = '#eff6ff', accentBlue = '#2563eb'
+  const sec = { fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' as const,
+    color: blue, borderBottom: `1.5px solid ${blue}`, paddingBottom: 5, marginBottom: 10 }
+  return (
+    <div style={{ fontFamily: 'system-ui, sans-serif', color: '#111' }}>
+      <div style={{ background: blue, padding: '28px 40px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <p style={{ fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{data.name}</p>
+          <p style={{ fontSize: 10, color: '#93c5fd', letterSpacing: 1.8, textTransform: 'uppercase', marginBottom: 10 }}>{data.title}</p>
+          <PreviewContacts data={data} style={{ fontSize: 11, color: '#bfdbfe', gap: '3px 16px' }} />
+        </div>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: accentBlue, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff', flexShrink: 0, marginLeft: 20 }}>
+          {data.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+        </div>
+      </div>
+      <div style={{ padding: '24px 40px 32px' }}>
+        {data.summary && <div style={{ marginBottom: 18 }}><p style={sec}>Profile</p><p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>{data.summary}</p></div>}
+        <div style={{ marginBottom: 18 }}>
+          <p style={sec}>Experience</p>
+          {data.experience?.map((exp, i) => (
+            <div key={i} style={{ marginBottom: 14, paddingBottom: 12, borderBottom: '0.5px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                <span style={{ fontWeight: 700, fontSize: 14, color: blue }}>{exp.company}</span>
+                <span style={{ fontSize: 11, color: '#fff', background: blue, padding: '2px 7px', borderRadius: 3 }}>{exp.period}</span>
+              </div>
+              <p style={{ fontSize: 12, color: accentBlue, fontStyle: 'italic', marginBottom: 6 }}>{exp.role}</p>
+              <PreviewExp exp={exp} bulletColor={accentBlue} dotChar="▸" />
             </div>
           ))}
         </div>
-      ))}
-
-      <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
-
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Skills</p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-        {data.skills?.technical?.map((s, i) => (
-          <span key={i} style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 4 }}>{s}</span>
-        ))}
-      </div>
-
-      <div style={{ height: 1, background: '#e5e7eb', marginBottom: 20 }} />
-
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Education</p>
-      {data.education?.map((ed, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <div>
-            <p style={{ fontSize: 14, fontWeight: 600 }}>{ed.institution}</p>
-            <p style={{ fontSize: 13, color: '#6b7280' }}>{ed.degree}</p>
-          </div>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{ed.year}</span>
-        </div>
-      ))}
-
-      {data.languages && data.languages.length > 0 && (
-        <>
-          <div style={{ height: 1, background: '#e5e7eb', marginTop: 20, marginBottom: 20 }} />
-          <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Languages</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {data.languages.map((l, i) => (
-              <span key={i} style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 4 }}>{l}</span>
+        <div style={{ marginBottom: 18 }}>
+          <p style={sec}>Skills</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+              <span key={i} style={{ fontSize: 11, padding: '3px 9px', background: lightBlue, color: blue, borderRadius: 3 }}>{s}</span>
             ))}
           </div>
-        </>
-      )}
+        </div>
+        {data.education?.length > 0 && <div style={{ marginBottom: 18 }}><p style={sec}>Education</p>{data.education.map((ed, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div><p style={{ fontSize: 13, fontWeight: 600, color: blue }}>{ed.institution}</p><p style={{ fontSize: 12, color: '#64748b' }}>{ed.degree}</p></div>
+            <span style={{ fontSize: 11, color: '#64748b' }}>{ed.year}</span>
+          </div>
+        ))}</div>}
+        {data.languages?.length ? <div><p style={sec}>Languages</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{data.languages.map((l, i) => <span key={i} style={{ fontSize: 11, padding: '3px 9px', background: lightBlue, color: blue, borderRadius: 3 }}>{l}</span>)}</div></div> : null}
+      </div>
+    </div>
+  )
+}
+
+// ── 3. Startup ────────────────────────────────────────────────────────────────
+function PreviewStartup({ data }: { data: ResumeData }) {
+  const bg = '#0f0f1a', card = '#1a1a2e', accent = '#6366f1', dim = '#94a3b8', text = '#e2e8f0'
+  const sec = { fontSize: 9, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase' as const, color: accent, marginBottom: 10 }
+  const hr = () => <div style={{ height: 1, background: '#ffffff10', margin: '16px 0' }} />
+  return (
+    <div style={{ fontFamily: 'system-ui, sans-serif', background: bg, color: text, padding: '36px 40px' }}>
+      <p style={{ fontSize: 26, fontWeight: 700, marginBottom: 3 }}>{data.name}</p>
+      <p style={{ fontSize: 11, color: accent, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>{data.title}</p>
+      <PreviewContacts data={data} style={{ fontSize: 11, color: dim, gap: '3px 16px', marginBottom: 20 }} />
+      {data.summary && <><p style={sec}>About</p><p style={{ fontSize: 13, color: dim, lineHeight: 1.7, marginBottom: 4 }}>{data.summary}</p>{hr()}</>}
+      <p style={sec}>Experience</p>
+      {data.experience?.map((exp, i) => (
+        <div key={i} style={{ background: card, borderRadius: 6, padding: '10px 14px', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>{exp.company}</span>
+            <span style={{ fontSize: 11, color: accent, background: '#6366f115', padding: '2px 7px', borderRadius: 3 }}>{exp.period}</span>
+          </div>
+          <p style={{ fontSize: 12, color: dim, marginBottom: 6 }}>{exp.role}</p>
+          <div style={{ color: '#cbd5e1' }}><PreviewExp exp={exp} bulletColor={accent} dotChar="▸" /></div>
+        </div>
+      ))}
+      {hr()}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <div>
+          <p style={sec}>Skills</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+              <span key={i} style={{ fontSize: 11, padding: '3px 9px', background: '#6366f115', color: accent, borderRadius: 10 }}>{skillName(s)}</span>
+            ))}
+          </div>
+        </div>
+        <div>
+          {data.education?.length > 0 && <><p style={sec}>Education</p>{data.education.map((ed, i) => (
+            <div key={i} style={{ marginBottom: 8 }}>
+              <p style={{ fontSize: 13, fontWeight: 600 }}>{ed.institution}</p>
+              <p style={{ fontSize: 11, color: dim }}>{ed.degree}</p>
+              <p style={{ fontSize: 11, color: accent }}>{ed.year}</p>
+            </div>
+          ))}</>}
+          {data.languages?.length ? <><p style={{ ...sec, marginTop: 12 }}>Languages</p>{data.languages.map((l, i) => <p key={i} style={{ fontSize: 12, color: dim, marginBottom: 3 }}>{l}</p>)}</> : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 4. Academic ───────────────────────────────────────────────────────────────
+function PreviewAcademic({ data }: { data: ResumeData }) {
+  const dark = '#1a2744', gray = '#4a5568', line = '#c8d0e0'
+  const sec = { fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' as const,
+    color: dark, borderBottom: `1px solid ${dark}`, paddingBottom: 4, marginBottom: 8, marginTop: 14 }
+  return (
+    <div style={{ fontFamily: 'system-ui, sans-serif', display: 'flex', minHeight: Math.round(680 * 297 / 210) }}>
+      {/* Sidebar */}
+      <div style={{ width: 168, background: '#f7f8fa', borderRight: `1px solid ${line}`, padding: '32px 16px 32px 24px', flexShrink: 0, alignSelf: 'stretch' }}>
+        {/* Photo */}
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: line, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: dark, marginBottom: 12 }}>
+          {data.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+        </div>
+        <p style={{ fontSize: 15, fontWeight: 700, color: dark, marginBottom: 2, lineHeight: 1.3 }}>{data.name}</p>
+        <p style={{ fontSize: 10, color: gray, fontStyle: 'italic', marginBottom: 12 }}>{data.title}</p>
+        <p style={sec}>Contact</p>
+        {[data.email, data.phone, data.location, data.linkedin, data.github].filter(Boolean).map((v, i) => (
+          <p key={i} style={{ fontSize: 10, color: gray, marginBottom: 4, lineHeight: 1.4 }}>{v}</p>
+        ))}
+        {data.skills.technical.length > 0 && <><p style={sec}>Skills</p>{data.skills.technical.map((s, i) => <p key={i} style={{ fontSize: 10, color: gray, marginBottom: 3 }}>· {s}</p>)}</>}
+        {data.skills.soft.length > 0 && <><p style={{ ...sec, marginTop: 10 }}>Competencies</p>{data.skills.soft.map((s, i) => <p key={i} style={{ fontSize: 10, color: gray, marginBottom: 3 }}>· {s}</p>)}</>}
+        {data.languages?.length ? <><p style={sec}>Languages</p>{data.languages.map((l, i) => <p key={i} style={{ fontSize: 10, color: gray, marginBottom: 3 }}>{l}</p>)}</> : null}
+      </div>
+      {/* Main */}
+      <div style={{ flex: 1, padding: '32px 28px 32px 24px' }}>
+        {data.summary && <><p style={sec}>Profile</p><p style={{ fontSize: 13, color: gray, lineHeight: 1.75, marginBottom: 4 }}>{data.summary}</p></>}
+        <p style={sec}>Experience</p>
+        {data.experience?.map((exp, i) => (
+          <div key={i} style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontWeight: 700, fontSize: 14, color: dark }}>{exp.company}</span>
+              <span style={{ fontSize: 11, color: gray, fontStyle: 'italic' }}>{exp.period}</span>
+            </div>
+            <p style={{ fontSize: 12, color: gray, fontStyle: 'italic', marginBottom: 5 }}>{exp.role}</p>
+            <div style={{ color: gray }}><PreviewExp exp={exp} bulletColor={dark} dotChar="–" /></div>
+          </div>
+        ))}
+        {data.education?.length > 0 && <><p style={sec}>Education</p>{data.education.map((ed, i) => (
+          <div key={i} style={{ marginBottom: 10 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: dark }}>{ed.institution}</p>
+            <p style={{ fontSize: 12, color: gray, fontStyle: 'italic' }}>{ed.degree}</p>
+            <p style={{ fontSize: 11, color: gray }}>{ed.year}</p>
+          </div>
+        ))}</>}
+      </div>
+    </div>
+  )
+}
+
+// ── 5. Modern (creative) ──────────────────────────────────────────────────────
+function PreviewModern({ data }: { data: ResumeData }) {
+  const darkGreen = '#064e3b', green = '#059669', lightGreen = '#ecfdf5'
+  const secLabel = (title: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+      <div style={{ width: 8, height: 8, background: green, borderRadius: 4 }} />
+      <span style={{ fontSize: 10, fontWeight: 700, color: darkGreen, letterSpacing: 1.2, textTransform: 'uppercase' as const }}>{title}</span>
+    </div>
+  )
+  return (
+    <div style={{ fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: darkGreen, padding: '28px 40px 22px' }}>
+        <p style={{ fontSize: 26, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{data.name}</p>
+        <p style={{ fontSize: 11, color: '#6ee7b7', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 10 }}>{data.title}</p>
+        <PreviewContacts data={data} style={{ fontSize: 11, color: '#a7f3d0', gap: '3px 20px' }} />
+      </div>
+      <div style={{ padding: '24px 40px 32px' }}>
+        {data.summary && <div style={{ marginBottom: 20 }}>{secLabel('Summary')}<p style={{ fontSize: 13, color: '#374151', lineHeight: 1.75 }}>{data.summary}</p></div>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 28 }}>
+          <div>
+            {secLabel('Experience')}
+            {data.experience?.map((exp, i) => (
+              <div key={i} style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                  <span style={{ fontWeight: 700, fontSize: 14, color: darkGreen }}>{exp.company}</span>
+                  <span style={{ fontSize: 11, color: green, background: lightGreen, padding: '2px 7px', borderRadius: 3 }}>{exp.period}</span>
+                </div>
+                <p style={{ fontSize: 12, color: green, marginBottom: 5 }}>{exp.role}</p>
+                <div style={{ color: '#4b5563' }}><PreviewExp exp={exp} bulletColor={green} dotChar="◆" /></div>
+              </div>
+            ))}
+          </div>
+          <div>
+            {secLabel('Technical Skills')}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 16 }}>
+              {data.skills.technical.map((s, i) => <span key={i} style={{ fontSize: 11, padding: '3px 9px', background: lightGreen, color: darkGreen, borderRadius: 10 }}>{s}</span>)}
+            </div>
+            {data.skills.soft.length > 0 && <><div style={{ marginBottom: 8 }}>{secLabel('Soft Skills')}</div>{data.skills.soft.map((s, i) => <p key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 4, paddingLeft: 8, borderLeft: `2px solid ${green}` }}>{s}</p>)}</>}
+            {data.education?.length > 0 && <><div style={{ marginTop: 14, marginBottom: 8 }}>{secLabel('Education')}</div>{data.education.map((ed, i) => <div key={i} style={{ marginBottom: 8, paddingLeft: 10, borderLeft: `2px solid #d1fae5` }}><p style={{ fontSize: 12, fontWeight: 700, color: darkGreen }}>{ed.institution}</p><p style={{ fontSize: 11, color: '#6b7280' }}>{ed.degree}</p><p style={{ fontSize: 11, color: green }}>{ed.year}</p></div>)}</>}
+            {data.languages?.length ? <><div style={{ marginTop: 14, marginBottom: 8 }}>{secLabel('Languages')}</div>{data.languages.map((l, i) => <p key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 4, paddingLeft: 8, borderLeft: `2px solid ${green}` }}>{l}</p>)}</> : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 6. Elegant ────────────────────────────────────────────────────────────────
+function PreviewElegant({ data }: { data: ResumeData }) {
+  const gold = '#8B6914', dark = '#1a1a1a', mid = '#555'
+  const sec = { fontSize: 10, fontWeight: 700, color: gold, letterSpacing: 2, textTransform: 'uppercase' as const, fontStyle: 'italic' as const, marginBottom: 10 }
+  const ornament = <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '16px 0' }}>
+    <div style={{ flex: 1, height: 0.75, background: gold }} />
+    <div style={{ width: 5, height: 5, background: gold, borderRadius: '50%' }} />
+    <div style={{ flex: 1, height: 0.75, background: gold }} />
+  </div>
+  const thinHr = <div style={{ height: 0.5, background: '#d4c5a9', margin: '14px 0' }} />
+  return (
+    <div style={{ fontFamily: 'Georgia, serif', background: '#fdfaf5', padding: '40px 48px' }}>
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <p style={{ fontSize: 28, fontWeight: 700, color: dark, letterSpacing: 0.5, marginBottom: 4 }}>{data.name}</p>
+        <p style={{ fontSize: 11, color: gold, letterSpacing: 2.5, textTransform: 'uppercase', fontStyle: 'italic', marginBottom: 10 }}>{data.title}</p>
+        <PreviewContacts data={data} style={{ fontSize: 11, color: mid, justifyContent: 'center', gap: '3px 14px' }} />
+      </div>
+      {ornament}
+      {data.summary && <><p style={sec}>Summary</p><p style={{ fontSize: 13, color: mid, lineHeight: 1.8, fontStyle: 'italic', marginBottom: 4 }}>{data.summary}</p>{thinHr}</>}
+      <p style={sec}>Experience</p>
+      {data.experience?.map((exp, i) => (
+        <div key={i} style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: dark }}>{exp.company}</span>
+            <span style={{ fontSize: 11, color: gold, fontStyle: 'italic' }}>{exp.period}</span>
+          </div>
+          <p style={{ fontSize: 12, color: mid, fontStyle: 'italic', margin: '2px 0 6px' }}>{exp.role}</p>
+          <div style={{ color: mid }}><PreviewExp exp={exp} bulletColor={gold} dotChar="✦" /></div>
+        </div>
+      ))}
+      {thinHr}
+      <p style={sec}>Skills</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+        {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+          <span key={i} style={{ fontSize: 11, padding: '3px 9px', border: `0.75px solid ${gold}`, color: dark }}>{s}</span>
+        ))}
+      </div>
+      {data.education?.length > 0 && <>{thinHr}<p style={sec}>Education</p>{data.education.map((ed, i) => (
+        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
+          <div><p style={{ fontSize: 13, fontWeight: 700, color: dark }}>{ed.institution}</p><p style={{ fontSize: 12, color: mid, fontStyle: 'italic' }}>{ed.degree}</p></div>
+          <span style={{ fontSize: 11, color: gold }}>{ed.year}</span>
+        </div>
+      ))}</>}
+      {data.languages?.length ? <>{thinHr}<p style={sec}>Languages</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{data.languages.map((l, i) => <span key={i} style={{ fontSize: 11, padding: '3px 9px', border: `0.75px solid ${gold}`, color: dark }}>{l}</span>)}</div></> : null}
+    </div>
+  )
+}
+
+// ─── Public exports ───────────────────────────────────────────────────────────
+
+const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
+  startup: '#0f0f1a',
+  elegant: '#fdfaf5',
+}
+// A4 height in px at design width 680
+const A4_H = Math.round(680 * 297 / 210)
+
+export function ResumePreview({ data, template, bare }: { data: ResumeData; template: TemplateId; bare?: boolean }) {
+  const bg = TEMPLATE_BG[template] ?? '#ffffff'
+
+  const inner = (() => {
+    if (template === 'corporate') return <PreviewCorporate data={data} />
+    if (template === 'startup')   return <PreviewStartup   data={data} />
+    if (template === 'academic')  return <PreviewAcademic  data={data} />
+    if (template === 'creative')  return <PreviewModern    data={data} />
+    if (template === 'elegant')   return <PreviewElegant   data={data} />
+    return <PreviewMinimal data={data} />
+  })()
+
+  if (bare) return (
+    <div style={{ width: '100%', minHeight: A4_H, background: bg, boxSizing: 'border-box' as const }}>
+      {inner}
+    </div>
+  )
+  return (
+    <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, maxWidth: 680, margin: '0 auto', overflow: 'hidden', background: bg, boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+      {inner}
     </div>
   )
 }
@@ -1145,14 +1394,3 @@ export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }
   )
 }
 
-/**
- * Реальный PDF-вьювер — показывает точный рендер выбранного шаблона.
- * Работает только на клиенте, оборачивай в dynamic import с ssr: false.
- */
-export function ResumePDFViewer({ data, template }: { data: ResumeData; template: TemplateId }) {
-  return (
-    <PDFViewer style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}>
-      <ResumeDocument data={data} template={template} />
-    </PDFViewer>
-  )
-}
