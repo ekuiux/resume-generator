@@ -3,9 +3,18 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
-const ResumePreview = dynamic(
-  () => import('./ResumePDF').then(m => m.ResumePreview),
-  { ssr: false, loading: () => <div style={{ height: 600, background: '#f9fafb', borderRadius: 12 }} /> }
+const ResumePDFViewer = dynamic(
+  () => import('./ResumePDF').then(m => m.ResumePDFViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{ width: '100%', aspectRatio: '210/297', background: '#2a2a3a',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: 8 }}>
+        <span style={{ color: '#94a3b8', fontSize: 13 }}>Loading preview…</span>
+      </div>
+    ),
+  }
 )
 const ResumeDownloadButton = dynamic(
   () => import('./ResumePDF').then(m => m.ResumeDownloadButton),
@@ -47,7 +56,7 @@ const PHOTO_TEMPLATES = ['corporate', 'modern', 'elegant']
 const PDF_TEMPLATE_MAP = {
   minimal:   'minimal',
   corporate: 'corporate',
-  startup:   'business',
+  startup:   'startup',
   academic:  'academic',
   modern:    'creative',
   elegant:   'elegant',
@@ -64,6 +73,16 @@ const INITIAL_FORM = {
   experience: [], education: [],
   skills: [{ id: uid(), name: '', level: 2 }],
   languages: [{ id: uid(), name: '', level: 3 }],
+}
+
+const LS_KEY = 'resume-form-v1'
+
+function loadSavedForm() {
+  try {
+    const raw = localStorage.getItem(LS_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return INITIAL_FORM
 }
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -1222,11 +1241,15 @@ function ResumeResult({ resume, template, onReset }) {
           display: isMobile ? 'block' : 'flex', gap: '2rem', alignItems: 'flex-start',
         }}>
 
-          {/* Preview: A4-proportional */}
+          {/* Preview: реальный PDF с A4-пропорциями */}
           <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%' }}>
-            <A4Frame>
-              <ResumePreview data={resume} template={template} bare />
-            </A4Frame>
+            <div style={{
+              width: '100%', aspectRatio: '210 / 297',
+              borderRadius: 4, overflow: 'hidden',
+              boxShadow: '0 6px 32px rgba(0,0,0,.14)',
+            }}>
+              <ResumePDFViewer data={resume} template={template} />
+            </div>
           </div>
 
           {/* Controls: floating card (desktop) / fixed footer (mobile) */}
@@ -1277,13 +1300,17 @@ function ResumeResult({ resume, template, onReset }) {
 
 export default function ResumeBuilder() {
   const [screen, setScreen] = useState(-1)
-  const [form, setForm] = useState(INITIAL_FORM)
+  const [form, setForm] = useState(loadSavedForm)
   const [resume, setResume] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
   const goTo = s => { setScreen(s); window.scrollTo(0, 0) }
+
+  useEffect(() => {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(form)) } catch {}
+  }, [form])
 
   async function generate() {
     setGenerating(true)
@@ -1326,7 +1353,7 @@ export default function ResumeBuilder() {
   }
 
   if (resume) {
-    return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1) }} />
+    return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} />
   }
 
   if (screen === -1) {

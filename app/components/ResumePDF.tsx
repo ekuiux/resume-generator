@@ -16,7 +16,7 @@
 
 import {
   Document, Page, Text, View, StyleSheet, Font,
-  pdf,
+  pdf, PDFViewer,
 } from '@react-pdf/renderer'
 import { useState } from 'react'
 
@@ -68,7 +68,20 @@ export interface ResumeData {
   languages?: string[]
 }
 
-export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic'
+export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const SKILL_LEVEL_PCT: Record<string, number> = {
+  Beginner: 20, Familiar: 40, Proficient: 60, Advanced: 80, Expert: 100,
+}
+function skillLevelPct(skill: string): number {
+  const match = skill.match(/\((\w+)\)$/)
+  return match ? (SKILL_LEVEL_PCT[match[1]] ?? 70) : 70
+}
+function skillName(skill: string): string {
+  return skill.replace(/\s*\(\w+\)$/, '').trim()
+}
 
 // ─── Шаблон 1: MINIMAL ───────────────────────────────────────────────────────
 // Чёрно-белый, тонкие линии, много воздуха. Работает для любой индустрии.
@@ -154,7 +167,7 @@ function MinimalResume({ data }: { data: ResumeData }) {
         <View style={minimalStyles.section}>
           <Text style={minimalStyles.sectionTitle}>Skills</Text>
           <View style={minimalStyles.skillsRow}>
-            {data.skills.technical.map((s, i) => (
+            {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
               <Text key={i} style={minimalStyles.skillTag}>{s}</Text>
             ))}
           </View>
@@ -261,9 +274,9 @@ function BusinessResume({ data }: { data: ResumeData }) {
             <Text style={bizStyles.sbSectionT}>Skills</Text>
             {data.skills.technical.slice(0, 8).map((s, i) => (
               <View key={i}>
-                <Text style={bizStyles.sbSkill}>{s}</Text>
+                <Text style={bizStyles.sbSkill}>{skillName(s)}</Text>
                 <View style={bizStyles.sbBar}>
-                  <View style={{ ...bizStyles.sbBarFill, width: `${75 + (i % 3) * 8}%` }} />
+                  <View style={{ ...bizStyles.sbBarFill, width: `${skillLevelPct(s)}%` }} />
                 </View>
               </View>
             ))}
@@ -862,6 +875,136 @@ function AcademicResume({ data }: { data: ResumeData }) {
   )
 }
 
+// ─── Шаблон 7: STARTUP ───────────────────────────────────────────────────────
+// Тёмный фон #0f0f1a, индиго акцент #4f46e5. Для стартапов и tech-специалистов.
+
+const STP_BG     = '#0f0f1a'
+const STP_CARD   = '#1a1a2e'
+const STP_ACCENT = '#6366f1'
+const STP_DIM    = '#94a3b8'
+const STP_TEXT   = '#e2e8f0'
+
+const stpStyles = StyleSheet.create({
+  page:        { fontFamily: 'Roboto', backgroundColor: STP_BG, padding: '44 48 44 48' },
+  name:        { fontSize: 28, fontWeight: 'bold', color: STP_TEXT, letterSpacing: 0.3, marginBottom: 4 },
+  title:       { fontSize: 11, color: STP_ACCENT, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 },
+  contacts:    { flexDirection: 'row', gap: 16, flexWrap: 'wrap', marginBottom: 28 },
+  contact:     { fontSize: 9, color: STP_DIM },
+  divider:     { height: 1, backgroundColor: '#ffffff10', marginBottom: 20 },
+  section:     { marginBottom: 22 },
+  sectionTitle:{ fontSize: 8, fontWeight: 'bold', color: STP_ACCENT, letterSpacing: 2.5,
+                 textTransform: 'uppercase', marginBottom: 12 },
+  summary:     { fontSize: 10.5, color: STP_DIM, lineHeight: 1.7 },
+  expBlock:    { backgroundColor: STP_CARD, borderRadius: 6, padding: '10 14 10 14', marginBottom: 10 },
+  expHead:     { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
+  expCompany:  { fontSize: 11, fontWeight: 'bold', color: STP_TEXT },
+  expPeriod:   { fontSize: 8.5, color: STP_ACCENT, backgroundColor: '#6366f120',
+                 paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 },
+  expRole:     { fontSize: 9.5, color: STP_DIM, marginBottom: 7 },
+  bullet:      { flexDirection: 'row', marginBottom: 4 },
+  bulletDot:   { width: 12, fontSize: 9, color: STP_ACCENT, marginTop: 1 },
+  bulletText:  { fontSize: 9.5, color: '#cbd5e1', lineHeight: 1.6, flex: 1 },
+  twoCol:      { flexDirection: 'row', gap: 20 },
+  col:         { flex: 1 },
+  skillChip:   { fontSize: 9, color: STP_ACCENT, backgroundColor: '#6366f115',
+                 paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
+                 marginBottom: 5, marginRight: 5 },
+  skillsRow:   { flexDirection: 'row', flexWrap: 'wrap' },
+  eduBlock:    { marginBottom: 10 },
+  eduInst:     { fontSize: 10, fontWeight: 'bold', color: STP_TEXT, marginBottom: 1 },
+  eduDeg:      { fontSize: 9, color: STP_DIM, marginBottom: 1 },
+  eduYear:     { fontSize: 9, color: STP_ACCENT },
+  langItem:    { fontSize: 9, color: STP_DIM, marginBottom: 4 },
+})
+
+function StartupResume({ data }: { data: ResumeData }) {
+  return (
+    <Document>
+      <Page size="A4" style={stpStyles.page}>
+
+        {/* Header */}
+        <Text style={stpStyles.name}>{data.name}</Text>
+        <Text style={stpStyles.title}>{data.title}</Text>
+        <View style={stpStyles.contacts}>
+          {data.email    && <Text style={stpStyles.contact}>{data.email}</Text>}
+          {data.phone    && <Text style={stpStyles.contact}>{data.phone}</Text>}
+          {data.location && <Text style={stpStyles.contact}>{data.location}</Text>}
+          {data.linkedin && <Text style={stpStyles.contact}>{data.linkedin}</Text>}
+          {data.github   && <Text style={stpStyles.contact}>{data.github}</Text>}
+        </View>
+
+        {data.summary ? (
+          <>
+            <View style={stpStyles.section}>
+              <Text style={stpStyles.sectionTitle}>About</Text>
+              <Text style={stpStyles.summary}>{data.summary}</Text>
+            </View>
+            <View style={stpStyles.divider} />
+          </>
+        ) : null}
+
+        <View style={stpStyles.section}>
+          <Text style={stpStyles.sectionTitle}>Experience</Text>
+          {data.experience.map((exp, i) => (
+            <View key={i} style={stpStyles.expBlock}>
+              <View style={stpStyles.expHead}>
+                <Text style={stpStyles.expCompany}>{exp.company}</Text>
+                <Text style={stpStyles.expPeriod}>{exp.period}</Text>
+              </View>
+              <Text style={stpStyles.expRole}>{exp.role}</Text>
+              {exp.achievements.map((ach, j) => (
+                <View key={j} style={stpStyles.bullet}>
+                  <Text style={stpStyles.bulletDot}>▸</Text>
+                  <Text style={stpStyles.bulletText}>{ach}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+
+        <View style={stpStyles.divider} />
+
+        {/* Bottom two columns */}
+        <View style={stpStyles.twoCol}>
+          <View style={stpStyles.col}>
+            <Text style={stpStyles.sectionTitle}>Skills</Text>
+            <View style={stpStyles.skillsRow}>
+              {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+                <Text key={i} style={stpStyles.skillChip}>{skillName(s)}</Text>
+              ))}
+            </View>
+          </View>
+
+          <View style={stpStyles.col}>
+            {data.education.length > 0 && (
+              <View style={{ marginBottom: 16 }}>
+                <Text style={stpStyles.sectionTitle}>Education</Text>
+                {data.education.map((ed, i) => (
+                  <View key={i} style={stpStyles.eduBlock}>
+                    <Text style={stpStyles.eduInst}>{ed.institution}</Text>
+                    <Text style={stpStyles.eduDeg}>{ed.degree}</Text>
+                    <Text style={stpStyles.eduYear}>{ed.year}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {data.languages && data.languages.length > 0 && (
+              <View>
+                <Text style={stpStyles.sectionTitle}>Languages</Text>
+                {data.languages.map((l, i) => (
+                  <Text key={i} style={stpStyles.langItem}>{l}</Text>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+
+      </Page>
+    </Document>
+  )
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 function ResumeDocument({ data, template }: { data: ResumeData; template: TemplateId }) {
@@ -870,6 +1013,7 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
   if (template === 'corporate')  return <CorporateResume data={data} />
   if (template === 'elegant')    return <ElegantResume   data={data} />
   if (template === 'academic')   return <AcademicResume  data={data} />
+  if (template === 'startup')    return <StartupResume   data={data} />
   return <MinimalResume data={data} />
 }
 
@@ -966,8 +1110,7 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
 }
 
 /**
- * Кнопка скачивания — показывай после оплаты
- * isPaid prop блокирует скачивание до Stripe webhook
+ * Кнопка скачивания
  */
 export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }: {
   data: ResumeData
@@ -1003,17 +1146,13 @@ export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }
 }
 
 /**
- * Пример использования в странице (после dynamic import):
- *
- * // app/resume/preview/page.tsx
- * import dynamic from 'next/dynamic'
- *
- * const ResumePreview = dynamic(
- *   () => import('@/components/ResumePDF').then(m => m.ResumePreview),
- *   { ssr: false }
- * )
- * const ResumeDownloadButton = dynamic(
- *   () => import('@/components/ResumePDF').then(m => m.ResumeDownloadButton),
- *   { ssr: false }
- * )
+ * Реальный PDF-вьювер — показывает точный рендер выбранного шаблона.
+ * Работает только на клиенте, оборачивай в dynamic import с ssr: false.
  */
+export function ResumePDFViewer({ data, template }: { data: ResumeData; template: TemplateId }) {
+  return (
+    <PDFViewer style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}>
+      <ResumeDocument data={data} template={template} />
+    </PDFViewer>
+  )
+}

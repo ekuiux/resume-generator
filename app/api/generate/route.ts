@@ -108,16 +108,13 @@ Return ONLY JSON.`
   })
 
   const data = await response.json()
-  console.log('API response:', JSON.stringify(data)) // добавили
   const text = data.content[0].text
-  
+
   try {
     const clean = text.replace(/```json|```/g, '').trim()
-    console.log('Claude response:', text) // добавили лог
     const resume = JSON.parse(clean)
     return NextResponse.json({ resume })
   } catch {
-    console.log('Raw text:', text) // и тут
     return NextResponse.json({ error: 'Parse error', raw: text }, { status: 500 })
   }
 }
