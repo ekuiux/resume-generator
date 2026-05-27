@@ -21,6 +21,15 @@ import {
 import { useState } from 'react'
 
 Font.register({
+  family: 'Georgia',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/crimsontext/v19/wlp2gwHKFkZgtmSR3NB0oRJfbwhT.ttf', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/crimsontext/v19/wlpZgwHKFkZgtmSR3NB0oRJXsCx2C9lR1LU.ttf', fontWeight: 700 },
+    { src: 'https://fonts.gstatic.com/s/crimsontext/v19/wlppgwHKFkZgtmSR3NB0oRJfajhRK_Y.ttf', fontWeight: 400, fontStyle: 'italic' },
+  ]
+})
+
+Font.register({
   family: 'Roboto',
   fonts: [
     { src: 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.ttf', fontWeight: 400 },
@@ -59,7 +68,7 @@ export interface ResumeData {
   languages?: string[]
 }
 
-export type TemplateId = 'minimal' | 'business' | 'creative'
+export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic'
 
 // ─── Шаблон 1: MINIMAL ───────────────────────────────────────────────────────
 // Чёрно-белый, тонкие линии, много воздуха. Работает для любой индустрии.
@@ -425,7 +434,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
               <View style={{ ...creStyles.section }}>
                 <View style={creStyles.sectionLabel}>
                   <View style={creStyles.sectionDot} />
-                  <Text style={creStyles.sectionT}>Technologies</Text>
+                  <Text style={creStyles.sectionT}>Technical Skills</Text>
                 </View>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {data.skills.technical.map((s, i) => (
@@ -437,7 +446,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
               <View style={creStyles.section}>
                 <View style={creStyles.sectionLabel}>
                   <View style={creStyles.sectionDot} />
-                  <Text style={creStyles.sectionT}>Soft skills</Text>
+                  <Text style={creStyles.sectionT}>Soft Skills</Text>
                 </View>
                 {data.skills.soft.map((s, i) => (
                   <Text key={i} style={creStyles.softSkill}>{s}</Text>
@@ -479,11 +488,388 @@ function CreativeResume({ data }: { data: ResumeData }) {
   )
 }
 
+// ─── Шаблон 4: CORPORATE ─────────────────────────────────────────────────────
+
+const CORP_BLUE  = '#1e3a8a'
+const CORP_LIGHT = '#eff6ff'
+const CORP_GRAY  = '#64748b'
+
+const corpStyles = StyleSheet.create({
+  page:        { fontFamily: 'Roboto', backgroundColor: '#ffffff', padding: 0 },
+  header:      { backgroundColor: CORP_BLUE, padding: '36 48 28 48' },
+  headerName:  { fontSize: 26, fontWeight: 'bold', color: '#ffffff', marginBottom: 4, letterSpacing: 0.3 },
+  headerTitle: { fontSize: 10, color: '#93c5fd', letterSpacing: 1.8, textTransform: 'uppercase', marginBottom: 14 },
+  headerContacts: { flexDirection: 'row', gap: 20, flexWrap: 'wrap' },
+  headerContact:  { fontSize: 9, color: '#bfdbfe' },
+  body:        { padding: '32 48 40 48' },
+  section:     { marginBottom: 22 },
+  sectionTitle:{ fontSize: 9, fontWeight: 'bold', letterSpacing: 2, textTransform: 'uppercase',
+                 color: CORP_BLUE, marginBottom: 8, paddingBottom: 5,
+                 borderBottom: `1.5 solid ${CORP_BLUE}` },
+  summary:     { fontSize: 10.5, color: '#374151', lineHeight: 1.7 },
+  expBlock:    { marginBottom: 14, paddingBottom: 12, borderBottom: `0.5 solid #e2e8f0` },
+  expHead:     { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
+  expCompany:  { fontSize: 11, fontWeight: 'bold', color: CORP_BLUE },
+  expPeriod:   { fontSize: 9, color: '#ffffff', backgroundColor: CORP_BLUE,
+                 paddingHorizontal: 7, paddingVertical: 2, borderRadius: 3 },
+  expRole:     { fontSize: 9.5, color: CORP_GRAY, marginBottom: 5, fontStyle: 'italic' },
+  bullet:      { flexDirection: 'row', marginBottom: 3.5 },
+  bulletDot:   { width: 12, fontSize: 9, color: CORP_BLUE, marginTop: 1.5 },
+  bulletText:  { fontSize: 9.5, color: '#374151', lineHeight: 1.6, flex: 1 },
+  skillsRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  skillTag:    { fontSize: 9, color: CORP_BLUE, backgroundColor: CORP_LIGHT,
+                 paddingHorizontal: 8, paddingVertical: 3, borderRadius: 3 },
+  eduRow:      { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  eduInst:     { fontSize: 10.5, fontWeight: 'bold', color: CORP_BLUE },
+  eduDeg:      { fontSize: 9.5, color: CORP_GRAY },
+  eduYear:     { fontSize: 9.5, color: CORP_GRAY },
+})
+
+function CorporateResume({ data }: { data: ResumeData }) {
+  return (
+    <Document>
+      <Page size="A4" style={corpStyles.page}>
+        <View style={corpStyles.header}>
+          <Text style={corpStyles.headerName}>{data.name}</Text>
+          <Text style={corpStyles.headerTitle}>{data.title}</Text>
+          <View style={corpStyles.headerContacts}>
+            {data.email    && <Text style={corpStyles.headerContact}>{data.email}</Text>}
+            {data.phone    && <Text style={corpStyles.headerContact}>{data.phone}</Text>}
+            {data.location && <Text style={corpStyles.headerContact}>{data.location}</Text>}
+            {data.linkedin && <Text style={corpStyles.headerContact}>{data.linkedin}</Text>}
+            {data.github   && <Text style={corpStyles.headerContact}>{data.github}</Text>}
+          </View>
+        </View>
+
+        <View style={corpStyles.body}>
+          {data.summary ? (
+            <View style={corpStyles.section}>
+              <Text style={corpStyles.sectionTitle}>Profile</Text>
+              <Text style={corpStyles.summary}>{data.summary}</Text>
+            </View>
+          ) : null}
+
+          <View style={corpStyles.section}>
+            <Text style={corpStyles.sectionTitle}>Experience</Text>
+            {data.experience.map((exp, i) => (
+              <View key={i} style={corpStyles.expBlock}>
+                <View style={corpStyles.expHead}>
+                  <Text style={corpStyles.expCompany}>{exp.company}</Text>
+                  <Text style={corpStyles.expPeriod}>{exp.period}</Text>
+                </View>
+                <Text style={corpStyles.expRole}>{exp.role}</Text>
+                {exp.achievements.map((ach, j) => (
+                  <View key={j} style={corpStyles.bullet}>
+                    <Text style={corpStyles.bulletDot}>▸</Text>
+                    <Text style={corpStyles.bulletText}>{ach}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+
+          <View style={corpStyles.section}>
+            <Text style={corpStyles.sectionTitle}>Skills</Text>
+            <View style={corpStyles.skillsRow}>
+              {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+                <Text key={i} style={corpStyles.skillTag}>{s}</Text>
+              ))}
+            </View>
+          </View>
+
+          {data.education.length > 0 && (
+            <View style={corpStyles.section}>
+              <Text style={corpStyles.sectionTitle}>Education</Text>
+              {data.education.map((ed, i) => (
+                <View key={i} style={corpStyles.eduRow}>
+                  <View>
+                    <Text style={corpStyles.eduInst}>{ed.institution}</Text>
+                    <Text style={corpStyles.eduDeg}>{ed.degree}</Text>
+                  </View>
+                  <Text style={corpStyles.eduYear}>{ed.year}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {data.languages && data.languages.length > 0 && (
+            <View style={corpStyles.section}>
+              <Text style={corpStyles.sectionTitle}>Languages</Text>
+              <View style={corpStyles.skillsRow}>
+                {data.languages.map((l, i) => (
+                  <Text key={i} style={corpStyles.skillTag}>{l}</Text>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
+// ─── Шаблон 5: ELEGANT ───────────────────────────────────────────────────────
+
+const ELE_ACCENT = '#8B6914'
+const ELE_DARK   = '#1a1a1a'
+const ELE_MID    = '#555555'
+
+const eleStyles = StyleSheet.create({
+  page:        { fontFamily: 'Georgia', backgroundColor: '#fdfaf5', padding: '52 56 52 56' },
+  header:      { marginBottom: 24, alignItems: 'center' },
+  name:        { fontSize: 30, fontWeight: 'bold', color: ELE_DARK, letterSpacing: 1, marginBottom: 6 },
+  title:       { fontSize: 11, color: ELE_ACCENT, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 14, fontStyle: 'italic' },
+  contacts:    { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center' },
+  contact:     { fontSize: 9, color: ELE_MID },
+  ornament:    { flexDirection: 'row', alignItems: 'center', marginVertical: 18, gap: 8 },
+  ornLine:     { flex: 1, height: 0.75, backgroundColor: ELE_ACCENT },
+  ornDot:      { width: 5, height: 5, backgroundColor: ELE_ACCENT, borderRadius: 2.5 },
+  section:     { marginBottom: 22 },
+  sectionTitle:{ fontSize: 10, fontWeight: 'bold', color: ELE_ACCENT, letterSpacing: 2,
+                 textTransform: 'uppercase', marginBottom: 12, fontStyle: 'italic' },
+  summary:     { fontSize: 10.5, color: ELE_MID, lineHeight: 1.8, fontStyle: 'italic' },
+  expBlock:    { marginBottom: 14 },
+  expHead:     { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
+  expCompany:  { fontSize: 11, fontWeight: 'bold', color: ELE_DARK },
+  expPeriod:   { fontSize: 9, color: ELE_ACCENT, fontStyle: 'italic' },
+  expRole:     { fontSize: 10, color: ELE_MID, marginBottom: 5, fontStyle: 'italic' },
+  bullet:      { flexDirection: 'row', marginBottom: 4 },
+  bulletDot:   { width: 14, fontSize: 9, color: ELE_ACCENT, marginTop: 1 },
+  bulletText:  { fontSize: 9.5, color: ELE_MID, lineHeight: 1.65, flex: 1 },
+  thinLine:    { height: 0.5, backgroundColor: '#d4c5a9', marginBottom: 14, marginTop: 4 },
+  skillsRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
+  skillTag:    { fontSize: 9, color: ELE_DARK, paddingHorizontal: 9, paddingVertical: 3,
+                 border: `0.75 solid ${ELE_ACCENT}` },
+  eduRow:      { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 7 },
+  eduInst:     { fontSize: 10.5, fontWeight: 'bold', color: ELE_DARK },
+  eduDeg:      { fontSize: 9.5, color: ELE_MID, fontStyle: 'italic' },
+  eduYear:     { fontSize: 9.5, color: ELE_ACCENT },
+})
+
+function ElegantResume({ data }: { data: ResumeData }) {
+  return (
+    <Document>
+      <Page size="A4" style={eleStyles.page}>
+        <View style={eleStyles.header}>
+          <Text style={eleStyles.name}>{data.name}</Text>
+          <Text style={eleStyles.title}>{data.title}</Text>
+          <View style={eleStyles.contacts}>
+            {data.email    && <Text style={eleStyles.contact}>{data.email}</Text>}
+            {data.phone    && <Text style={eleStyles.contact}>{data.phone}</Text>}
+            {data.location && <Text style={eleStyles.contact}>{data.location}</Text>}
+            {data.linkedin && <Text style={eleStyles.contact}>{data.linkedin}</Text>}
+            {data.github   && <Text style={eleStyles.contact}>{data.github}</Text>}
+          </View>
+        </View>
+
+        <View style={eleStyles.ornament}>
+          <View style={eleStyles.ornLine} />
+          <View style={eleStyles.ornDot} />
+          <View style={eleStyles.ornLine} />
+        </View>
+
+        {data.summary ? (
+          <View style={eleStyles.section}>
+            <Text style={eleStyles.sectionTitle}>Summary</Text>
+            <Text style={eleStyles.summary}>{data.summary}</Text>
+            <View style={eleStyles.thinLine} />
+          </View>
+        ) : null}
+
+        <View style={eleStyles.section}>
+          <Text style={eleStyles.sectionTitle}>Experience</Text>
+          {data.experience.map((exp, i) => (
+            <View key={i} style={eleStyles.expBlock}>
+              <View style={eleStyles.expHead}>
+                <Text style={eleStyles.expCompany}>{exp.company}</Text>
+                <Text style={eleStyles.expPeriod}>{exp.period}</Text>
+              </View>
+              <Text style={eleStyles.expRole}>{exp.role}</Text>
+              {exp.achievements.map((ach, j) => (
+                <View key={j} style={eleStyles.bullet}>
+                  <Text style={eleStyles.bulletDot}>✦</Text>
+                  <Text style={eleStyles.bulletText}>{ach}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+          <View style={eleStyles.thinLine} />
+        </View>
+
+        <View style={eleStyles.section}>
+          <Text style={eleStyles.sectionTitle}>Skills</Text>
+          <View style={eleStyles.skillsRow}>
+            {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+              <Text key={i} style={eleStyles.skillTag}>{s}</Text>
+            ))}
+          </View>
+          <View style={eleStyles.thinLine} />
+        </View>
+
+        {data.education.length > 0 && (
+          <View style={eleStyles.section}>
+            <Text style={eleStyles.sectionTitle}>Education</Text>
+            {data.education.map((ed, i) => (
+              <View key={i} style={eleStyles.eduRow}>
+                <View>
+                  <Text style={eleStyles.eduInst}>{ed.institution}</Text>
+                  <Text style={eleStyles.eduDeg}>{ed.degree}</Text>
+                </View>
+                <Text style={eleStyles.eduYear}>{ed.year}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {data.languages && data.languages.length > 0 && (
+          <View style={eleStyles.section}>
+            <Text style={eleStyles.sectionTitle}>Languages</Text>
+            <View style={eleStyles.skillsRow}>
+              {data.languages.map((l, i) => (
+                <Text key={i} style={eleStyles.skillTag}>{l}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+      </Page>
+    </Document>
+  )
+}
+
+// ─── Шаблон 6: ACADEMIC ──────────────────────────────────────────────────────
+
+const ACA_DARK  = '#1a2744'
+const ACA_LINE  = '#c8d0e0'
+const ACA_GRAY  = '#4a5568'
+
+const acaStyles = StyleSheet.create({
+  page:       { fontFamily: 'Roboto', backgroundColor: '#ffffff', padding: '44 0 44 0' },
+  layout:     { flexDirection: 'row', paddingHorizontal: 0 },
+  sidebar:    { width: 168, backgroundColor: '#f7f8fa', padding: '0 18 0 28', borderRight: `1 solid ${ACA_LINE}` },
+  main:       { flex: 1, padding: '0 32 0 28' },
+  secTitle:   { fontSize: 9, fontWeight: 'bold', letterSpacing: 2, textTransform: 'uppercase',
+                color: ACA_DARK, marginBottom: 8, marginTop: 16,
+                borderBottom: `1 solid ${ACA_DARK}`, paddingBottom: 4 },
+  sbName:     { fontSize: 15, fontWeight: 'bold', color: ACA_DARK, marginBottom: 3, lineHeight: 1.3 },
+  sbTitle:    { fontSize: 9, color: ACA_GRAY, fontStyle: 'italic', marginBottom: 14, lineHeight: 1.5 },
+  sbItem:     { fontSize: 9, color: ACA_GRAY, marginBottom: 5, lineHeight: 1.5 },
+  sbLabel:    { fontSize: 8, fontWeight: 'bold', color: ACA_DARK, letterSpacing: 0.5 },
+  skillItem:  { fontSize: 9, color: ACA_GRAY, marginBottom: 4 },
+  summary:    { fontSize: 10, color: ACA_GRAY, lineHeight: 1.75, marginBottom: 4 },
+  expBlock:   { marginBottom: 14 },
+  expHead:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 },
+  expCompany: { fontSize: 11, fontWeight: 'bold', color: ACA_DARK },
+  expPeriod:  { fontSize: 8.5, color: ACA_GRAY, fontStyle: 'italic' },
+  expRole:    { fontSize: 9.5, color: ACA_GRAY, marginBottom: 5, fontStyle: 'italic' },
+  bullet:     { flexDirection: 'row', marginBottom: 3.5 },
+  bulletDot:  { width: 12, fontSize: 9, color: ACA_DARK, marginTop: 1 },
+  bulletText: { fontSize: 9.5, color: ACA_GRAY, lineHeight: 1.6, flex: 1 },
+  eduBlock:   { marginBottom: 12 },
+  eduInst:    { fontSize: 10.5, fontWeight: 'bold', color: ACA_DARK, marginBottom: 1 },
+  eduDeg:     { fontSize: 9.5, color: ACA_GRAY, fontStyle: 'italic', marginBottom: 1 },
+  eduYear:    { fontSize: 9, color: ACA_GRAY },
+})
+
+function AcademicResume({ data }: { data: ResumeData }) {
+  return (
+    <Document>
+      <Page size="A4" style={acaStyles.page}>
+        <View style={acaStyles.layout}>
+
+          {/* Sidebar */}
+          <View style={acaStyles.sidebar}>
+            <Text style={acaStyles.sbName}>{data.name}</Text>
+            <Text style={acaStyles.sbTitle}>{data.title}</Text>
+
+            <Text style={acaStyles.secTitle}>Contact</Text>
+            {data.email    && <Text style={acaStyles.sbItem}>{data.email}</Text>}
+            {data.phone    && <Text style={acaStyles.sbItem}>{data.phone}</Text>}
+            {data.location && <Text style={acaStyles.sbItem}>{data.location}</Text>}
+            {data.linkedin && <Text style={acaStyles.sbItem}>{data.linkedin}</Text>}
+            {data.github   && <Text style={acaStyles.sbItem}>{data.github}</Text>}
+
+            {data.skills.technical.length > 0 && (
+              <>
+                <Text style={acaStyles.secTitle}>Skills</Text>
+                {data.skills.technical.map((s, i) => (
+                  <Text key={i} style={acaStyles.skillItem}>· {s}</Text>
+                ))}
+              </>
+            )}
+
+            {data.skills.soft.length > 0 && (
+              <>
+                <Text style={{ ...acaStyles.secTitle, marginTop: 12 }}>Competencies</Text>
+                {data.skills.soft.map((s, i) => (
+                  <Text key={i} style={acaStyles.skillItem}>· {s}</Text>
+                ))}
+              </>
+            )}
+
+            {data.languages && data.languages.length > 0 && (
+              <>
+                <Text style={acaStyles.secTitle}>Languages</Text>
+                {data.languages.map((l, i) => (
+                  <Text key={i} style={acaStyles.skillItem}>{l}</Text>
+                ))}
+              </>
+            )}
+          </View>
+
+          {/* Main */}
+          <View style={acaStyles.main}>
+            {data.summary ? (
+              <>
+                <Text style={acaStyles.secTitle}>Profile</Text>
+                <Text style={acaStyles.summary}>{data.summary}</Text>
+              </>
+            ) : null}
+
+            <Text style={acaStyles.secTitle}>Experience</Text>
+            {data.experience.map((exp, i) => (
+              <View key={i} style={acaStyles.expBlock}>
+                <View style={acaStyles.expHead}>
+                  <Text style={acaStyles.expCompany}>{exp.company}</Text>
+                  <Text style={acaStyles.expPeriod}>{exp.period}</Text>
+                </View>
+                <Text style={acaStyles.expRole}>{exp.role}</Text>
+                {exp.achievements.map((ach, j) => (
+                  <View key={j} style={acaStyles.bullet}>
+                    <Text style={acaStyles.bulletDot}>–</Text>
+                    <Text style={acaStyles.bulletText}>{ach}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+
+            {data.education.length > 0 && (
+              <>
+                <Text style={acaStyles.secTitle}>Education</Text>
+                {data.education.map((ed, i) => (
+                  <View key={i} style={acaStyles.eduBlock}>
+                    <Text style={acaStyles.eduInst}>{ed.institution}</Text>
+                    <Text style={acaStyles.eduDeg}>{ed.degree}</Text>
+                    <Text style={acaStyles.eduYear}>{ed.year}</Text>
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
+
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 function ResumeDocument({ data, template }: { data: ResumeData; template: TemplateId }) {
-  if (template === 'business') return <BusinessResume data={data} />
-  if (template === 'creative') return <CreativeResume data={data} />
+  if (template === 'business')   return <BusinessResume  data={data} />
+  if (template === 'creative')   return <CreativeResume  data={data} />
+  if (template === 'corporate')  return <CorporateResume data={data} />
+  if (template === 'elegant')    return <ElegantResume   data={data} />
+  if (template === 'academic')   return <AcademicResume  data={data} />
   return <MinimalResume data={data} />
 }
 
@@ -493,13 +879,18 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
  * Inline PDF preview (iframe) — показывай до оплаты
  * Работает только на клиенте, поэтому оберни в dynamic import с ssr: false
  */
-export function ResumePreview({ data, template }: { data: ResumeData; template: TemplateId }) {
+export function ResumePreview({ data, template, bare }: { data: ResumeData; template: TemplateId; bare?: boolean }) {
   void template
   return (
     <div style={{
-      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12,
-      padding: '40px 48px', maxWidth: 680, margin: '0 auto', textAlign: 'left',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.06)'
+      background: '#fff', textAlign: 'left',
+      ...(bare ? {
+        padding: '40px 48px', width: '100%', boxSizing: 'border-box' as const,
+      } : {
+        border: '1px solid #e5e7eb', borderRadius: 12,
+        padding: '40px 48px', maxWidth: 680, margin: '0 auto',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+      }),
     }}>
       <h2 style={{ fontSize: 26, fontWeight: 700, marginBottom: 4 }}>{data.name}</h2>
       <p style={{ fontSize: 12, color: '#6b7280', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>{data.title}</p>
@@ -606,7 +997,7 @@ export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }
       background: loading ? '#a5b4fc' : '#4f46e5', color: '#fff',
       border: 'none', cursor: loading ? 'wait' : 'pointer', width: '100%',
     }}>
-      {loading ? 'Preparing PDF...' : '⬇ Download resume (PDF)'}
+      {loading ? 'Preparing PDF...' : '⬇ Download Resume (PDF)'}
     </button>
   )
 }

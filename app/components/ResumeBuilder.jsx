@@ -44,7 +44,14 @@ const CITY_SUGG = ['New York','Los Angeles','San Francisco','Chicago','Seattle',
 const COUNTRY_SUGG = ['United States','United Kingdom','Canada','Australia','Germany','France','Netherlands','Spain','Switzerland','Sweden','Norway','Denmark','Finland','Poland','Czech Republic','Ukraine','Israel','UAE','India','Japan','South Korea','China','Singapore','Brazil','Mexico','Argentina','South Africa','Nigeria','Kenya']
 const LANG_SUGG = ['English','Spanish','French','German','Portuguese','Italian','Russian','Chinese','Japanese','Korean','Arabic','Hindi','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Turkish','Ukrainian','Hebrew','Persian','Thai','Vietnamese','Indonesian','Malay','Romanian','Hungarian','Greek','Czech']
 const PHOTO_TEMPLATES = ['corporate', 'modern', 'elegant']
-const PDF_TEMPLATE_MAP = { minimal: 'minimal', corporate: 'business', startup: 'business', academic: 'minimal', modern: 'creative', elegant: 'minimal' }
+const PDF_TEMPLATE_MAP = {
+  minimal:   'minimal',
+  corporate: 'corporate',
+  startup:   'business',
+  academic:  'academic',
+  modern:    'creative',
+  elegant:   'elegant',
+}
 const ROW_H = 44
 
 let _uid = 0
@@ -71,21 +78,34 @@ const T = {
   f11: 11, f12: 12, f13: 13, f14: 14, f15: 15, f20: 20,
 }
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [breakpoint])
+  return isMobile
+}
+
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
-function Input({ style, ...props }) {
+function Input({ style, error, ...props }) {
   const [focused, setFocused] = useState(false)
+  const borderColor = error ? '#EF4444' : focused ? T.accent : T.border1
+  const shadow = error ? '0 0 0 3px rgba(239,68,68,.12)' : focused ? '0 0 0 3px rgba(83,74,183,.12)' : 'none'
   return (
     <input
       {...props}
       style={{
         width: '100%', fontFamily: 'inherit', fontSize: 14,
         color: T.text1, background: T.bg1,
-        border: `1.5px solid ${focused ? T.accent : T.border1}`,
+        border: `1.5px solid ${borderColor}`,
         borderRadius: T.r10,
         height: ROW_H, padding: '0 14px', outline: 'none',
         boxSizing: 'border-box',
-        boxShadow: focused ? '0 0 0 3px rgba(83,74,183,.12)' : 'none',
+        boxShadow: shadow,
         transition: 'border-color .15s, box-shadow .15s', ...style,
       }}
       onFocus={e => { setFocused(true); props.onFocus?.(e) }}
@@ -245,13 +265,7 @@ function BtnAdd({ children, onClick }) {
 // ─── Header progress bar ──────────────────────────────────────────────────────
 
 function HeaderProgress({ step }) {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const isMobile = useIsMobile()
 
   if (isMobile) {
     return (
@@ -296,13 +310,7 @@ function HeaderProgress({ step }) {
 }
 
 function Footer({ step, onBack, onNext, nextLabel }) {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const isMobile = useIsMobile()
 
   return (
     <div style={{
@@ -423,13 +431,7 @@ function ResumeDocPreview({ step }) {
 function PageShell({ step, form, children, rightPanel }) {
   const isDark = form.template === 'startup'
   const badge = STEP_BADGE[step]
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const isMobile = useIsMobile()
 
   return (
     <div style={{
@@ -539,13 +541,7 @@ function PageShell({ step, form, children, rightPanel }) {
 
 function TemplatePicker({ form, patch, onNext }) {
   const [hovered, setHovered] = useState(null)
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const isMobile = useIsMobile()
 
   return (
     <div style={{ minHeight: '100vh', background: T.bg2 }}>
@@ -628,6 +624,12 @@ function TemplatePicker({ form, patch, onNext }) {
 function StepPersonal({ form, patch, onBack, onNext }) {
   const fileRef = useRef()
   const showPhoto = PHOTO_TEMPLATES.includes(form.template)
+  const [showErr, setShowErr] = useState(false)
+
+  function handleNext() {
+    if (!form.name?.trim() || !form.targetRole?.trim()) { setShowErr(true); return }
+    onNext()
+  }
 
   function handlePhoto(e) {
     const file = e.target.files[0]; if (!file) return
@@ -660,10 +662,10 @@ function StepPersonal({ form, patch, onBack, onNext }) {
         )}
 
         <Field label="Target job title" hint="Be specific — recruiters search by exact title.">
-          <Input value={form.targetRole} onChange={e => patch({ targetRole: e.target.value })} placeholder="e.g. Senior Product Manager" />
+          <Input value={form.targetRole} onChange={e => { patch({ targetRole: e.target.value }); setShowErr(false) }} placeholder="e.g. Senior Product Manager" error={showErr && !form.targetRole?.trim()} />
         </Field>
         <Field label="Full name">
-          <Input value={form.name} onChange={e => patch({ name: e.target.value })} placeholder="Alex Johnson" />
+          <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }} placeholder="Alex Johnson" error={showErr && !form.name?.trim()} />
         </Field>
         <Grid2>
           <Field label="Email"><Input type="email" value={form.email} onChange={e => patch({ email: e.target.value })} placeholder="alex@email.com" /></Field>
@@ -675,7 +677,7 @@ function StepPersonal({ form, patch, onBack, onNext }) {
         </Grid2>
       </div>
 
-      <Footer step={1} onBack={onBack} onNext={onNext} />
+      <Footer step={1} onBack={onBack} onNext={handleNext} />
     </>
   )
 }
@@ -814,6 +816,7 @@ function EduCard({ edu, index, isOpen, onToggle, onUpdate, onRemove }) {
 
 function StepExperience({ form, patch, onBack, onNext }) {
   const [openId, setOpenId] = useState(null)
+
   function addExp() {
     const id = uid()
     patch({ experience: [...form.experience, { id, company: '', role: '', start: '', end: '', desc: '' }] })
@@ -948,13 +951,7 @@ function ProgressSeg({ options, selected, onChange }) {
 }
 
 function SkillRow({ item, levels, onNameChange, onLevelChange, onRemove, placeholder, segmented, suggestions }) {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const isMobile = useIsMobile()
 
   const NameField = suggestions ? AutoInput : Input
   const removeBtn = (
@@ -998,13 +995,7 @@ function SkillRow({ item, levels, onNameChange, onLevelChange, onRemove, placeho
 }
 
 function ColHeaders({ c1, c2 }) {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const isMobile = useIsMobile()
 
   if (isMobile) {
     return <div style={{ marginBottom: 6 }}><Lbl>{c1}</Lbl></div>
@@ -1092,7 +1083,7 @@ function SumRow({ label, value }) {
 }
 
 
-function Summary({ form, goTo, onGenerate }) {
+function Summary({ form, goTo, onGenerate, generating, genError }) {
   const tpl = TEMPLATES.find(t => t.id === form.template)
   const ind = INDUSTRIES.find(i => i.id === form.industry)
   return (
@@ -1152,7 +1143,20 @@ function Summary({ form, goTo, onGenerate }) {
         <div style={{ fontSize: T.f14, color: T.text2, marginBottom: '1.25rem', lineHeight: 1.6 }}>
           AI will write polished bullet points, a professional summary,<br />and group your skills — tailored to your target role.
         </div>
-        <BtnPrimary onClick={onGenerate}>✦ Generate resume</BtnPrimary>
+        <BtnPrimary onClick={onGenerate} disabled={generating}>
+          {generating ? '⏳ Generating…' : '✦ Generate resume'}
+        </BtnPrimary>
+
+        {genError && (
+          <div style={{
+            marginTop: 12, padding: '10px 14px',
+            background: '#FEF2F2', border: '1.5px solid #FECACA',
+            borderRadius: T.r10, fontSize: T.f13, color: '#DC2626', lineHeight: 1.5,
+          }}>
+            ⚠ {genError}
+          </div>
+        )}
+
         <button onClick={() => goTo(4)} style={{
           display: 'block', margin: '12px auto 0', fontSize: T.f13,
           color: T.text3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
@@ -1164,22 +1168,105 @@ function Summary({ form, goTo, onGenerate }) {
 
 // ─── Generated result ─────────────────────────────────────────────────────────
 
-function ResumeResult({ resume, template, onReset }) {
+function A4Frame({ children }) {
+  const outerRef = useRef(null)
+  const [scale, setScale] = useState(1)
+  const DESIGN_W = 680
+
+  useEffect(() => {
+    if (!outerRef.current) return
+    const ro = new ResizeObserver(([e]) => {
+      setScale(e.contentRect.width / DESIGN_W)
+    })
+    ro.observe(outerRef.current)
+    return () => ro.disconnect()
+  }, [])
+
   return (
-    <div style={{ minHeight: '100vh', background: T.bg2 }}>
-      <div style={{ background: T.bg1, borderBottom: `0.5px solid ${T.border1}`, padding: '0 2rem', height: 56, display: 'flex', alignItems: 'center' }}>
+    <div ref={outerRef} style={{
+      width: '100%', aspectRatio: '210 / 297',
+      position: 'relative', overflow: 'hidden',
+      background: '#fff',
+      borderRadius: 4,
+      boxShadow: '0 6px 32px rgba(0,0,0,.14)',
+    }}>
+      <div style={{
+        position: 'absolute', top: 0, left: 0,
+        width: DESIGN_W,
+        transformOrigin: 'top left',
+        transform: `scale(${scale})`,
+      }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function ResumeResult({ resume, template, onReset }) {
+  const isMobile = useIsMobile()
+  return (
+    <div style={{ minHeight: '100vh', background: T.bg2, display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{
+        background: T.bg1, borderBottom: `0.5px solid ${T.border1}`,
+        padding: '0 2rem', height: 56,
+        display: 'flex', alignItems: 'center', flexShrink: 0,
+      }}>
         <div style={{ fontSize: T.f14, fontWeight: 700, color: T.text1, letterSpacing: '-.02em' }}>ResumeBuilder</div>
       </div>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '3rem 1.5rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, letterSpacing: '-.02em' }}>Resume ready!</h2>
-          <p style={{ color: T.text2, fontSize: T.f14 }}>Review the preview — download your PDF when you're happy with it.</p>
-        </div>
-        <ResumePreview data={resume} template={template} />
-        <div style={{ textAlign: 'center', marginTop: '1.75rem' }}>
-          <ResumeDownloadButton data={resume} template={template} filename="resume.pdf" />
-          <button onClick={onReset} style={{ display: 'block', margin: '12px auto 0', fontSize: T.f12, color: T.text3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>← Start over</button>
+
+      {/* Content */}
+      <div style={{ flex: 1, padding: isMobile ? '1.25rem 1rem 120px' : '2rem 1.5rem 3rem', display: 'flex', justifyContent: 'center' }}>
+        <div style={{
+          width: '100%', maxWidth: 1280,
+          display: isMobile ? 'block' : 'flex', gap: '2rem', alignItems: 'flex-start',
+        }}>
+
+          {/* Preview: A4-proportional */}
+          <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%' }}>
+            <A4Frame>
+              <ResumePreview data={resume} template={template} bare />
+            </A4Frame>
+          </div>
+
+          {/* Controls: floating card (desktop) / fixed footer (mobile) */}
+          {isMobile ? (
+            <div style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0,
+              background: T.bg1, borderTop: `0.5px solid ${T.border1}`,
+              padding: '12px 16px 28px',
+              display: 'flex', flexDirection: 'column', gap: 8, zIndex: 10,
+            }}>
+              <ResumeDownloadButton data={resume} template={template} filename="resume.pdf" />
+              <button onClick={onReset} style={{
+                fontSize: T.f13, color: T.text3, textAlign: 'center',
+                background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+              }}>← Start over</button>
+            </div>
+          ) : (
+            <div style={{ flex: 1, position: 'sticky', top: '2rem' }}>
+              <div style={{
+                background: T.bg1, border: `0.5px solid ${T.border1}`,
+                borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,.08)',
+                padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem',
+              }}>
+                <div>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>🎉</div>
+                  <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, letterSpacing: '-.02em' }}>Resume ready!</h2>
+                  <p style={{ color: T.text2, fontSize: T.f13, lineHeight: 1.6 }}>
+                    Review the preview — download your PDF when you're happy with it.
+                  </p>
+                </div>
+                <ResumeDownloadButton data={resume} template={template} filename="resume.pdf" />
+                <button onClick={onReset} style={{
+                  fontSize: T.f13, color: T.text3,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'inherit', textAlign: 'left', padding: 0,
+                }}>← Start over</button>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
@@ -1192,11 +1279,15 @@ export default function ResumeBuilder() {
   const [screen, setScreen] = useState(-1)
   const [form, setForm] = useState(INITIAL_FORM)
   const [resume, setResume] = useState(null)
+  const [generating, setGenerating] = useState(false)
+  const [genError, setGenError] = useState(null)
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
   const goTo = s => { setScreen(s); window.scrollTo(0, 0) }
 
   async function generate() {
+    setGenerating(true)
+    setGenError(null)
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -1228,7 +1319,9 @@ export default function ResumeBuilder() {
         education: raw.education?.length ? raw.education : formEdu,
       })
     } catch (e) {
-      console.error(e.message)
+      setGenError(e.message || 'Something went wrong. Please try again.')
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -1245,7 +1338,7 @@ export default function ResumeBuilder() {
     if (screen === 2) return <StepProfile    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => goTo(3)} />
     if (screen === 3) return <StepExperience form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => goTo(4)} />
     if (screen === 4) return <StepSkills     form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => goTo(0)} />
-    if (screen === 0) return <Summary form={form} goTo={goTo} onGenerate={generate} />
+    if (screen === 0) return <Summary form={form} goTo={goTo} onGenerate={generate} generating={generating} genError={genError} />
   })()
 
   return (

@@ -1,26 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SYSTEM_PROMPT = `You are an expert resume writer. Generate a professional resume based on the user's input.
+const SYSTEM_PROMPT = `You are a resume writer. Your job is to polish and restructure
+the information the user provides — nothing more.
+
+STRICT RULES:
+- NEVER invent facts, companies, metrics, dates, or achievements not mentioned by the user
+- NEVER use generic filler phrases like "motivated professional", "dynamic environment",
+  "proven track record", "collaborated with cross-functional teams"
+- If a field is empty or missing — leave that section empty or omit it entirely
+- If experience description is vague — rewrite it clearly but do not add invented details
+- Summary must be based ONLY on what the user provided. If no real info — return empty string ""
+- Skills must come ONLY from what the user listed. Do not add skills they didn't mention
+- Education must reflect only what the user entered. If empty — return empty array []
+
+WHAT YOU CAN DO:
+- Rewrite sentences with stronger action verbs based on the user's own words
+- Fix grammar and improve clarity
+- Structure bullet points properly
+- Infer seniority tone from the level field (Senior = confident claims, Junior = learning-focused)
 
 Return ONLY valid JSON, no markdown, no explanations.
 Schema:
 {
   "ru": {
     "name": "string",
-    "title": "string", 
-    "summary": "string (3-4 sentences, achievement-focused)",
+    "title": "string",
+    "summary": "string — empty string if insufficient info",
     "experience": [{"company": "string", "role": "string", "period": "string", "achievements": ["string"]}],
     "skills": {"technical": ["string"], "soft": ["string"]},
     "education": [{"institution": "string", "degree": "string", "year": "string"}]
-  },
-  "en": { }
+  }
 }
 
-Rules:
-- Every achievement must show what you DID and what was the RESULT
-- Use action verbs: Led, Built, Increased, Reduced, Launched
-- Add realistic metrics if user didn't provide them
-- Return ONLY JSON, nothing else`
+Return ONLY JSON, nothing else.`
 
 export async function POST(req: NextRequest) {
   const formData = await req.json()
@@ -55,6 +67,7 @@ export async function POST(req: NextRequest) {
 `).join('\n')
 
   const userPrompt = `Generate a professional English-language resume for:
+IMPORTANT: Only use information explicitly provided below. If a field is empty, skip it.
 Name: ${formData.name}
 Target role: ${formData.targetRole}
 Industry: ${ind}
