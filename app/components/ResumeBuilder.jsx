@@ -2,6 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import PaywallModal from './PaywallModal'
+import { usePaywall } from '../hooks/usePaywall'
+import { useSearchParams } from 'next/navigation'
 
 const ResumePreview = dynamic(
   () => import('./ResumePDF').then(m => m.ResumePreview),
@@ -1261,8 +1264,17 @@ function A4Frame({ children }) {
   )
 }
 
-function ResumeResult({ resume, template, onReset }) {
+function ResumeResult({ resume, template, onReset, onDownload, autoDownload, downloadRef }) {
   const isMobile = useIsMobile()
+  const dlRef = useRef(null)
+
+  useEffect(() => {
+    if (!autoDownload || !dlRef.current) return
+    const t = setTimeout(() => {
+      dlRef.current?.querySelector('button')?.click()
+    }, 600)
+    return () => clearTimeout(t)
+  }, [autoDownload])
   return (
     <div style={{ minHeight: '100vh', background: T.bg2, display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
@@ -1296,7 +1308,10 @@ function ResumeResult({ resume, template, onReset }) {
               padding: '12px 16px 28px',
               display: 'flex', flexDirection: 'column', gap: 8, zIndex: 10,
             }}>
-              <ResumeDownloadButton data={resume} template={template} filename="resume.pdf" />
+              {autoDownload
+                ? <div ref={dlRef}><ResumeDownloadButton data={resume} template={template} filename="resume.pdf" /></div>
+                : <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
+              }
               <button onClick={onReset} style={{
                 fontSize: T.f13, color: T.text3, textAlign: 'center',
                 background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
@@ -1316,7 +1331,10 @@ function ResumeResult({ resume, template, onReset }) {
                     Review the preview — download your PDF when you're happy with it.
                   </p>
                 </div>
-                <ResumeDownloadButton data={resume} template={template} filename="resume.pdf" />
+                {autoDownload
+                  ? <div ref={dlRef}><ResumeDownloadButton data={resume} template={template} filename="resume.pdf" /></div>
+                  : <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
+                }
                 <button onClick={onReset} style={{
                   fontSize: T.f13, color: T.text3,
                   background: 'none', border: 'none', cursor: 'pointer',
@@ -1327,6 +1345,10 @@ function ResumeResult({ resume, template, onReset }) {
           )}
 
         </div>
+      </div>
+      {/* Hidden download button — triggered programmatically after payment */}
+      <div style={{ display: 'none' }}>
+        <ResumeDownloadButton ref={downloadRef} data={resume} template={template} filename="resume.pdf" />
       </div>
     </div>
   )
@@ -1340,6 +1362,9 @@ export default function ResumeBuilder() {
   const [resume, setResume] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
+  const [paywallOpen, setPaywallOpen] = useState(false)
+  const [autoDownload, setAutoDownload] = useState(false)
+  const downloadRef = useRef(null)
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
   const goTo = s => { setScreen(s); window.scrollTo(0, 0) }
@@ -1388,8 +1413,34 @@ export default function ResumeBuilder() {
     }
   }
 
+  const handlePaymentSuccess = useCallback((resumeData, templateId) => {
+    setResume(resumeData)
+    setForm(f => ({ ...f, template: templateId }))
+    setAutoDownload(true)
+  }, [])
+
+  usePaywall()
+
   if (resume) {
-    return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} />
+    return (
+      <>
+        <ResumeResult
+          resume={resume}
+          template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'}
+          onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); setAutoDownload(false); try { localStorage.removeItem(LS_KEY) } catch {} }}
+          onDownload={() => setPaywallOpen(true)}
+          autoDownload={autoDownload}
+          downloadRef={downloadRef}
+        />
+        <PaywallModal
+          isOpen={paywallOpen}
+          onClose={() => setPaywallOpen(false)}
+          resumeData={resume}
+          selectedTemplate={form.template}
+          onSuccess={() => downloadRef.current?.click()}
+        />
+      </>
+    )
   }
 
   if (screen === -1) {

@@ -18,7 +18,7 @@ import {
   Document, Page, Text, View, StyleSheet, Font,
   pdf,
 } from '@react-pdf/renderer'
-import { useState } from 'react'
+import { useState, forwardRef } from 'react'
 
 Font.register({
   family: 'Georgia',
@@ -1361,11 +1361,11 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
 /**
  * Кнопка скачивания
  */
-export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }: {
+export const ResumeDownloadButton = forwardRef<HTMLButtonElement, {
   data: ResumeData
   template: TemplateId
   filename?: string
-}) {
+}>(function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }, ref) {
   const [loading, setLoading] = useState(false)
 
   const handleDownload = async () => {
@@ -1384,7 +1384,7 @@ export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }
   }
 
   return (
-    <button onClick={handleDownload} disabled={loading} style={{
+    <button ref={ref} onClick={handleDownload} disabled={loading} style={{
       padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600,
       background: loading ? '#a5b4fc' : '#4f46e5', color: '#fff',
       border: 'none', cursor: loading ? 'wait' : 'pointer', width: '100%',
@@ -1392,5 +1392,5 @@ export function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }
       {loading ? 'Preparing PDF...' : '⬇ Download Resume (PDF)'}
     </button>
   )
-}
+})
 
