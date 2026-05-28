@@ -3,8 +3,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import PaywallModal from './PaywallModal'
-import { usePaywall } from '../hooks/usePaywall'
-import { useSearchParams } from 'next/navigation'
 
 const ResumePreview = dynamic(
   () => import('./ResumePDF').then(m => m.ResumePreview),
@@ -1419,8 +1417,6 @@ export default function ResumeBuilder() {
     setAutoDownload(true)
   }, [])
 
-  usePaywall()
-
   if (resume) {
     return (
       <>
@@ -1435,8 +1431,6 @@ export default function ResumeBuilder() {
         <PaywallModal
           isOpen={paywallOpen}
           onClose={() => setPaywallOpen(false)}
-          resumeData={resume}
-          selectedTemplate={form.template}
           onSuccess={() => downloadRef.current?.click()}
         />
       </>
