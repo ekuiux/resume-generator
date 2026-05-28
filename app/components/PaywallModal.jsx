@@ -33,8 +33,13 @@ export default function PaywallModal({ isOpen, onClose, onSuccess }) {
     const script = document.createElement('script')
     script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
     script.onload = () => {
+      // Use sandbox mode if the token starts with 'test_'
+      const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN ?? ''
+      if (token.startsWith('test_')) {
+        window.Paddle.Environment.set('sandbox')
+      }
       window.Paddle.Initialize({
-        token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
+        token,
         eventCallback: (event) => {
           if (event.name === 'checkout.completed') {
             setCheckoutOpen(false)
@@ -54,10 +59,10 @@ export default function PaywallModal({ isOpen, onClose, onSuccess }) {
       window.Paddle.Checkout.open({
         items: [{ priceId: plan.priceId, quantity: 1 }],
         settings: {
+          displayMode: 'inline',
           frameTarget: 'paddle-checkout-frame',
           frameInitialHeight: 450,
           frameStyle: 'width: 100%; background-color: transparent; border: none;',
-          successUrl: window.location.href + '?payment=success',
         }
       })
     }, 100)
