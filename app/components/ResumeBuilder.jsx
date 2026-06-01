@@ -104,20 +104,18 @@ function useIsMobile(breakpoint = 768) {
 
 function Input({ style, error, ...props }) {
   const [focused, setFocused] = useState(false)
-  const borderColor = error ? '#EF4444' : focused ? T.accent : T.border1
-  const shadow = error ? '0 0 0 3px rgba(239,68,68,.12)' : focused ? '0 0 0 3px rgba(83,74,183,.12)' : 'none'
+  const borderColor = error ? '#EF4444' : focused ? '#05070A' : 'rgba(175,178,178,0.5)'
   return (
     <input
       {...props}
       style={{
         width: '100%', fontFamily: 'inherit', fontSize: 14,
-        color: T.text1, background: T.bg1,
-        border: `1.5px solid ${borderColor}`,
-        borderRadius: T.r10,
-        height: ROW_H, padding: '0 14px', outline: 'none',
+        color: '#05070A', background: '#fff',
+        border: `1px solid ${borderColor}`,
+        borderRadius: 12,
+        height: 47, padding: '0 16px', outline: 'none',
         boxSizing: 'border-box',
-        boxShadow: shadow,
-        transition: 'border-color .15s, box-shadow .15s', ...style,
+        transition: 'border-color .15s', ...style,
       }}
       onFocus={e => { setFocused(true); props.onFocus?.(e) }}
       onBlur={e => { setFocused(false); props.onBlur?.(e) }}
@@ -198,28 +196,28 @@ function Textarea({ style, ...props }) {
 function Lbl({ children }) {
   return (
     <label style={{
-      display: 'block', fontSize: T.f11, fontWeight: 600,
-      letterSpacing: '.05em', textTransform: 'uppercase', color: T.text3, marginBottom: 6,
+      display: 'block', fontSize: 12, fontWeight: 600,
+      letterSpacing: '.04em', textTransform: 'uppercase', color: '#AFB2B2',
     }}>{children}</label>
   )
 }
 
 function Field({ label, hint, children, style }) {
   return (
-    <div style={{ marginBottom: '1.1rem', ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, ...style }}>
       {label && <Lbl>{label}</Lbl>}
       {children}
-      {hint && <p style={{ fontSize: T.f11, color: T.text3, marginTop: 4, lineHeight: 1.5 }}>{hint}</p>}
+      {hint && <p style={{ fontSize: 12, color: '#AFB2B2', marginTop: 0, lineHeight: 1.5 }}>{hint}</p>}
     </div>
   )
 }
 
 function Grid2({ children, style }) {
-  return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, ...style }}>{children}</div>
+  return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, ...style }}>{children}</div>
 }
 
 function Divider() {
-  return <div style={{ height: '0.5px', background: T.border1, margin: '1.5rem 0' }} />
+  return <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
 }
 
 function SecLbl({ children }) {
@@ -235,10 +233,11 @@ function SecLbl({ children }) {
 function BtnPrimary({ children, disabled, onClick, style }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} style={{
-      fontSize: 15, padding: '13px 32px', borderRadius: T.r10,
-      border: 'none', background: disabled ? '#AFA9EC' : T.accent,
+      fontSize: 14, fontWeight: 600, padding: '20px 32px',
+      borderRadius: 38, border: 'none',
+      background: disabled ? '#AFB2B2' : '#05070A',
       color: '#fff', cursor: disabled ? 'not-allowed' : 'pointer',
-      fontWeight: 600, fontFamily: 'inherit',
+      fontFamily: 'inherit', height: 55,
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       transition: 'background .15s', ...style,
     }}>{children}</button>
@@ -248,10 +247,11 @@ function BtnPrimary({ children, disabled, onClick, style }) {
 function BtnSecondary({ children, onClick }) {
   return (
     <button type="button" onClick={onClick} style={{
-      fontSize: 14, padding: '12px 22px', borderRadius: T.r10,
-      border: `1.5px solid ${T.border1}`, background: T.bg1,
-      color: T.text2, cursor: 'pointer', fontFamily: 'inherit',
-      transition: 'border-color .15s',
+      fontSize: 14, fontWeight: 600, padding: '20px 32px',
+      borderRadius: 38, border: '1px solid rgba(175,178,178,0.3)',
+      background: '#fff', color: '#4A4A4D',
+      cursor: 'pointer', fontFamily: 'inherit', height: 55,
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
     }}>{children}</button>
   )
 }
@@ -273,6 +273,61 @@ function BtnAdd({ children, onClick }) {
 }
 
 
+// ─── Shared header ────────────────────────────────────────────────────────────
+
+function AppHeader({ children }) {
+  return (
+    <div style={{
+      background: '#F7F8FA',
+      height: 68,
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: 1280,
+        margin: '0 auto',
+        padding: '0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        boxSizing: 'border-box',
+      }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// ─── Logo mark ────────────────────────────────────────────────────────────────
+
+function LogoMark({ style }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, ...style }}>
+      {/* Icon: black rounded square with S */}
+      <div style={{
+        width: 36, height: 36, borderRadius: 8, background: '#05070A',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="3" y="4" width="12" height="2" rx="1" fill="white" />
+          <rect x="3" y="8" width="8" height="2" rx="1" fill="white" />
+          <rect x="3" y="12" width="10" height="2" rx="1" fill="white" />
+        </svg>
+      </div>
+      <span style={{
+        fontWeight: 600, fontSize: 20, lineHeight: '110%',
+        color: '#05070A', whiteSpace: 'nowrap',
+        fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif',
+      }}>
+        ResumeBuilder
+      </span>
+    </div>
+  )
+}
+
 // ─── Header progress bar ──────────────────────────────────────────────────────
 
 function HeaderProgress({ step }) {
@@ -280,39 +335,43 @@ function HeaderProgress({ step }) {
 
   if (isMobile) {
     return (
-      <div style={{ fontSize: 13, fontWeight: 600, color: T.text1 }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: '#05070A' }}>
         Step {step} of 4
-      </div>
+      </span>
     )
   }
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      gap: 0, padding: '0',
-    }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 40 }}>
       {STEP_NAMES.map((name, i) => {
         const num = i + 1
-        const done = num < step, active = num === step
+        const done = num < step
+        const active = num === step
+        const dotBg   = done ? '#9DD162' : active ? '#05070A' : '#E5E5EA'
+        const dotColor = done ? '#05070A' : active ? '#ffffff' : '#05070A'
+        const textColor = active ? '#05070A' : '#4A4A4D'
         return (
-          <div key={name} style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 600,
-                background: done ? '#EAF3DE' : active ? T.accentL : T.border2,
-                color: done ? '#27500A' : active ? T.accentD : T.text3,
-              }}>{done ? '✓' : num}</div>
-              <span style={{
-                fontSize: T.f12, fontWeight: active ? 600 : 400,
-                whiteSpace: 'nowrap',
-                color: active ? T.text1 : done ? T.text3 : T.text3,
-              }}>{name}</span>
+          <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 24, height: 24, borderRadius: '50%',
+              background: dotBg, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 10, fontWeight: 600, color: dotColor,
+              fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif',
+            }}>
+              {done ? (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2.5 6L5 8.5L9.5 4" stroke="#05070A" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : num}
             </div>
-            {i < STEP_NAMES.length - 1 && (
-              <div style={{ width: 32, height: '0.5px', background: T.border1, margin: '0 10px' }} />
-            )}
+            <span style={{
+              fontSize: 12, lineHeight: '110%', color: textColor,
+              fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
+              fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif',
+            }}>
+              {name}
+            </span>
           </div>
         )
       })}
@@ -323,32 +382,31 @@ function HeaderProgress({ step }) {
 function Footer({ step, onBack, onNext, nextLabel }) {
   const isMobile = useIsMobile()
 
+  if (isMobile) {
+    return (
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
+        background: '#fff', padding: '12px 16px 28px',
+        borderTop: '1px solid rgba(175,178,178,0.3)',
+        display: 'flex', gap: 10,
+      }}>
+        <BtnSecondary onClick={onBack}>← Back</BtnSecondary>
+        <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue →'}</BtnPrimary>
+      </div>
+    )
+  }
+
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      ...(isMobile ? {
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: T.bg1, zIndex: 10,
-        padding: '12px 16px 28px',
-        borderTop: `0.5px solid ${T.border1}`,
-      } : {
-        marginTop: '1.75rem', paddingTop: '1.25rem', paddingBottom: '2.25rem',
-        borderTop: `0.5px solid ${T.border1}`,
-      }),
-    }}>
-      {isMobile ? (
-        <>
-          <BtnSecondary onClick={onBack}>← Back</BtnSecondary>
-          <BtnPrimary onClick={onNext} style={{ flex: 1, marginLeft: 10 }}>{nextLabel || 'Continue →'}</BtnPrimary>
-        </>
-      ) : (
-        <>
-          <BtnSecondary onClick={onBack}>← Back</BtnSecondary>
-          <span style={{ fontSize: T.f11, color: T.text3 }}>Step {step} of 4</span>
-          <BtnPrimary onClick={onNext}>{nextLabel || 'Continue →'}</BtnPrimary>
-        </>
-      )}
-    </div>
+    <>
+      <div style={{ height: 1, background: 'rgba(175,178,178,0.3)', margin: '0' }} />
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '0',
+      }}>
+        <BtnSecondary onClick={onBack}>← Back</BtnSecondary>
+        <BtnPrimary onClick={onNext}>{nextLabel || 'Continue →'}</BtnPrimary>
+      </div>
+    </>
   )
 }
 
@@ -447,55 +505,39 @@ function PageShell({ step, form, children, rightPanel }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: isMobile ? T.bg1 : T.bg2,
+      background: '#F7F8FA',
       display: 'flex', flexDirection: 'column',
     }}>
-      {/* Top header: logo area + progress */}
-      <div style={{
-        background: T.bg1,
-        borderBottom: `0.5px solid ${T.border1}`,
-        padding: isMobile ? '0 1rem' : '0 2rem',
-        height: 56,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexShrink: 0,
-      }}>
-        {/* Logo slot */}
-        <div style={{ fontSize: T.f14, fontWeight: 700, color: T.text1, letterSpacing: '-.02em', minWidth: isMobile ? 'auto' : 120 }}>
-          ResumeBuilder
-        </div>
-
-        {/* Progress centered */}
+      {/* Top header */}
+      <AppHeader>
+        <LogoMark />
         <HeaderProgress step={step} />
-
-        {/* Right spacer */}
-        {!isMobile && <div style={{ minWidth: 120 }} />}
-      </div>
+        {!isMobile && <LogoMark style={{ opacity: 0, pointerEvents: 'none' }} />}
+      </AppHeader>
 
       {/* Card */}
       <div style={{
         flex: 1,
-        padding: isMobile ? '0' : '2rem 1.5rem 3rem',
+        padding: isMobile ? '0' : '24px 80px 40px',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        boxSizing: 'border-box',
       }}>
         <div style={{
           width: '100%', maxWidth: 1280,
-          background: T.bg1,
-          borderRadius: isMobile ? 0 : 16,
-          border: isMobile ? 'none' : `0.5px solid ${T.border1}`,
-          boxShadow: isMobile ? 'none' : '0 2px 24px rgba(0,0,0,.06)',
+          background: '#fff',
+          borderRadius: isMobile ? 0 : 32,
           display: isMobile ? 'block' : 'flex',
           overflow: 'hidden',
         }}>
           {/* Form column */}
           <div style={{
-            flex: isMobile ? 'unset' : '0 0 64%',
-            maxWidth: isMobile ? '100%' : '64%',
+            flex: isMobile ? 'unset' : '0 0 66%',
+            maxWidth: isMobile ? '100%' : '66%',
             width: isMobile ? '100%' : undefined,
-            padding: isMobile ? '1.25rem 1rem 0' : '2.25rem 2.5rem 0',
-            borderRight: isMobile ? 'none' : `0.5px solid ${T.border1}`,
-            paddingBottom: isMobile ? '100px' : 0,
+            padding: isMobile ? '1.25rem 1rem 0' : '40px',
+            paddingBottom: isMobile ? '100px' : '40px',
             boxSizing: 'border-box',
-            ...(isMobile ? {} : { display: 'flex', flexDirection: 'column' }),
+            display: 'flex', flexDirection: 'column', gap: 24,
           }}>
             {children}
           </div>
@@ -503,32 +545,21 @@ function PageShell({ step, form, children, rightPanel }) {
           {/* Preview column — hidden on mobile */}
           {!isMobile && (
             <div style={{
-              flex: '0 0 36%', maxWidth: '36%',
-              background: T.bg2,
+              flex: 1,
+              background: '#F7F8FA',
+              boxShadow: 'inset 0px 0px 114px rgba(0,0,0,0.08)',
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'flex-start',
-              padding: '3rem 1.5rem 2rem',
+              padding: '60px 0',
               gap: '1.25rem',
               position: 'relative',
             }}>
-              {/* Section badge */}
-              {badge && (
-                <div style={{
-                  position: 'absolute', top: 16, right: 16,
-                  fontSize: T.f11, fontWeight: 600, padding: '3px 10px',
-                  borderRadius: 20, background: T.accentL, color: T.accentD,
-                }}>{badge}</div>
-              )}
-
               {/* Preview paper */}
               <div style={{
-                width: '100%', maxWidth: 308,
-                aspectRatio: '210 / 297',
+                width: 311, height: 424,
                 background: isDark ? '#0f0f0f' : '#fff',
-                borderRadius: T.r10,
-                border: `0.5px solid ${T.border1}`,
+                borderRadius: 12,
                 overflow: 'hidden',
-                boxShadow: '0 4px 20px rgba(0,0,0,.08)',
                 flexShrink: 0,
               }}>
                 <ResumeDocPreview step={step} />
@@ -596,15 +627,11 @@ function TemplatePicker({ form, patch, onNext }) {
   return (
     <div style={{ minHeight: '100vh', background: T.bg2 }}>
       {/* Header */}
-      <div style={{
-        background: T.bg1, borderBottom: `0.5px solid ${T.border1}`,
-        padding: '0 2rem', height: 56,
-        display: 'flex', alignItems: 'center',
-      }}>
-        <div style={{ fontSize: T.f14, fontWeight: 700, color: T.text1, letterSpacing: '-.02em' }}>
-          ResumeBuilder
-        </div>
-      </div>
+      <AppHeader>
+        <LogoMark />
+        <div />
+        <div />
+      </AppHeader>
 
       {/* Content */}
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '1.5rem 1rem 2rem' : '3rem 2rem 4rem' }}>
@@ -699,41 +726,54 @@ function StepPersonal({ form, patch, onBack, onNext }) {
 
   return (
     <>
-      <div style={{ flex: 1 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, letterSpacing: '-.01em' }}>Personal information</h2>
-        <p style={{ fontSize: T.f13, color: T.text2, marginBottom: '1.75rem', lineHeight: 1.6 }}>This goes in the header of your resume.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
+        {/* Section heading */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Personal information</h2>
+          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>This goes in the header of your resume.</p>
+        </div>
 
         {showPhoto && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: '1.4rem' }}>
-            <div onClick={() => fileRef.current.click()} style={{ flexShrink: 0, width: 80, height: 80, borderRadius: '50%', border: `2px dashed ${T.border1}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', background: form.photo ? 'transparent' : T.bg2, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Photo circle */}
+            <div onClick={() => fileRef.current.click()} style={{
+              flexShrink: 0, width: 96, height: 96, borderRadius: '50%',
+              background: form.photo ? 'transparent' : '#AFB2B2',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', overflow: 'hidden',
+            }}>
               <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
               {form.photo
                 ? <img src={form.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <><span style={{ fontSize: 22 }}>📷</span><span style={{ fontSize: 10, color: T.text3, marginTop: 3 }}>Photo</span></>
+                : <span style={{ fontSize: 28 }}>📷</span>
               }
             </div>
-            <div style={{ flex: 1, paddingTop: 4 }}>
-              <div style={{ fontSize: T.f13, fontWeight: 500, marginBottom: 4 }}>Profile photo</div>
-              <div style={{ fontSize: T.f12, color: T.text3, lineHeight: 1.6 }}>Recommended for {TEMPLATES.find(t => t.id === form.template)?.name}. Headshot, neutral background.</div>
-              {form.photo && <button onClick={() => patch({ photo: null })} style={{ marginTop: 6, fontSize: T.f11, color: T.text3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>Remove</button>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#05070A' }}>Profile photo</span>
+                <span style={{ fontSize: 14, color: '#4A4A4D' }}>Recommended for {TEMPLATES.find(t => t.id === form.template)?.name}. Headshot, neutral background.</span>
+              </div>
+              {form.photo && <button onClick={() => patch({ photo: null })} style={{ fontSize: 14, color: '#4A4A4D', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, textAlign: 'left' }}>Remove</button>}
             </div>
           </div>
         )}
 
-        <Field label="Target job title" hint="Be specific — recruiters search by exact title.">
-          <Input value={form.targetRole} onChange={e => { patch({ targetRole: e.target.value }); setShowErr(false) }} placeholder="e.g. Senior Product Manager" error={showErr && !form.targetRole?.trim()} />
-        </Field>
-        <Field label="Full name">
-          <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }} placeholder="Alex Johnson" error={showErr && !form.name?.trim()} />
-        </Field>
-        <Grid2>
-          <Field label="Email"><Input type="email" value={form.email} onChange={e => patch({ email: e.target.value })} placeholder="alex@email.com" /></Field>
-          <Field label="Phone"><Input value={form.phone} onChange={e => patch({ phone: e.target.value })} placeholder="+1 (415) 000-0000" /></Field>
-        </Grid2>
-        <Grid2>
-          <Field label="City"><AutoInput value={form.city} onChange={e => patch({ city: e.target.value })} placeholder="San Francisco" suggestions={CITY_SUGG} /></Field>
-          <Field label="Country"><AutoInput value={form.country} onChange={e => patch({ country: e.target.value })} placeholder="United States" suggestions={COUNTRY_SUGG} /></Field>
-        </Grid2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <Field label="Target job title" hint="Be specific — recruiters search by exact title.">
+            <Input value={form.targetRole} onChange={e => { patch({ targetRole: e.target.value }); setShowErr(false) }} placeholder="e.g. Senior Product Manager" error={showErr && !form.targetRole?.trim()} />
+          </Field>
+          <Field label="Full name">
+            <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }} placeholder="Alex Johnson" error={showErr && !form.name?.trim()} />
+          </Field>
+          <Grid2>
+            <Field label="Email"><Input type="email" value={form.email} onChange={e => patch({ email: e.target.value })} placeholder="alex@email.com" /></Field>
+            <Field label="Phone"><Input value={form.phone} onChange={e => patch({ phone: e.target.value })} placeholder="+1 (415) 000-0000" /></Field>
+          </Grid2>
+          <Grid2>
+            <Field label="Country"><AutoInput value={form.country} onChange={e => patch({ country: e.target.value })} placeholder="United States" suggestions={COUNTRY_SUGG} /></Field>
+            <Field label="City"><AutoInput value={form.city} onChange={e => patch({ city: e.target.value })} placeholder="San Francisco" suggestions={CITY_SUGG} /></Field>
+          </Grid2>
+        </div>
       </div>
 
       <Footer step={1} onBack={onBack} onNext={handleNext} />
@@ -1262,27 +1302,16 @@ function A4Frame({ children }) {
   )
 }
 
-function ResumeResult({ resume, template, onReset, onDownload, autoDownload, downloadRef }) {
+function ResumeResult({ resume, template, onReset, onDownload, downloadRef }) {
   const isMobile = useIsMobile()
-  const dlRef = useRef(null)
-
-  useEffect(() => {
-    if (!autoDownload || !dlRef.current) return
-    const t = setTimeout(() => {
-      dlRef.current?.querySelector('button')?.click()
-    }, 600)
-    return () => clearTimeout(t)
-  }, [autoDownload])
   return (
     <div style={{ minHeight: '100vh', background: T.bg2, display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div style={{
-        background: T.bg1, borderBottom: `0.5px solid ${T.border1}`,
-        padding: '0 2rem', height: 56,
-        display: 'flex', alignItems: 'center', flexShrink: 0,
-      }}>
-        <div style={{ fontSize: T.f14, fontWeight: 700, color: T.text1, letterSpacing: '-.02em' }}>ResumeBuilder</div>
-      </div>
+      <AppHeader>
+        <LogoMark />
+        <div />
+        <div />
+      </AppHeader>
 
       {/* Content */}
       <div style={{ flex: 1, padding: isMobile ? '1.25rem 1rem 120px' : '2rem 1.5rem 3rem', display: 'flex', justifyContent: 'center' }}>
@@ -1306,10 +1335,7 @@ function ResumeResult({ resume, template, onReset, onDownload, autoDownload, dow
               padding: '12px 16px 28px',
               display: 'flex', flexDirection: 'column', gap: 8, zIndex: 10,
             }}>
-              {autoDownload
-                ? <div ref={dlRef}><ResumeDownloadButton data={resume} template={template} filename="resume.pdf" /></div>
-                : <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
-              }
+              <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
               <button onClick={onReset} style={{
                 fontSize: T.f13, color: T.text3, textAlign: 'center',
                 background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
@@ -1329,10 +1355,7 @@ function ResumeResult({ resume, template, onReset, onDownload, autoDownload, dow
                     Review the preview — download your PDF when you're happy with it.
                   </p>
                 </div>
-                {autoDownload
-                  ? <div ref={dlRef}><ResumeDownloadButton data={resume} template={template} filename="resume.pdf" /></div>
-                  : <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
-                }
+                <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
                 <button onClick={onReset} style={{
                   fontSize: T.f13, color: T.text3,
                   background: 'none', border: 'none', cursor: 'pointer',
@@ -1361,7 +1384,6 @@ export default function ResumeBuilder() {
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
   const [paywallOpen, setPaywallOpen] = useState(false)
-  const [autoDownload, setAutoDownload] = useState(false)
   const downloadRef = useRef(null)
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
@@ -1411,21 +1433,14 @@ export default function ResumeBuilder() {
     }
   }
 
-  const handlePaymentSuccess = useCallback((resumeData, templateId) => {
-    setResume(resumeData)
-    setForm(f => ({ ...f, template: templateId }))
-    setAutoDownload(true)
-  }, [])
-
   if (resume) {
     return (
       <>
         <ResumeResult
           resume={resume}
           template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'}
-          onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); setAutoDownload(false); try { localStorage.removeItem(LS_KEY) } catch {} }}
+          onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }}
           onDownload={() => setPaywallOpen(true)}
-          autoDownload={autoDownload}
           downloadRef={downloadRef}
         />
         <PaywallModal
