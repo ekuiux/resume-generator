@@ -1,5 +1,8 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
+
+const FS_PRODUCT_ID = 31066
+const FS_PUBLIC_KEY = 'pk_0c8f1a770c6e4345670337792dd5b'
 
 const PLANS = [
   {
@@ -24,33 +27,49 @@ const PLANS = [
 
 export default function PaywallModal({ isOpen, onClose, onSuccess }) {
   const [selectedPlan, setSelectedPlan] = useState('monthly')
-  const checkoutRef = useRef(null)
+  const [fsReady, setFsReady] = useState(false)
 
+  // Load Freemius SDK once, works correctly on re-mounts
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (window.FS) return
+
+    if (window.FS?.Checkout) {
+      setFsReady(true)
+      return
+    }
+
+    const existing = document.querySelector('script[src="https://checkout.freemius.com/js/v1/"]')
+    if (existing) {
+      // Script tag exists but FS not ready yet — wait for it
+      existing.addEventListener('load', () => setFsReady(true), { once: true })
+      return
+    }
 
     const script = document.createElement('script')
     script.src = 'https://checkout.freemius.com/js/v1/'
-    script.onload = () => {
-      checkoutRef.current = new window.FS.Checkout({
-        product_id: 31066,
-        public_key: 'pk_0c8f1a770c6e4345670337792dd5b',
-      })
-    }
+    script.async = true
+    script.onload = () => setFsReady(true)
     document.head.appendChild(script)
   }, [])
 
   const handleCheckout = () => {
-    const plan = PLANS.find(p => p.id === selectedPlan)
-    if (!checkoutRef.current) return
+    if (!fsReady || !window.FS?.Checkout) return
 
-    checkoutRef.current.open({
+    const plan = PLANS.find(p => p.id === selectedPlan)
+
+    // Create a fresh checkout instance per click with plan_id in constructor
+    const checkout = new window.FS.Checkout({
+      product_id: FS_PRODUCT_ID,
       plan_id: plan.planId,
+      public_key: FS_PUBLIC_KEY,
+    })
+
+    checkout.open({
       success: () => {
         onClose()
         if (onSuccess) onSuccess()
       },
+      cancel: () => {},
     })
   }
 
@@ -133,12 +152,18 @@ export default function PaywallModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* CTA */}
-        <button onClick={handleCheckout} style={{
-          width: '100%', padding: 14, borderRadius: 10, border: 'none',
-          background: '#2563eb', color: '#fff', fontWeight: 700,
-          fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
-        }}>
-          Continue to Payment →
+        <button
+          onClick={handleCheckout}
+          disabled={!fsReady}
+          style={{
+            width: '100%', padding: 14, borderRadius: 10, border: 'none',
+            background: fsReady ? '#2563eb' : '#93c5fd',
+            color: '#fff', fontWeight: 700, fontSize: 15,
+            cursor: fsReady ? 'pointer' : 'not-allowed',
+            fontFamily: 'inherit', transition: 'background 0.2s',
+          }}
+        >
+          {fsReady ? 'Continue to Payment →' : 'Loading…'}
         </button>
 
         <p style={{ margin: '12px 0 0', textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
