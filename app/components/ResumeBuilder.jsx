@@ -16,9 +16,9 @@ const ResumeDownloadButton = dynamic(
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TEMPLATES = [
-  { id: 'minimal',   name: 'Minimal',   swatch: '#f1efe8', accent: '#1a1a1a', badge: { text: 'Popular', bg: '#EEEDFE', color: '#3C3489' } },
+  { id: 'minimal',   name: 'Minimal',   swatch: '#f1efe8', accent: '#1a1a1a', badge: { text: 'Popular', bg: '#05070A', color: '#fff' } },
   { id: 'corporate', name: 'Corporate', swatch: '#B5D4F4', accent: '#1e3a5f', badge: null },
-  { id: 'modern',    name: 'Modern',    swatch: '#c7d2fe', accent: '#6c63ff', badge: { text: 'New', bg: '#EAF3DE', color: '#27500A' } },
+  { id: 'modern',    name: 'Modern',    swatch: '#c7d2fe', accent: '#6c63ff', badge: { text: 'New', bg: '#9DD162', color: '#05070A' } },
   { id: 'elegant',   name: 'Elegant',   swatch: '#e8e4dc', accent: '#2c2c2a', badge: null },
   { id: 'startup',   name: 'Startup',   swatch: '#1a1a2e', accent: '#4f46e5', badge: null },
   { id: 'academic',  name: 'Academic',  swatch: '#dce6f0', accent: '#003366', badge: null },
@@ -365,26 +365,12 @@ function AppHeader({ children }) {
 
 function LogoMark({ style }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, ...style }}>
-      {/* Icon: black rounded square with S */}
-      <div style={{
-        width: 36, height: 36, borderRadius: 8, background: '#05070A',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <rect x="3" y="4" width="12" height="2" rx="1" fill="white" />
-          <rect x="3" y="8" width="8" height="2" rx="1" fill="white" />
-          <rect x="3" y="12" width="10" height="2" rx="1" fill="white" />
-        </svg>
-      </div>
-      <span style={{
-        fontWeight: 600, fontSize: 20, lineHeight: '110%',
-        color: '#05070A', whiteSpace: 'nowrap',
-        fontFamily: 'var(--font-onest), system-ui, sans-serif',
-      }}>
-        ResumeBuilder
-      </span>
+    <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, ...style }}>
+      <svg width="154" height="34" viewBox="0 0 154 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="34" height="34" rx="10" fill="#05070A"/>
+        <path d="M10.1001 10.3934V8H17.8785C21.0453 8 23.6126 10.5672 23.6126 13.7341V13.8338C23.6126 16.5061 21.7845 18.7514 19.3108 19.3875L24.2608 26H21.0696L16.2546 19.5679L14.463 17.1745H17.6541H17.8785C19.7235 17.1745 21.2192 15.6788 21.2192 13.8338V13.7341C21.2192 11.8891 19.7235 10.3934 17.8785 10.3934H10.1001Z" fill="white"/>
+        <path d="M43.58 24V9.86H49.16C49.88 9.86 50.56 9.93333 51.2 10.08C51.84 10.2133 52.4067 10.4533 52.9 10.8C53.3933 11.1333 53.78 11.5933 54.06 12.18C54.34 12.7667 54.48 13.4933 54.48 14.36C54.48 15.08 54.3533 15.7133 54.1 16.26C53.8467 16.8067 53.4933 17.2667 53.04 17.64C52.6 18.0133 52.0733 18.3 51.46 18.5L54.56 24H51.76L48.98 18.9H46.08V24H43.58ZM46.08 16.68H48.82C49.2733 16.68 49.6867 16.6467 50.06 16.58C50.4467 16.5 50.78 16.3733 51.06 16.2C51.3533 16.0267 51.5733 15.7933 51.72 15.5C51.88 15.1933 51.9667 14.8067 51.98 14.34C51.98 13.78 51.86 13.34 51.62 13.02C51.3933 12.7 51.06 12.4733 50.62 12.34C50.1933 12.2067 49.68 12.14 49.08 12.14H46.08V16.68ZM61.2789 24.14C60.1856 24.14 59.2522 23.9133 58.4789 23.46C57.7189 23.0067 57.1389 22.38 56.7389 21.58C56.3522 20.7667 56.1589 19.8267 56.1589 18.76C56.1589 17.6933 56.3589 16.7533 56.7589 15.94C57.1722 15.1133 57.7589 14.4667 58.5189 14C59.2922 13.5333 60.2189 13.3 61.2989 13.3C62.0989 13.3 62.7989 13.4467 63.3989 13.74C63.9989 14.02 64.4989 14.4067 64.8989 14.9C65.3122 15.3933 65.6189 15.9533 65.8189 16.58C66.0189 17.2067 66.1122 17.8667 66.0989 18.56C66.0856 18.72 66.0722 18.88 66.0589 19.04C66.0456 19.1867 66.0256 19.3467 65.9989 19.52H58.5989C58.6389 19.9867 58.7589 20.4133 58.9589 20.8C59.1722 21.1867 59.4656 21.4933 59.8389 21.72C60.2256 21.9467 60.7056 22.06 61.2789 22.06C61.6122 22.06 61.9322 22.02 62.2389 21.94C62.5456 21.8467 62.8122 21.7133 63.0389 21.54C63.2789 21.3667 63.4389 21.1467 63.5189 20.88H65.9589C65.7856 21.64 65.4656 22.26 64.9989 22.74C64.5322 23.22 63.9722 23.5733 63.3189 23.8C62.6789 24.0267 61.9989 24.14 61.2789 24.14ZM58.6389 17.7H63.7189C63.7189 17.26 63.6189 16.86 63.4189 16.5C63.2189 16.14 62.9322 15.86 62.5589 15.66C62.1989 15.4467 61.7589 15.34 61.2389 15.34C60.6789 15.34 60.2122 15.4533 59.8389 15.68C59.4656 15.9067 59.1789 16.2 58.9789 16.56C58.7789 16.92 58.6656 17.3 58.6389 17.7ZM72.0833 24.14C71.5766 24.14 71.0699 24.0867 70.5633 23.98C70.0699 23.8733 69.6033 23.7 69.1633 23.46C68.7233 23.2067 68.3566 22.8667 68.0633 22.44C67.7699 22.0133 67.5766 21.48 67.4833 20.84H69.9433C70.0499 21.1333 70.2166 21.3733 70.4433 21.56C70.6833 21.7333 70.9566 21.8667 71.2633 21.96C71.5833 22.04 71.8966 22.08 72.2033 22.08C72.3899 22.08 72.5899 22.0667 72.8033 22.04C73.0299 22.0133 73.2366 21.96 73.4233 21.88C73.6233 21.8 73.7833 21.6867 73.9033 21.54C74.0233 21.38 74.0833 21.1733 74.0833 20.92C74.0833 20.68 74.0166 20.4933 73.8833 20.36C73.7499 20.2133 73.5699 20.1 73.3433 20.02C73.1166 19.9267 72.8433 19.8533 72.5233 19.8C71.9499 19.68 71.3366 19.5533 70.6833 19.42C70.0299 19.2733 69.4633 19.0467 68.9833 18.74C68.7833 18.62 68.6099 18.48 68.4633 18.32C68.3166 18.16 68.1899 17.9867 68.0833 17.8C67.9899 17.6 67.9166 17.3867 67.8633 17.16C67.8233 16.9333 67.8033 16.6867 67.8033 16.42C67.8033 15.86 67.9166 15.3867 68.1433 15C68.3833 14.6 68.6966 14.28 69.0833 14.04C69.4833 13.7867 69.9366 13.6 70.4433 13.48C70.9499 13.36 71.4699 13.3 72.0033 13.3C72.7233 13.3 73.3766 13.4133 73.9633 13.64C74.5499 13.8667 75.0366 14.2133 75.4233 14.68C75.8233 15.1467 76.0633 15.74 76.1433 16.46H73.8233C73.7566 16.1267 73.5499 15.86 73.2033 15.66C72.8699 15.46 72.4433 15.36 71.9233 15.36C71.7366 15.36 71.5433 15.38 71.3433 15.42C71.1433 15.4467 70.9499 15.5 70.7633 15.58C70.5899 15.6467 70.4433 15.7533 70.3233 15.9C70.2166 16.0467 70.1633 16.2267 70.1633 16.44C70.1633 16.64 70.2099 16.8133 70.3033 16.96C70.4099 17.1067 70.5633 17.2333 70.7633 17.34C70.9766 17.4333 71.2233 17.5133 71.5033 17.58C71.9566 17.6733 72.4299 17.7667 72.9233 17.86C73.4166 17.9533 73.8433 18.0467 74.2033 18.14C74.6299 18.26 75.0166 18.4333 75.3633 18.66C75.7099 18.8733 75.9766 19.16 76.1633 19.52C76.3633 19.8667 76.4633 20.3133 76.4633 20.86C76.4633 21.5 76.3299 22.0333 76.0633 22.46C75.8099 22.8867 75.4699 23.22 75.0433 23.46C74.6166 23.7 74.1433 23.8733 73.6233 23.98C73.1033 24.0867 72.5899 24.14 72.0833 24.14ZM82.9181 24.14C81.3981 24.14 80.2315 23.7467 79.4181 22.96C78.6181 22.1733 78.2181 20.9733 78.2181 19.36V13.46H80.6581V19.2C80.6581 19.76 80.7315 20.2467 80.8781 20.66C81.0381 21.0733 81.2848 21.3933 81.6181 21.62C81.9648 21.8333 82.3981 21.94 82.9181 21.94C83.4781 21.94 83.9181 21.8267 84.2381 21.6C84.5715 21.36 84.8048 21.0333 84.9381 20.62C85.0715 20.2067 85.1381 19.7333 85.1381 19.2V13.46H87.5781V19.36C87.5781 21.0133 87.1648 22.2267 86.3381 23C85.5248 23.76 84.3848 24.14 82.9181 24.14ZM89.8988 24V13.46H92.1388L92.2988 14.66C92.5654 14.3 92.8521 14.0267 93.1588 13.84C93.4788 13.64 93.8054 13.5 94.1388 13.42C94.4854 13.34 94.8121 13.3 95.1188 13.3C95.7854 13.3 96.3521 13.4333 96.8188 13.7C97.2988 13.9667 97.6721 14.3667 97.9388 14.9C98.2054 14.5267 98.5054 14.2267 98.8388 14C99.1721 13.76 99.5254 13.5867 99.8988 13.48C100.272 13.36 100.665 13.3 101.079 13.3C101.892 13.3 102.545 13.4733 103.039 13.82C103.532 14.1533 103.892 14.62 104.119 15.22C104.345 15.8067 104.459 16.48 104.459 17.24V24H102.019V18.02C102.019 17.7533 102.005 17.4733 101.979 17.18C101.952 16.8867 101.879 16.6133 101.759 16.36C101.652 16.1067 101.492 15.9 101.279 15.74C101.065 15.58 100.765 15.5 100.379 15.5C99.9921 15.5 99.6721 15.5867 99.4188 15.76C99.1788 15.92 98.9788 16.14 98.8187 16.42C98.6721 16.6867 98.5654 16.9867 98.4988 17.32C98.4454 17.64 98.4188 17.96 98.4188 18.28V24H95.9788V18C95.9788 17.7467 95.9588 17.48 95.9188 17.2C95.8921 16.9067 95.8254 16.6333 95.7188 16.38C95.6254 16.1133 95.4654 15.9 95.2388 15.74C95.0254 15.58 94.7254 15.5 94.3388 15.5C93.7788 15.5 93.3521 15.6533 93.0588 15.96C92.7788 16.2667 92.5854 16.64 92.4788 17.08C92.3854 17.52 92.3388 17.94 92.3388 18.34V24H89.8988ZM111.435 24.14C110.342 24.14 109.408 23.9133 108.635 23.46C107.875 23.0067 107.295 22.38 106.895 21.58C106.508 20.7667 106.315 19.8267 106.315 18.76C106.315 17.6933 106.515 16.7533 106.915 15.94C107.328 15.1133 107.915 14.4667 108.675 14C109.448 13.5333 110.375 13.3 111.455 13.3C112.255 13.3 112.955 13.4467 113.555 13.74C114.155 14.02 114.655 14.4067 115.055 14.9C115.468 15.3933 115.775 15.9533 115.975 16.58C116.175 17.2067 116.268 17.8667 116.255 18.56C116.242 18.72 116.228 18.88 116.215 19.04C116.202 19.1867 116.182 19.3467 116.155 19.52H108.755C108.795 19.9867 108.915 20.4133 109.115 20.8C109.328 21.1867 109.622 21.4933 109.995 21.72C110.382 21.9467 110.862 22.06 111.435 22.06C111.768 22.06 112.088 22.02 112.395 21.94C112.702 21.8467 112.968 21.7133 113.195 21.54C113.435 21.3667 113.595 21.1467 113.675 20.88H116.115C115.942 21.64 115.622 22.26 115.155 22.74C114.688 23.22 114.128 23.5733 113.475 23.8C112.835 24.0267 112.155 24.14 111.435 24.14ZM108.795 17.7H113.875C113.875 17.26 113.775 16.86 113.575 16.5C113.375 16.14 113.088 15.86 112.715 15.66C112.355 15.4467 111.915 15.34 111.395 15.34C110.835 15.34 110.368 15.4533 109.995 15.68C109.622 15.9067 109.335 16.2 109.135 16.56C108.935 16.92 108.822 17.3 108.795 17.7ZM122.8 24C121.946 24 121.24 23.8867 120.68 23.66C120.133 23.4333 119.72 23.0667 119.44 22.56C119.173 22.0533 119.04 21.3733 119.04 20.52V15.62H117.42V13.46H119.04V10.52H121.48V13.46H123.94V15.62H121.48V20.2C121.48 20.7333 121.573 21.14 121.76 21.42C121.946 21.7 122.366 21.84 123.02 21.84H123.86V24H122.8ZM125.563 24V13.46H128.003V24H125.563ZM126.783 12.24C126.316 12.24 125.943 12.1 125.663 11.82C125.383 11.54 125.243 11.1733 125.243 10.72C125.243 10.28 125.389 9.92 125.683 9.64C125.976 9.34667 126.343 9.2 126.783 9.2C127.209 9.2 127.576 9.34 127.883 9.62C128.189 9.9 128.343 10.2667 128.343 10.72C128.343 11.1733 128.196 11.54 127.903 11.82C127.609 12.1 127.236 12.24 126.783 12.24ZM135.188 24.14C134.108 24.14 133.174 23.92 132.388 23.48C131.614 23.04 131.014 22.4133 130.588 21.6C130.174 20.7867 129.968 19.8333 129.968 18.74C129.968 17.6333 130.181 16.68 130.608 15.88C131.034 15.0667 131.634 14.4333 132.408 13.98C133.181 13.5267 134.108 13.3 135.188 13.3C136.254 13.3 137.174 13.5267 137.948 13.98C138.721 14.4333 139.314 15.0733 139.728 15.9C140.141 16.7133 140.348 17.6733 140.348 18.78C140.348 19.86 140.141 20.8067 139.728 21.62C139.328 22.42 138.741 23.04 137.968 23.48C137.194 23.92 136.268 24.14 135.188 24.14ZM135.168 21.92C135.834 21.92 136.368 21.7733 136.768 21.48C137.181 21.1867 137.481 20.8 137.668 20.32C137.854 19.84 137.948 19.32 137.948 18.76C137.948 18.2 137.854 17.6733 137.668 17.18C137.481 16.6867 137.181 16.2933 136.768 16C136.368 15.6933 135.834 15.54 135.168 15.54C134.501 15.54 133.961 15.6933 133.548 16C133.134 16.2933 132.834 16.6867 132.648 17.18C132.461 17.66 132.368 18.1867 132.368 18.76C132.368 19.32 132.461 19.8467 132.648 20.34C132.848 20.82 133.148 21.2067 133.548 21.5C133.961 21.78 134.501 21.92 135.168 21.92ZM142.301 24V13.46H144.581L144.721 14.8C145.001 14.4267 145.328 14.1333 145.701 13.92C146.074 13.7067 146.468 13.5533 146.881 13.46C147.294 13.3533 147.681 13.3 148.041 13.3C149.041 13.3 149.828 13.52 150.401 13.96C150.988 14.4 151.401 14.9867 151.641 15.72C151.881 16.4533 152.001 17.2733 152.001 18.18V24H149.561V18.58C149.561 18.1933 149.534 17.82 149.481 17.46C149.428 17.0867 149.321 16.7533 149.161 16.46C149.014 16.1667 148.801 15.9333 148.521 15.76C148.241 15.5867 147.868 15.5 147.401 15.5C146.828 15.5 146.341 15.6533 145.941 15.96C145.541 16.2667 145.241 16.68 145.041 17.2C144.841 17.7067 144.741 18.2867 144.741 18.94V24H142.301Z" fill="#05070A"/>
+      </svg>
     </div>
   )
 }
@@ -406,8 +392,8 @@ function HeaderProgress({ step }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 40 }}>
       {STEP_NAMES.map((name, i) => {
         const num = i + 1
-        const done = num < step
-        const active = num === step
+        const done = step === 0 ? true : num < step
+        const active = step === 0 ? false : num === step
         const dotBg   = done ? '#9DD162' : active ? '#05070A' : '#E5E5EA'
         const dotColor = done ? '#05070A' : active ? '#ffffff' : '#05070A'
         const textColor = active ? '#05070A' : '#4A4A4D'
@@ -585,9 +571,9 @@ function PageShell({ step, form, children, rightPanel }) {
       }}>
         <div style={{
           width: '100%', maxWidth: 1280,
-          background: '#fff',
           borderRadius: isMobile ? 0 : 32,
           display: isMobile ? 'block' : 'flex',
+          gap: 2,
           overflow: 'hidden',
         }}>
           {/* Form column */}
@@ -598,6 +584,7 @@ function PageShell({ step, form, children, rightPanel }) {
             padding: isMobile ? '1.25rem 1rem 0' : '40px',
             paddingBottom: isMobile ? '100px' : '40px',
             boxSizing: 'border-box',
+            background: '#fff',
             display: 'flex', flexDirection: 'column', gap: 24,
           }}>
             {children}
@@ -607,13 +594,11 @@ function PageShell({ step, form, children, rightPanel }) {
           {!isMobile && (
             <div style={{
               flex: 1,
-              background: '#F7F8FA',
-              boxShadow: 'inset 0px 0px 114px rgba(0,0,0,0.08)',
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'flex-start',
+              background: '#fff',
+              display: 'flex', flexDirection: 'row',
+              justifyContent: 'center', alignItems: 'flex-start',
               padding: '60px 0',
-              gap: '1.25rem',
-              position: 'relative',
+              gap: 10,
             }}>
               {/* Preview paper */}
               <div style={{
@@ -622,6 +607,7 @@ function PageShell({ step, form, children, rightPanel }) {
                 borderRadius: 12,
                 overflow: 'hidden',
                 flexShrink: 0,
+                boxShadow: '0px 30px 100px rgba(0, 0, 0, 0.06)',
               }}>
                 <ResumeDocPreview step={step} />
               </div>
@@ -685,82 +671,182 @@ function TemplatePicker({ form, patch, onNext }) {
   const [hovered, setHovered] = useState(null)
   const isMobile = useIsMobile()
 
-  return (
-    <div style={{ minHeight: '100vh', background: T.bg2 }}>
-      {/* Header */}
-      <AppHeader>
-        <LogoMark />
-        <div />
-        <div />
-      </AppHeader>
+  const rows = [TEMPLATES.slice(0, 3), TEMPLATES.slice(3, 6)]
 
-      {/* Content */}
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '1.5rem 1rem 2rem' : '3rem 2rem 4rem' }}>
-        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, marginBottom: 8, letterSpacing: '-.02em' }}>Pick a template</h1>
-        <p style={{ fontSize: T.f15, color: T.text2, marginBottom: '2.5rem', lineHeight: 1.6 }}>
-          ATS-friendly. Exports to PDF in one click.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? 16 : 28 }}>
-          {TEMPLATES.map(tpl => {
-            const on = form.template === tpl.id
-            const isHov = hovered === tpl.id
-            const pdfTemplate = PDF_TEMPLATE_MAP[tpl.id] ?? 'minimal'
-            return (
-              <div
-                key={tpl.id}
-                onMouseEnter={() => setHovered(tpl.id)}
-                onMouseLeave={() => setHovered(null)}
-                onClick={() => { patch({ template: tpl.id }); onNext() }}
-                style={{
-                  cursor: 'pointer',
-                  borderRadius: 14,
-                  overflow: 'hidden',
-                  boxShadow: isHov ? `0 20px 48px ${tpl.accent}38` : on ? `0 8px 24px ${tpl.accent}28` : '0 2px 8px rgba(0,0,0,.05)',
-                  transform: isHov ? 'scale(1.05)' : on ? 'scale(1.01)' : 'scale(1)',
-                  transition: 'transform .2s ease, box-shadow .2s ease',
-                }}
-              >
-                {/* Preview area */}
-                <div style={{ position: 'relative' }}>
-                  <A4Frame>
-                    <ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare />
-                  </A4Frame>
-
-                  {/* Badge */}
-                  {tpl.badge && (
-                    <div style={{
-                      position: 'absolute', top: 12, left: 12, zIndex: 2,
-                      fontSize: 10, fontWeight: 600, padding: '3px 10px',
-                      borderRadius: 20, background: tpl.badge.bg, color: tpl.badge.color,
-                    }}>{tpl.badge.text}</div>
-                  )}
-
-                  {/* Hover CTA overlay */}
+  if (isMobile) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#F7F8FA' }}>
+        <AppHeader><LogoMark /><div /><div /></AppHeader>
+        <div style={{ padding: '1.5rem 1rem 3rem', marginTop: 68 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 8, color: '#000' }}>Choose a template</h1>
+          <p style={{ fontSize: 14, color: '#4A4A4D', marginBottom: 24, lineHeight: 1.6 }}>
+            Pick your favorite design. You can always change it later.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+            {TEMPLATES.map(tpl => {
+              const isHov = hovered === tpl.id
+              const pdfTemplate = PDF_TEMPLATE_MAP[tpl.id] ?? 'minimal'
+              return (
+                <div key={tpl.id}
+                  onMouseEnter={() => setHovered(tpl.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => { patch({ template: tpl.id }); onNext() }}
+                  style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
+                >
                   <div style={{
-                    position: 'absolute', inset: 0, zIndex: 3,
-                    background: 'rgba(0,0,0,.42)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    opacity: isHov ? 1 : 0,
-                    transition: 'opacity .18s ease',
-                    pointerEvents: isHov ? 'auto' : 'none',
+                    width: '100%', borderRadius: 12, overflow: 'hidden', position: 'relative',
+                    boxShadow: isHov ? '0 16px 48px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.07)',
+                    transform: isHov ? 'translateY(-3px)' : 'none',
+                    transition: 'transform .2s ease, box-shadow .2s ease',
                   }}>
+                    <A4Frame><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+                    {tpl.badge && (
+                      <div style={{
+                        position: 'absolute', top: 8, left: 8, zIndex: 2,
+                        fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                        background: tpl.badge.bg, color: tpl.badge.color,
+                      }}>{tpl.badge.text}</div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#05070A' }}>{tpl.name}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#F7F8FA', fontFamily: 'inherit' }}>
+
+      {/* Navbar — 1280 grid, normal flow */}
+      <nav style={{
+        width: '100%', height: 68,
+        display: 'flex', alignItems: 'center',
+        background: '#F7F8FA',
+      }}>
+        <div style={{
+          width: 1280, margin: '0 auto',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <LogoMark />
+          <div style={{ opacity: 0, pointerEvents: 'none', width: 154 }} />
+        </div>
+      </nav>
+
+      {/* Content wrapper */}
+      <div style={{
+        position: 'relative',
+        width: 1280,
+        left: '50%', transform: 'translateX(-50%)',
+        paddingTop: 24,
+        paddingBottom: 80,
+        display: 'flex', flexDirection: 'column', gap: 40,
+      }}>
+
+        {/* Section header */}
+        <div style={{
+          width: 636,
+          margin: '0 auto',
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12,
+        }}>
+          <h1 style={{
+            width: '100%', margin: 0,
+            fontWeight: 600, fontSize: 32, lineHeight: '110%',
+            textAlign: 'center', color: '#000',
+          }}>
+            Choose the right template for your needs
+          </h1>
+          <p style={{
+            width: '100%', margin: 0,
+            fontWeight: 400, fontSize: 16, lineHeight: '170%',
+            textAlign: 'center', color: '#000',
+          }}>
+            Pick your favorite design. And don&apos;t worry, you can always change the design later.
+          </p>
+        </div>
+
+        {/* Template rows */}
+        {rows.map((row, ri) => (
+          <div key={ri} style={{
+            display: 'flex', flexDirection: 'row',
+            alignItems: 'center', gap: 40, width: 1280,
+          }}>
+            {row.map(tpl => {
+              const isHov = hovered === tpl.id
+              const pdfTemplate = PDF_TEMPLATE_MAP[tpl.id] ?? 'minimal'
+              return (
+                <div
+                  key={tpl.id}
+                  onMouseEnter={() => setHovered(tpl.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => { patch({ template: tpl.id }); onNext() }}
+                  style={{
+                    display: 'flex', flexDirection: 'column',
+                    justifyContent: 'center', alignItems: 'center',
+                    gap: 16, width: 400, flexShrink: 0, cursor: 'pointer',
+                  }}
+                >
+                  {/* Card */}
+                  <div style={{
+                    width: 400, height: 566,
+                    borderRadius: 16, overflow: 'hidden',
+                    position: 'relative',
+                    boxShadow: isHov
+                      ? '0 30px 80px rgba(0,0,0,0.13)'
+                      : '0 30px 100px rgba(0,0,0,0.06)',
+                    transform: isHov ? 'scale(1.13)' : 'scale(1)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                    background: '#fff',
+                  }}>
+                    <A4Frame><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+
+                    {/* Hover overlay — Continue-style button */}
                     <div style={{
-                      background: '#fff', color: T.text1,
-                      fontWeight: 600, fontSize: T.f14,
-                      padding: '11px 28px', borderRadius: T.r10,
-                      boxShadow: '0 4px 20px rgba(0,0,0,.25)',
-                      fontFamily: 'inherit',
+                      position: 'absolute', inset: 0, zIndex: 3,
+                      background: 'rgba(0,0,0,0.58)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      opacity: isHov ? 1 : 0,
+                      transition: 'opacity 0.18s ease',
+                      pointerEvents: 'none',
                     }}>
-                      Use this template →
+                      <div style={{
+                        fontSize: 14, fontWeight: 600,
+                        padding: '20px 32px', borderRadius: 38,
+                        background: '#fff', color: '#05070A',
+                        height: 55, display: 'inline-flex',
+                        alignItems: 'center', justifyContent: 'center',
+                        fontFamily: 'inherit',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+                      }}>
+                        Use this template →
+                      </div>
                     </div>
                   </div>
-                </div>
 
-              </div>
-            )
-          })}
-        </div>
+                  {/* Label row: name + badge */}
+                  <div style={{
+                    display: 'flex', flexDirection: 'row',
+                    alignItems: 'center', gap: 8,
+                  }}>
+                    <span style={{ fontWeight: 500, fontSize: 16, lineHeight: '110%', color: '#05070A' }}>
+                      {tpl.name}
+                    </span>
+                    {tpl.badge && (
+                      <span style={{
+                        fontSize: 11, fontWeight: 600,
+                        padding: '3px 10px', borderRadius: 20,
+                        background: tpl.badge.bg, color: tpl.badge.color,
+                      }}>{tpl.badge.text}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -1530,24 +1616,36 @@ function StepLinks({ form, patch, onBack, onNext }) {
 function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ border: `1.5px solid ${T.border1}`, borderRadius: T.r12, overflow: 'hidden', marginBottom: 8 }}>
-      <div onClick={() => setOpen(o => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', cursor: 'pointer', userSelect: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: open ? T.accentL : T.border2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, transition: 'background .15s' }}>{icon}</div>
-          <span style={{ fontSize: T.f13, fontWeight: 500 }}>{title}</span>
+    <div style={{
+      background: '#fff',
+      border: '1px solid rgba(175,178,178,0.5)',
+      borderRadius: 16, overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div onClick={() => setOpen(o => !o)} style={{
+        height: 64, display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 24px', gap: 10,
+        cursor: 'pointer', userSelect: 'none',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Icon slot — 20×20, черная иконка подставится снаружи */}
+          <div style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+          <span style={{ fontSize: 14, fontWeight: 500, color: '#05070A' }}>{title}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: statusOk ? T.success : T.border1 }} />
-          <span style={{ fontSize: T.f11, color: T.text3 }}>{statusText}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: statusOk ? T.success : T.border1 }} />
+          <span style={{ fontSize: 14, color: T.text3 }}>{statusText}</span>
           <button onClick={e => { e.stopPropagation(); onEdit() }}
-            style={{ fontSize: T.f11, padding: '4px 12px', borderRadius: 7, border: `1.5px solid ${T.border1}`, background: T.bg1, color: T.text2, cursor: 'pointer', fontFamily: 'inherit' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.accent }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = T.border1; e.currentTarget.style.color = T.text2 }}>Edit</button>
-          <span style={{ color: T.text3, fontSize: 13, display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+            style={{ fontSize: 14, padding: '4px 12px', borderRadius: 8, border: `1px solid rgba(175,178,178,0.5)`, background: '#fff', color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#05070A'; e.currentTarget.style.color = '#05070A' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(175,178,178,0.5)'; e.currentTarget.style.color = '#4A4A4D' }}>Edit</button>
+          <span style={{ color: T.text3, fontSize: 14, display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
         </div>
       </div>
+      {/* Body */}
       {open && (
-        <div style={{ padding: '0 14px 12px', borderTop: `0.5px solid ${T.border2}` }}>{children}</div>
+        <div style={{ padding: '12px 24px', borderTop: `1px solid rgba(175,178,178,0.2)` }}>{children}</div>
       )}
     </div>
   )
@@ -1556,9 +1654,9 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
 function SumRow({ label, value }) {
   const empty = !value || !value.toString().trim()
   return (
-    <div style={{ display: 'flex', gap: 8, padding: '7px 0', borderBottom: `0.5px solid ${T.border2}` }}>
-      <span style={{ fontSize: T.f11, color: T.text3, width: 96, flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: T.f12, color: empty ? T.border1 : T.text1, fontStyle: empty ? 'italic' : 'normal' }}>{empty ? '—' : value}</span>
+    <div style={{ display: 'flex', gap: 12, padding: '6px 0' }}>
+      <span style={{ fontSize: 14, color: T.text3, width: 104, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 14, color: empty ? T.border1 : T.text1, fontStyle: empty ? 'italic' : 'normal', lineHeight: 1.5 }}>{empty ? '—' : value}</span>
     </div>
   )
 }
@@ -1573,51 +1671,63 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
         <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Expand any section to check details.</p>
       </div>
 
-      <SumCard icon="🎨" title="Template" statusOk={!!form.template} statusText="Selected" onEdit={() => goTo(-1)}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 8 }}>
-          <div style={{ width: 30, height: 38, borderRadius: 4, background: tpl?.swatch, border: `0.5px solid ${T.border1}`, flexShrink: 0 }} />
-          <span style={{ fontSize: T.f13, fontWeight: 500 }}>{tpl?.name}</span>
-        </div>
-      </SumCard>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SumCard icon="🎨" title="Template" statusOk={!!form.template} statusText="Selected" onEdit={() => goTo(-1)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 30, height: 38, borderRadius: 4, background: tpl?.swatch, border: `0.5px solid ${T.border1}`, flexShrink: 0 }} />
+            <span style={{ fontSize: T.f13, fontWeight: 500 }}>{tpl?.name}</span>
+          </div>
+        </SumCard>
 
-      <SumCard icon="👤" title="Basic info" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => goTo(1)}>
-        <SumRow label="Name" value={form.name} />
-        <SumRow label="Target role" value={form.targetRole} />
-        <SumRow label="Email" value={form.email} />
-        <SumRow label="Job desc." value={form.jobDescription ? `${form.jobDescription.slice(0, 60)}…` : null} />
-      </SumCard>
+        <SumCard icon="👤" title="Basic info" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => goTo(1)}>
+          <SumRow label="Name" value={form.name} />
+          <SumRow label="Target role" value={form.targetRole} />
+          <SumRow label="Email" value={form.email} />
+          <SumRow label="Job desc." value={form.jobDescription ? `${form.jobDescription.slice(0, 60)}…` : null} />
+        </SumCard>
 
-      <SumCard icon="💼" title="Experience" statusOk={form.experience.length > 0} statusText={`${form.experience.length} position${form.experience.length !== 1 ? 's' : ''}`} onEdit={() => goTo(2)}>
-        {form.experience.length === 0
-          ? <div style={{ padding: '7px 0', fontSize: T.f12, color: T.border1, fontStyle: 'italic' }}>No experience added</div>
-          : form.experience.map((e, i) => (
-            <div key={e.id} style={{ padding: '7px 0', borderBottom: i < form.experience.length - 1 ? `0.5px solid ${T.border2}` : 'none' }}>
-              <div style={{ fontSize: T.f13, fontWeight: 500 }}>{[e.role, e.company].filter(Boolean).join(' · ') || '—'}</div>
-              <div style={{ fontSize: T.f11, color: T.text3 }}>{[e.start, e.end].filter(Boolean).join(' – ')}</div>
-            </div>
-          ))
-        }
-      </SumCard>
+        <SumCard icon="💼" title="Experience"
+          statusOk={form.experience.some(e => e.role || e.company)}
+          statusText={`${form.experience.length} position${form.experience.length !== 1 ? 's' : ''}`}
+          onEdit={() => goTo(2)}>
+          {form.experience.length === 0
+            ? <div style={{ fontSize: 14, color: T.text3 }}>No experience added</div>
+            : form.experience.map((e, i) => (
+              <div key={e.id} style={{ padding: i > 0 ? '8px 0 0' : '0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ fontSize: 14, fontWeight: (e.role || e.company) ? 500 : 400, color: (e.role || e.company) ? '#05070A' : T.text3 }}>
+                  {e.role || e.company
+                    ? <>{e.role}{e.role && e.company && <span style={{ fontWeight: 400, color: T.text3 }}> · {e.company}</span>}{!e.role && e.company}</>
+                    : 'New position'
+                  }
+                </div>
+                {(e.start || e.end) && (
+                  <div style={{ fontSize: 13, color: T.text3 }}>{[e.start, e.end || 'Present'].filter(Boolean).join(' – ')}</div>
+                )}
+              </div>
+            ))
+          }
+        </SumCard>
 
-      <SumCard icon="⭐" title="Skills & languages"
-        statusOk={form.skills.length > 0 || form.languages.some(l => l.name)}
-        statusText={`${form.skills.length} skills, ${form.languages.filter(l => l.name).length} languages`}
-        onEdit={() => goTo(3)}>
-        <SumRow label="Skills" value={form.skills.join(', ')} />
-        <SumRow label="Languages" value={form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`).join(', ')} />
-        <SumRow label="Education" value={form.education.filter(e => e.text).map(e => e.text).join('; ')} />
-      </SumCard>
+        <SumCard icon="⭐" title="Skills & languages"
+          statusOk={form.skills.length > 0 || form.languages.some(l => l.name)}
+          statusText={`${form.skills.length} skills, ${form.languages.filter(l => l.name).length} languages`}
+          onEdit={() => goTo(3)}>
+          <SumRow label="Skills" value={form.skills.join(', ')} />
+          <SumRow label="Languages" value={form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`).join(', ')} />
+          <SumRow label="Education" value={form.education.filter(e => e.text).map(e => e.text).join('; ')} />
+        </SumCard>
 
-      <SumCard icon="🔗" title="Links & contact" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => goTo(4)}>
-        <SumRow label="Phone" value={form.phone} />
-        <SumRow label="Location" value={form.location} />
-        <SumRow label="LinkedIn" value={form.linkedin} />
-        <SumRow label="Portfolio" value={form.portfolio} />
-      </SumCard>
+        <SumCard icon="🔗" title="Links & contact" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => goTo(4)}>
+          <SumRow label="Phone" value={form.phone} />
+          <SumRow label="Location" value={form.location} />
+          <SumRow label="LinkedIn" value={form.linkedin} />
+          <SumRow label="Portfolio" value={form.portfolio} />
+        </SumCard>
+      </div>
 
-      <div style={{ background: '#F7F8FA', borderRadius: 16, padding: '1.75rem', textAlign: 'center', marginTop: 8 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#05070A', marginBottom: 6 }}>Ready to generate</div>
-        <div style={{ fontSize: 14, color: '#4A4A4D', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+      <div style={{ background: '#F7F8FA', borderRadius: 16, padding: '32px 64px', textAlign: 'center' }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: '#05070A', marginBottom: 8 }}>Ready to generate</div>
+        <div style={{ fontSize: 16, color: '#4A4A4D', marginBottom: '1.25rem', lineHeight: 1.6 }}>
           AI will write polished bullet points, a professional summary, and tailor everything to your target role.
         </div>
         <BtnPrimary onClick={onGenerate} disabled={generating}>
@@ -1628,7 +1738,7 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
             ⚠ {genError}
           </div>
         )}
-        <button onClick={() => goTo(4)} style={{ display: 'block', margin: '12px auto 0', fontSize: 13, color: '#AFB2B2', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button onClick={() => goTo(4)} style={{ display: 'block', margin: '20px auto 0', fontSize: 13, color: '#AFB2B2', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
           ← Back to step 4
         </button>
       </div>
