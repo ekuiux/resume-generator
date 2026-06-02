@@ -1,28 +1,58 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const PLANS = [
   {
     id: 'one_time',
+    planId: 67050,
     label: 'One-time Download',
-    price: '$1.20',
+    price: '$2.90',
     period: null,
     badge: null,
     features: ['Single PDF download', 'All 6 templates', 'Instant delivery'],
   },
   {
-    id: 'weekly',
-    label: 'Weekly Access',
-    price: '$1.80',
-    period: '/week',
+    id: 'monthly',
+    planId: 67051,
+    label: 'Monthly Access',
+    price: '$4.90',
+    period: '/month',
     badge: 'Best value',
-    features: ['Unlimited PDF downloads', 'All 6 templates', 'Auto-renewing weekly', 'Cancel anytime'],
+    features: ['Unlimited PDF downloads', 'All 6 templates', 'Cancel anytime'],
   },
 ]
 
-// TODO: integrate 2Checkout when account is approved
 export default function PaywallModal({ isOpen, onClose, onSuccess }) {
-  const [selectedPlan, setSelectedPlan] = useState('weekly')
+  const [selectedPlan, setSelectedPlan] = useState('monthly')
+  const checkoutRef = useRef(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.FS) return
+
+    const script = document.createElement('script')
+    script.src = 'https://checkout.freemius.com/js/v1/'
+    script.onload = () => {
+      checkoutRef.current = new window.FS.Checkout({
+        product_id: 31066,
+        public_key: 'pk_0c8f1a770c6e4345670337792dd5b',
+      })
+    }
+    document.head.appendChild(script)
+  }, [])
+
+  const handleCheckout = () => {
+    const plan = PLANS.find(p => p.id === selectedPlan)
+    if (!checkoutRef.current) return
+
+    checkoutRef.current.open({
+      plan_id: plan.planId,
+      success: () => {
+        onClose()
+        if (onSuccess) onSuccess()
+      },
+    })
+  }
 
   if (!isOpen) return null
 
@@ -64,7 +94,8 @@ export default function PaywallModal({ isOpen, onClose, onSuccess }) {
             return (
               <button key={plan.id} onClick={() => setSelectedPlan(plan.id)} style={{
                 display: 'flex', alignItems: 'flex-start', gap: 14, padding: 16,
-                borderRadius: 12, border: isSelected ? '2px solid #2563eb' : '2px solid #e5e7eb',
+                borderRadius: 12,
+                border: isSelected ? '2px solid #2563eb' : '2px solid #e5e7eb',
                 background: isSelected ? '#eff6ff' : '#fff',
                 cursor: 'pointer', textAlign: 'left', width: '100%',
               }}>
@@ -92,24 +123,26 @@ export default function PaywallModal({ isOpen, onClose, onSuccess }) {
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <span style={{ fontSize: 20, fontWeight: 700, color: '#111' }}>{plan.price}</span>
-                  {plan.period && <span style={{ fontSize: 12, color: '#888', display: 'block' }}>{plan.period}</span>}
+                  {plan.period && (
+                    <span style={{ fontSize: 12, color: '#888', display: 'block' }}>{plan.period}</span>
+                  )}
                 </div>
               </button>
             )
           })}
         </div>
 
-        {/* CTA — payment coming soon */}
-        <button disabled style={{
+        {/* CTA */}
+        <button onClick={handleCheckout} style={{
           width: '100%', padding: 14, borderRadius: 10, border: 'none',
-          background: '#93c5fd', color: '#fff', fontWeight: 700,
-          fontSize: 15, cursor: 'not-allowed',
+          background: '#2563eb', color: '#fff', fontWeight: 700,
+          fontSize: 15, cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          Payment coming soon
+          Continue to Payment →
         </button>
 
         <p style={{ margin: '12px 0 0', textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-          🔒 Secure payment · Card, Google Pay, Apple Pay
+          🔒 Secure payment · Card, PayPal
         </p>
       </div>
     </div>
