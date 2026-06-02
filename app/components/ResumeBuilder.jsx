@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import dynamic from 'next/dynamic'
 import PaywallModal from './PaywallModal'
 
@@ -151,21 +151,36 @@ function Input({ style, error, ...props }) {
   )
 }
 
-function AutoInput({ value, onChange, placeholder, suggestions = [], style, ...rest }) {
-  const [open, setOpen] = useState(false)
+function AutoInput({ value, onChange, placeholder, suggestions = [], style, showOnFocus = false, ...rest }) {
+  const [open, setOpen]       = useState(false)
   const [dropRect, setDropRect] = useState(null)
+  const [isTyping, setIsTyping] = useState(false)
   const wrapRef = useRef(null)
   const q = (value || '').toLowerCase()
-  const hits = q.length > 0 ? suggestions.filter(s => s.toLowerCase().startsWith(q)).slice(0, 8) : []
+
+  // showOnFocus: full list on focus, filter only when actively typing
+  const filterQ = showOnFocus ? (isTyping ? q : '') : q
+  const hits = open
+    ? (filterQ.length > 0
+        ? suggestions.filter(s => s.toLowerCase().startsWith(filterQ))
+        : showOnFocus ? suggestions
+        : []
+      ).slice(0, 12)
+    : []
 
   function calcRect() {
     if (wrapRef.current) setDropRect(wrapRef.current.getBoundingClientRect())
   }
 
+  function handleChange(e) {
+    setIsTyping(true)
+    onChange(e)
+  }
+
   return (
     <div ref={wrapRef}>
-      <Input value={value} onChange={onChange} placeholder={placeholder} style={style}
-        onFocus={() => { calcRect(); setOpen(true) }}
+      <Input value={value} onChange={handleChange} placeholder={placeholder} style={style}
+        onFocus={() => { calcRect(); setOpen(true); setIsTyping(false) }}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         {...rest}
       />
@@ -184,7 +199,7 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], style, ...r
           overflowY: 'auto',
         }}>
           {hits.map((s, i) => (
-            <div key={s} onMouseDown={() => { onChange({ target: { value: s } }); setOpen(false) }}
+            <div key={s} onMouseDown={() => { onChange({ target: { value: s } }); setOpen(false); setIsTyping(false) }}
               style={{
                 padding: '10px 14px', fontSize: T.f13, cursor: 'pointer', color: T.text1,
                 borderBottom: i < hits.length - 1 ? `0.5px solid ${T.border2}` : 'none',
@@ -211,7 +226,7 @@ function Textarea({ style, ...props }) {
         color: T.text1, background: T.bg1,
         border: `1px solid ${focused ? '#05070A' : 'rgba(175,178,178,0.5)'}`,
         borderRadius: 12, padding: '11px 16px', outline: 'none',
-        boxSizing: 'border-box', resize: 'vertical', minHeight: 88, lineHeight: 1.6,
+        boxSizing: 'border-box', resize: 'none', minHeight: 88, lineHeight: 1.6,
         boxShadow: focused ? '0 0 0 3px rgba(175,178,178,0.35)' : 'none',
         transition: 'border-color .15s, box-shadow .15s', ...style,
       }}
@@ -232,7 +247,7 @@ function Lbl({ children }) {
 
 function Field({ label, hint, children, style }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
       {label && <Lbl>{label}</Lbl>}
       {children}
       {hint && <p style={{ fontSize: 12, color: '#AFB2B2', marginTop: 0, lineHeight: 1.5 }}>{hint}</p>}
@@ -281,6 +296,24 @@ function BtnSecondary({ children, onClick }) {
       cursor: 'pointer', fontFamily: 'inherit', height: 55,
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
     }}>{children}</button>
+  )
+}
+
+function BtnTextAdd({ children, onClick, style }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <button type="button" onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? 'rgba(175,178,178,0.12)' : 'none',
+        border: 'none', cursor: 'pointer',
+        fontSize: 14, fontWeight: 600, color: '#05070A',
+        fontFamily: 'inherit', padding: '8px 16px',
+        textAlign: 'left', borderRadius: 20,
+        transition: 'background .15s',
+        ...style,
+      }}>{children}</button>
   )
 }
 
@@ -813,7 +846,7 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
       <div className="exp-card-inner" style={{
         background: '#fff',
         border: '1px solid rgba(175,178,178,0.5)',
-        borderRadius: 12, overflow: 'hidden',
+        borderRadius: 16, overflow: 'hidden',
       }}>
         <div
           onClick={onToggle}
@@ -821,7 +854,7 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
             height: isOpen ? 'auto' : EXP_CARD_H,
             minHeight: isOpen ? EXP_CARD_H : undefined,
             display: 'flex', alignItems: 'center',
-            padding: '0 16px', gap: 10,
+            padding: '0 24px', gap: 10,
             cursor: 'pointer', userSelect: 'none',
           }}
         >
@@ -833,7 +866,7 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
         </div>
 
         {isOpen && (
-          <div style={{ padding: '16px', borderTop: '1px solid rgba(175,178,178,0.2)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ padding: '24px', borderTop: '1px solid rgba(175,178,178,0.2)', display: 'flex', flexDirection: 'column', gap: 24 }}>
             <Grid2>
               <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
               <Field label="Job title"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
@@ -997,11 +1030,7 @@ function StepExperience({ form, patch, onBack, onNext }) {
               />
             </div>
           ))}
-          <button type="button" onClick={addExp} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 14, fontWeight: 600, color: '#05070A',
-            fontFamily: 'inherit', padding: '8px 0', textAlign: 'left',
-          }}>＋ Add position</button>
+          <BtnTextAdd onClick={addExp} style={{ paddingLeft: 24 }}>＋ Add position</BtnTextAdd>
         </div>
       </div>
 
@@ -1010,10 +1039,10 @@ function StepExperience({ form, patch, onBack, onNext }) {
         <div style={{
           position: 'fixed', zIndex: 9999, pointerEvents: 'none',
           top: dragState.top, left: dragState.left, width: dragState.width,
-          height: EXP_CARD_H, display: 'flex', alignItems: 'center', padding: '0 16px',
-          background: '#fff', borderRadius: 12,
+          height: EXP_CARD_H, display: 'flex', alignItems: 'center', padding: '0 24px',
+          background: '#fff', borderRadius: 16,
           border: '1px solid rgba(175,178,178,0.5)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.16)',
           userSelect: 'none',
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1036,9 +1065,16 @@ function StepExperience({ form, patch, onBack, onNext }) {
 // ─── Step 3: Skills, Languages & Education ───────────────────────────────────
 
 function SkillChips({ skills, onChange, targetRole }) {
-  const [input, setInput] = useState('')
+  const [input, setInput]     = useState('')
   const [focused, setFocused] = useState(false)
-  const inputRef = useRef(null)
+  const [dragSkill, setDragSkill] = useState(null)
+  const [ghostPos, setGhostPos]   = useState(null)
+  const inputRef    = useRef(null)
+  const skillsRef   = useRef(skills)
+  const lastOverRef = useRef(null)
+
+  useEffect(() => { skillsRef.current = skills }, [skills])
+
   const suggestions = getSkillSuggestions(targetRole).filter(s => !skills.includes(s))
 
   function addSkill(skill) {
@@ -1049,31 +1085,112 @@ function SkillChips({ skills, onChange, targetRole }) {
   }
   function handleKeyDown(e) {
     if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addSkill(input) }
-    else if (e.key === 'Backspace' && !input && skills.length > 0) {
-      onChange(skills.slice(0, -1))
+    else if (e.key === 'Backspace' && !input && skills.length > 0) onChange(skills.slice(0, -1))
+  }
+
+  function startChipDrag(skill, e) {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragSkill(skill)
+    lastOverRef.current = null
+
+    function onMove(ev) {
+      setGhostPos({ x: ev.clientX + 12, y: ev.clientY + 12 })
+
+      const cur  = skillsRef.current
+      const from = cur.indexOf(skill)
+      if (from < 0) return
+
+      // Find insertion point by iterating all chip rects
+      // "insertBefore" = first chip where cursor is above its row OR left of its midX
+      let insertBefore = null
+      for (let i = 0; i < cur.length; i++) {
+        if (cur[i] === skill) continue
+        const el = document.querySelector(`[data-skill="${CSS.escape(cur[i])}"]`)
+        if (!el) continue
+        const r = el.getBoundingClientRect()
+        const onSameRow = ev.clientY >= r.top - 4 && ev.clientY <= r.bottom + 4
+        const aboveRow  = ev.clientY < r.top - 4
+        if (aboveRow || (onSameRow && ev.clientX < r.left + r.width / 2)) {
+          insertBefore = cur[i]
+          break
+        }
+      }
+
+      if (insertBefore === lastOverRef.current) return
+      lastOverRef.current = insertBefore
+
+      const arr = [...cur]
+      const [removed] = arr.splice(from, 1)
+      const to = insertBefore ? arr.indexOf(insertBefore) : arr.length
+      arr.splice(to < 0 ? arr.length : to, 0, removed)
+      onChange(arr)
     }
+
+    function onUp() {
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup', onUp)
+      setDragSkill(null)
+      setGhostPos(null)
+      lastOverRef.current = null
+    }
+
+    document.addEventListener('pointermove', onMove)
+    document.addEventListener('pointerup', onUp)
   }
 
   return (
     <div>
+      {/* Ghost chip following cursor */}
+      {dragSkill && ghostPos && (
+        <div style={{
+          position: 'fixed', zIndex: 9999, pointerEvents: 'none',
+          top: ghostPos.y, left: ghostPos.x,
+          display: 'inline-flex', alignItems: 'center',
+          background: '#05070A', borderRadius: 6,
+          padding: '4px 10px', fontSize: 13, color: '#fff',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+          userSelect: 'none', whiteSpace: 'nowrap',
+        }}>
+          {dragSkill}
+        </div>
+      )}
       <div
         onClick={() => inputRef.current?.focus()}
         style={{
           display: 'flex', flexWrap: 'wrap', gap: 6, padding: '10px 14px',
           border: `1px solid ${focused ? '#05070A' : 'rgba(175,178,178,0.5)'}`,
+          boxShadow: focused ? '0 0 0 3px rgba(175,178,178,0.35)' : 'none',
           borderRadius: 12, minHeight: 47, alignItems: 'center',
-          cursor: 'text', transition: 'border-color .15s', background: '#fff',
+          cursor: 'text', transition: 'border-color .15s, box-shadow .15s', background: '#fff',
         }}
       >
         {skills.map(s => (
-          <span key={s} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 4,
-            background: '#F7F8FA', border: '1px solid rgba(175,178,178,0.4)',
-            borderRadius: 6, padding: '3px 8px', fontSize: 13, color: '#05070A',
-          }}>
+          <span
+            key={s}
+            data-skill={s}
+            onPointerDown={e => startChipDrag(s, e)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              background: '#F7F8FA', border: '1px solid rgba(175,178,178,0.4)',
+              borderRadius: 6, padding: '3px 8px', fontSize: 13, color: '#05070A',
+              cursor: 'grab', userSelect: 'none', touchAction: 'none',
+              opacity: dragSkill === s ? 0.35 : 1,
+              transition: 'opacity .12s',
+            }}
+          >
             {s}
-            <button onClick={e => { e.stopPropagation(); onChange(skills.filter(x => x !== s)) }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#AFB2B2', fontSize: 15, padding: 0, lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+            <button
+              onPointerDown={e => e.stopPropagation()}
+              onClick={e => { e.stopPropagation(); onChange(skills.filter(x => x !== s)) }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: '#AFB2B2', fontSize: 15, padding: 0,
+                lineHeight: 1, display: 'flex', alignItems: 'center',
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
+              onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
+            >×</button>
           </span>
         ))}
         <input
@@ -1102,32 +1219,194 @@ function SkillChips({ skills, onChange, targetRole }) {
   )
 }
 
-function LangRow({ item, onNameChange, onLevelChange, onRemove }) {
+// ─── Reusable sortable hook ───────────────────────────────────────────────────
+
+function useSortable(items, onReorder, group) {
+  const [dragState, setDragState] = useState(null)
+  const itemsRef      = useRef(items)
+  const lastBeforeRef = useRef(null)
+  const snapRef       = useRef({})
+  const sel = id => `[data-sk="${group}-${id}"]`
+
+  useEffect(() => { itemsRef.current = items }, [items])
+
+  // FLIP
+  useEffect(() => {
+    if (!dragState) return
+    items.forEach(item => {
+      if (item.id === dragState.id) return
+      const el = document.querySelector(sel(item.id))
+      if (!el || snapRef.current[item.id] === undefined) return
+      const delta = snapRef.current[item.id] - el.getBoundingClientRect().top
+      if (Math.abs(delta) < 1) return
+      el.style.transition = 'none'
+      el.style.transform = `translateY(${delta}px)`
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform .18s ease'
+        el.style.transform = 'translateY(0)'
+      })
+    })
+  }, [items])
+
+  function startDrag(itemId, e) {
+    e.preventDefault()
+    const el = document.querySelector(sel(itemId))
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const offsetY = e.clientY - rect.top
+    const offsetX = e.clientX - rect.left
+    lastBeforeRef.current = null
+    setDragState({ id: itemId, top: rect.top, left: rect.left, width: rect.width, offsetY, offsetX })
+
+    function takeSnap() {
+      const snap = {}
+      itemsRef.current.forEach(x => {
+        const el2 = document.querySelector(sel(x.id))
+        if (el2) snap[x.id] = el2.getBoundingClientRect().top
+      })
+      snapRef.current = snap
+    }
+
+    function onMove(ev) {
+      setDragState(d => d ? { ...d, top: ev.clientY - offsetY, left: ev.clientX - offsetX } : null)
+      const cur = itemsRef.current
+      let beforeId = null
+      for (const x of cur) {
+        if (x.id === itemId) continue
+        const el3 = document.querySelector(sel(x.id))
+        if (!el3) continue
+        const r = el3.getBoundingClientRect()
+        if (ev.clientY < r.top + r.height / 2) { beforeId = x.id; break }
+      }
+      if (beforeId === lastBeforeRef.current) return
+      lastBeforeRef.current = beforeId
+      takeSnap()
+      const from = cur.findIndex(x => x.id === itemId)
+      const arr = [...cur]
+      const [moved] = arr.splice(from, 1)
+      const to = beforeId ? arr.findIndex(x => x.id === beforeId) : arr.length
+      arr.splice(to < 0 ? arr.length : to, 0, moved)
+      onReorder(arr)
+    }
+
+    function onUp() {
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup', onUp)
+      setDragState(null)
+      lastBeforeRef.current = null
+    }
+
+    document.addEventListener('pointermove', onMove)
+    document.addEventListener('pointerup', onUp)
+  }
+
+  return { dragState, startDrag, sel }
+}
+
+// ─── LangRow & EduRow ────────────────────────────────────────────────────────
+
+function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, isDragging, sortKey }) {
+  const [isHov, setIsHov] = useState(false)
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 28px', gap: 10, alignItems: 'center' }}>
-      <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)} placeholder="English" suggestions={LANG_SUGG} />
-      <div style={{ display: 'flex', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, overflow: 'hidden', height: 47 }}>
-        {LANG_LEVELS.map((lvl, i) => (
-          <button key={lvl} type="button" onClick={() => onLevelChange(i)} style={{
-            padding: '0 10px', border: 'none', fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
-            cursor: 'pointer', whiteSpace: 'nowrap',
-            background: item.level === i ? '#05070A' : '#fff',
-            color: item.level === i ? '#fff' : '#4A4A4D',
-            borderRight: i < LANG_LEVELS.length - 1 ? '1px solid rgba(175,178,178,0.3)' : 'none',
-            transition: 'background .12s',
-          }}>{lvl}</button>
-        ))}
+    <div
+      data-sk={sortKey}
+      style={{ position: 'relative', opacity: isDragging ? 0 : 1, transition: 'opacity .15s' }}
+      onMouseEnter={() => setIsHov(true)}
+      onMouseLeave={() => setIsHov(false)}
+    >
+      {/* Drag handle outside left */}
+      <div onPointerDown={onHandleDown} style={{
+        position: 'absolute', left: -32, top: 0,
+        height: 47, width: 28,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
+        opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+        userSelect: 'none', touchAction: 'none',
+      }}>⠿</div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'center' }}>
+        <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
+          placeholder="English" suggestions={LANG_SUGG} showOnFocus />
+        <div style={{ display: 'flex', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, overflow: 'hidden', height: 47 }}>
+          {LANG_LEVELS.map((lvl, i) => (
+            <button key={lvl} type="button" onClick={() => onLevelChange(i)} style={{
+              flex: 1, padding: '0 4px', border: 'none', fontFamily: 'inherit', fontSize: 11, fontWeight: 600,
+              cursor: 'pointer', whiteSpace: 'nowrap',
+              background: item.level === i ? '#05070A' : '#fff',
+              color: item.level === i ? '#fff' : '#4A4A4D',
+              borderRight: i < LANG_LEVELS.length - 1 ? '1px solid rgba(175,178,178,0.3)' : 'none',
+              transition: 'background .12s',
+            }}>{lvl}</button>
+          ))}
+        </div>
       </div>
+
+      {/* × outside right */}
       <button type="button" onClick={onRemove}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#AFB2B2', fontSize: 18, padding: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color .15s', height: 47 }}
+        style={{
+          position: 'absolute', right: -32, top: 0, height: 47, width: 28,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: 20, color: '#AFB2B2', padding: 0, lineHeight: 1,
+          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+        }}
         onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}>×</button>
+        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
+      >×</button>
+    </div>
+  )
+}
+
+function EduRow({ text, onChange, onRemove, onHandleDown, isDragging, sortKey }) {
+  const [isHov, setIsHov] = useState(false)
+  return (
+    <div
+      data-sk={sortKey}
+      style={{ position: 'relative', opacity: isDragging ? 0 : 1, transition: 'opacity .15s' }}
+      onMouseEnter={() => setIsHov(true)}
+      onMouseLeave={() => setIsHov(false)}
+    >
+      {/* Drag handle outside left */}
+      <div onPointerDown={onHandleDown} style={{
+        position: 'absolute', left: -32, top: 0,
+        height: 47, width: 28,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
+        opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+        userSelect: 'none', touchAction: 'none',
+      }}>⠿</div>
+
+      <Input value={text} onChange={e => onChange(e.target.value)}
+        placeholder="Bachelor of Computer Science — MIT" />
+
+      {/* × outside right */}
+      <button type="button" onClick={onRemove}
+        style={{
+          position: 'absolute', right: -32, top: 0, height: 47, width: 28,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: 20, color: '#AFB2B2', padding: 0, lineHeight: 1,
+          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
+        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
+      >×</button>
     </div>
   )
 }
 
 function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
   const updLang = (id, p) => patch({ languages: form.languages.map(l => l.id === id ? { ...l, ...p } : l) })
+
+  const { dragState: langDrag, startDrag: startLangDrag } = useSortable(
+    form.languages, arr => patch({ languages: arr }), 'lang'
+  )
+  const { dragState: eduDrag, startDrag: startEduDrag } = useSortable(
+    form.education, arr => patch({ education: arr }), 'edu'
+  )
+
+  const langDragItem = langDrag ? form.languages.find(l => l.id === langDrag.id) : null
+  const eduDragItem  = eduDrag  ? form.education.find(e => e.id === eduDrag.id)  : null
 
   return (
     <>
@@ -1143,38 +1422,69 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
         </Field>
 
         {/* Languages */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Lbl>Languages</Lbl>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {form.languages.map(l => (
               <LangRow key={l.id} item={l}
+                sortKey={`lang-${l.id}`}
+                isDragging={langDrag?.id === l.id}
+                onHandleDown={e => startLangDrag(l.id, e)}
                 onNameChange={v => updLang(l.id, { name: v })}
                 onLevelChange={v => updLang(l.id, { level: v })}
                 onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
               />
             ))}
-            <BtnAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })}>＋ Add language</BtnAdd>
+            <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })}>＋ Add language</BtnTextAdd>
           </div>
         </div>
 
         {/* Education */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Lbl>Education</Lbl>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {form.education.map(edu => (
-              <div key={edu.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Input value={edu.text} onChange={e => patch({ education: form.education.map(x => x.id === edu.id ? { ...x, text: e.target.value } : x) })}
-                  placeholder="Bachelor of Computer Science — MIT" style={{ flex: 1 }} />
-                <button type="button" onClick={() => patch({ education: form.education.filter(x => x.id !== edu.id) })}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#AFB2B2', fontSize: 18, padding: 0, lineHeight: 1, flexShrink: 0, transition: 'color .15s', height: 47, width: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}>×</button>
-              </div>
+              <EduRow key={edu.id} text={edu.text}
+                sortKey={`edu-${edu.id}`}
+                isDragging={eduDrag?.id === edu.id}
+                onHandleDown={e => startEduDrag(edu.id, e)}
+                onChange={v => patch({ education: form.education.map(x => x.id === edu.id ? { ...x, text: v } : x) })}
+                onRemove={() => patch({ education: form.education.filter(x => x.id !== edu.id) })}
+              />
             ))}
-            <BtnAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })}>＋ Add education</BtnAdd>
+            <BtnTextAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })}>＋ Add education</BtnTextAdd>
           </div>
         </div>
       </div>
+
+      {/* Ghosts */}
+      {langDrag && langDragItem && (
+        <div style={{
+          position: 'fixed', zIndex: 9999, pointerEvents: 'none',
+          top: langDrag.top, left: langDrag.left, width: langDrag.width,
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'center',
+          opacity: 0.9,
+        }}>
+          <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: 14, color: '#05070A', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+            {langDragItem.name || 'Language'}
+          </div>
+          <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
+        </div>
+      )}
+      {eduDrag && eduDragItem && (
+        <div style={{
+          position: 'fixed', zIndex: 9999, pointerEvents: 'none',
+          top: eduDrag.top, left: eduDrag.left, width: eduDrag.width,
+          height: 47, background: '#fff',
+          border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
+          display: 'flex', alignItems: 'center', padding: '0 16px',
+          fontSize: 14, color: '#05070A',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          opacity: 0.9,
+        }}>
+          {eduDragItem.text || 'Education'}
+        </div>
+      )}
 
       <Footer step={3} onBack={onBack} onNext={onNext} />
     </>
