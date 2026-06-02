@@ -17,7 +17,8 @@ WHAT YOU CAN DO:
 - Rewrite sentences with stronger action verbs based on the user's own words
 - Fix grammar and improve clarity
 - Structure bullet points properly
-- Infer seniority tone from the level field (Senior = confident claims, Junior = learning-focused)
+- If a job description is provided, prioritize its keywords in the resume
+- Tailor the summary and skill ordering to match the target role and job description
 
 Return ONLY valid JSON, no markdown, no explanations.
 Schema:
@@ -37,25 +38,20 @@ Return ONLY JSON, nothing else.`
 export async function POST(req: NextRequest) {
   const formData = await req.json()
 
-  const ind = formData.industry || 'Not specified'
-  const lvl = ['Intern','Junior','Mid','Senior','Lead'][formData.level] ?? 'Not specified'
-  const location = [formData.city, formData.country].filter(Boolean).join(', ') || 'Not specified'
+  const location = formData.location || 'Not specified'
 
-  const skillsList = (formData.skills || [])
-    .filter((s: any) => s.name)
-    .map((s: any) => {
-      const lvlName = ['Beginner','Familiar','Proficient','Advanced','Expert'][s.level] ?? ''
-      return `${s.name} (${lvlName})`
-    }).join(', ')
+  // Skills: now a plain string array
+  const skillsList = (formData.skills as string[] || []).filter(Boolean).join(', ')
 
   const langsList = (formData.languages || [])
     .filter((l: any) => l.name)
     .map((l: any) => `${l.name} (${['A1','A2','B1','B2','C1','C2'][l.level] ?? ''})`)
     .join(', ')
 
+  // Education: now { id, text } entries
   const eduList = (formData.education || [])
-    .filter((e: any) => e.degree || e.institution)
-    .map((e: any) => `${e.degree || ''} at ${e.institution || ''}, ${[e.yearFrom, e.yearTo].filter(Boolean).join('–')}`)
+    .filter((e: any) => e.text)
+    .map((e: any) => e.text)
     .join('; ')
 
   const expList = (formData.experience || [])
@@ -70,18 +66,16 @@ export async function POST(req: NextRequest) {
 IMPORTANT: Only use information explicitly provided below. If a field is empty, skip it.
 Name: ${formData.name}
 Target role: ${formData.targetRole}
-Industry: ${ind}
-Seniority: ${lvl}
 Location: ${location}
 Email: ${formData.email || ''}
 Phone: ${formData.phone || ''}
 LinkedIn: ${formData.linkedin || ''}
-GitHub: ${formData.github || ''}
-
+Portfolio/GitHub: ${formData.portfolio || ''}
+${formData.jobDescription ? `\nJob description (tailor resume to match this):\n${formData.jobDescription}\n` : ''}
 Work experience:
 ${expList || 'Not provided'}
 
-Skills (use proficiency levels to calibrate tone — Expert/Advanced = confident claims, Beginner/Familiar = "familiar with"):
+Skills:
 ${skillsList || 'Not provided'}
 
 Languages:

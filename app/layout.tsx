@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Onest } from "next/font/google";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
+const onest = Onest({
+  variable: "--font-onest",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={plusJakarta.variable}>
-      <body style={{ fontFamily: "var(--font-plus-jakarta), system-ui, sans-serif", margin: 0 }}>
+    <html lang="en" className={onest.variable}>
+      <body style={{ fontFamily: "var(--font-onest), system-ui, sans-serif", margin: 0 }}>
         {children}
       </body>
     </html>

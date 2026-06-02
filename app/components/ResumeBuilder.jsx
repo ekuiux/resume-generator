@@ -36,15 +36,30 @@ const INDUSTRIES = [
   { id: 'other',     icon: '···', name: 'Other',      sub: '' },
 ]
 
-const LEVELS       = ['Intern', 'Junior', 'Mid', 'Senior', 'Lead']
-const LEVEL_SUBS   = ['0–1 yr', '1–3 yrs', '3–6 yrs', '6–10 yrs', '10+ yrs']
-const SKILL_LEVELS = ['Beginner', 'Familiar', 'Proficient', 'Advanced', 'Expert']
 const LANG_LEVELS  = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-const STEP_NAMES   = ['Personal', 'Profile', 'Experience', 'Skills']
-const CITY_SUGG = ['New York','Los Angeles','San Francisco','Chicago','Seattle','Boston','Austin','London','Berlin','Paris','Amsterdam','Barcelona','Stockholm','Zurich','Dubai','Singapore','Tokyo','Seoul','Sydney','Toronto','Vancouver','Mumbai','Bangalore','São Paulo','Mexico City','Warsaw','Prague','Kyiv','Tel Aviv','Cape Town']
-const COUNTRY_SUGG = ['United States','United Kingdom','Canada','Australia','Germany','France','Netherlands','Spain','Switzerland','Sweden','Norway','Denmark','Finland','Poland','Czech Republic','Ukraine','Israel','UAE','India','Japan','South Korea','China','Singapore','Brazil','Mexico','Argentina','South Africa','Nigeria','Kenya']
-const LANG_SUGG = ['English','Spanish','French','German','Portuguese','Italian','Russian','Chinese','Japanese','Korean','Arabic','Hindi','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Turkish','Ukrainian','Hebrew','Persian','Thai','Vietnamese','Indonesian','Malay','Romanian','Hungarian','Greek','Czech']
-const PHOTO_TEMPLATES = ['corporate', 'modern', 'elegant']
+const STEP_NAMES   = ['Basic Info', 'Experience', 'Skills', 'Links']
+const LANG_SUGG    = ['English','Spanish','French','German','Portuguese','Italian','Russian','Chinese','Japanese','Korean','Arabic','Hindi','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Turkish','Ukrainian','Hebrew','Persian','Thai','Vietnamese','Indonesian','Malay','Romanian','Hungarian','Greek','Czech']
+
+const SKILL_SUGGESTIONS = {
+  design:    ['Figma', 'Design Systems', 'UX Research', 'Prototyping', 'Product Thinking', 'A/B Testing', 'Sketch', 'Adobe XD', 'User Testing', 'Wireframing', 'Typography', 'Visual Design'],
+  dev:       ['JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'Git', 'REST APIs', 'SQL', 'Docker', 'AWS', 'CSS', 'HTML', 'GraphQL'],
+  product:   ['Product Strategy', 'Roadmapping', 'Agile', 'Scrum', 'Stakeholder Management', 'OKRs', 'Analytics', 'Jira', 'User Research', 'A/B Testing'],
+  marketing: ['SEO', 'Google Analytics', 'Content Strategy', 'Email Marketing', 'Social Media', 'Copywriting', 'CRO', 'Paid Ads', 'HubSpot', 'Data Analysis'],
+  finance:   ['Financial Modeling', 'Excel', 'Data Analysis', 'SQL', 'Python', 'Forecasting', 'Budgeting', 'Bloomberg', 'Risk Management'],
+  sales:     ['CRM', 'Salesforce', 'Negotiation', 'Pipeline Management', 'Cold Outreach', 'LinkedIn Sales Navigator', 'Account Management'],
+  hr:        ['Recruiting', 'Talent Acquisition', 'Onboarding', 'HRIS', 'Performance Management', 'Employee Relations', 'Workday', 'BambooHR'],
+}
+function getSkillSuggestions(targetRole) {
+  const r = (targetRole || '').toLowerCase()
+  if (/design|ux|ui|visual/.test(r))                               return SKILL_SUGGESTIONS.design
+  if (/developer|engineer|frontend|backend|fullstack|software/.test(r)) return SKILL_SUGGESTIONS.dev
+  if (/product manager|pm |product owner|program manager/.test(r)) return SKILL_SUGGESTIONS.product
+  if (/market|growth|seo|content|social/.test(r))                  return SKILL_SUGGESTIONS.marketing
+  if (/financ|analyst|account|banker|invest/.test(r))              return SKILL_SUGGESTIONS.finance
+  if (/sales|account exec|business dev/.test(r))                   return SKILL_SUGGESTIONS.sales
+  if (/\bhr\b|recruit|people ops|talent|human res/.test(r))        return SKILL_SUGGESTIONS.hr
+  return []
+}
 const PDF_TEMPLATE_MAP = {
   minimal:   'minimal',
   corporate: 'corporate',
@@ -59,15 +74,26 @@ let _uid = 0
 const uid = () => ++_uid
 
 const INITIAL_FORM = {
-  template: null,
-  photo: null, targetRole: '', name: '', email: '', phone: '', city: '', country: '',
-  linkedin: '', github: '', industry: null, level: null,
-  experience: [], education: [],
-  skills: [{ id: uid(), name: '', level: 2 }],
-  languages: [{ id: uid(), name: '', level: 3 }],
+  template:        null,
+  // Step 1
+  targetRole:      '',
+  name:            '',
+  email:           '',
+  jobDescription:  '',
+  // Step 2
+  experience:      [],
+  // Step 3
+  skills:          [],           // string[]
+  languages:       [{ id: uid(), name: '', level: 3 }],
+  education:       [],           // { id, text }[]
+  // Step 4
+  phone:           '',
+  location:        '',
+  linkedin:        '',
+  portfolio:       '',
 }
 
-const LS_KEY = 'resume-form-v1'
+const LS_KEY = 'resume-form-v2'
 
 function loadSavedForm() {
   try {
@@ -105,6 +131,7 @@ function useIsMobile(breakpoint = 768) {
 function Input({ style, error, ...props }) {
   const [focused, setFocused] = useState(false)
   const borderColor = error ? '#EF4444' : focused ? '#05070A' : 'rgba(175,178,178,0.5)'
+  const shadow = focused ? '0 0 0 3px rgba(175,178,178,0.35)' : 'none'
   return (
     <input
       {...props}
@@ -115,7 +142,8 @@ function Input({ style, error, ...props }) {
         borderRadius: 12,
         height: 47, padding: '0 16px', outline: 'none',
         boxSizing: 'border-box',
-        transition: 'border-color .15s', ...style,
+        boxShadow: shadow,
+        transition: 'border-color .15s, box-shadow .15s', ...style,
       }}
       onFocus={e => { setFocused(true); props.onFocus?.(e) }}
       onBlur={e => { setFocused(false); props.onBlur?.(e) }}
@@ -181,10 +209,10 @@ function Textarea({ style, ...props }) {
       style={{
         width: '100%', fontFamily: 'inherit', fontSize: 14,
         color: T.text1, background: T.bg1,
-        border: `1.5px solid ${focused ? T.accent : T.border1}`,
-        borderRadius: T.r10, padding: '11px 14px', outline: 'none',
+        border: `1px solid ${focused ? '#05070A' : 'rgba(175,178,178,0.5)'}`,
+        borderRadius: 12, padding: '11px 16px', outline: 'none',
         boxSizing: 'border-box', resize: 'vertical', minHeight: 88, lineHeight: 1.6,
-        boxShadow: focused ? '0 0 0 3px rgba(83,74,183,.12)' : 'none',
+        boxShadow: focused ? '0 0 0 3px rgba(175,178,178,0.35)' : 'none',
         transition: 'border-color .15s, box-shadow .15s', ...style,
       }}
       onFocus={e => { setFocused(true); props.onFocus?.(e) }}
@@ -320,7 +348,7 @@ function LogoMark({ style }) {
       <span style={{
         fontWeight: 600, fontSize: 20, lineHeight: '110%',
         color: '#05070A', whiteSpace: 'nowrap',
-        fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif',
+        fontFamily: 'var(--font-onest), system-ui, sans-serif',
       }}>
         ResumeBuilder
       </span>
@@ -357,7 +385,7 @@ function HeaderProgress({ step }) {
               background: dotBg, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 10, fontWeight: 600, color: dotColor,
-              fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif',
+              fontFamily: 'var(--font-onest), system-ui, sans-serif',
             }}>
               {done ? (
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -368,7 +396,7 @@ function HeaderProgress({ step }) {
             <span style={{
               fontSize: 12, lineHeight: '110%', color: textColor,
               fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
-              fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif',
+              fontFamily: 'var(--font-onest), system-ui, sans-serif',
             }}>
               {name}
             </span>
@@ -705,75 +733,46 @@ function TemplatePicker({ form, patch, onNext }) {
   )
 }
 
-// ─── Step 1: Personal ─────────────────────────────────────────────────────────
+// ─── Step 1: Basic Info ───────────────────────────────────────────────────────
 
-function StepPersonal({ form, patch, onBack, onNext }) {
-  const fileRef = useRef()
-  const showPhoto = PHOTO_TEMPLATES.includes(form.template)
+function StepBasic({ form, patch, onBack, onNext }) {
   const [showErr, setShowErr] = useState(false)
 
   function handleNext() {
-    if (!form.name?.trim() || !form.targetRole?.trim()) { setShowErr(true); return }
+    if (!form.name?.trim() || !form.targetRole?.trim() || !form.email?.trim()) {
+      setShowErr(true); return
+    }
     onNext()
-  }
-
-  function handlePhoto(e) {
-    const file = e.target.files[0]; if (!file) return
-    const reader = new FileReader()
-    reader.onload = ev => patch({ photo: ev.target.result })
-    reader.readAsDataURL(file)
   }
 
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
-        {/* Section heading */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Personal information</h2>
-          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>This goes in the header of your resume.</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Basic information</h2>
+          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Tell us who you are and what role you're targeting.</p>
         </div>
 
-        {showPhoto && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Photo circle */}
-            <div onClick={() => fileRef.current.click()} style={{
-              flexShrink: 0, width: 96, height: 96, borderRadius: '50%',
-              background: form.photo ? 'transparent' : '#AFB2B2',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', overflow: 'hidden',
-            }}>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
-              {form.photo
-                ? <img src={form.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <span style={{ fontSize: 28 }}>📷</span>
-              }
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#05070A' }}>Profile photo</span>
-                <span style={{ fontSize: 14, color: '#4A4A4D' }}>Recommended for {TEMPLATES.find(t => t.id === form.template)?.name}. Headshot, neutral background.</span>
-              </div>
-              {form.photo && <button onClick={() => patch({ photo: null })} style={{ fontSize: 14, color: '#4A4A4D', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, textAlign: 'left' }}>Remove</button>}
-            </div>
-          </div>
-        )}
+        <Field label="Target role *">
+          <Input value={form.targetRole} onChange={e => { patch({ targetRole: e.target.value }); setShowErr(false) }}
+            placeholder="Senior Product Designer" error={showErr && !form.targetRole?.trim()} />
+        </Field>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <Field label="Target job title" hint="Be specific — recruiters search by exact title.">
-            <Input value={form.targetRole} onChange={e => { patch({ targetRole: e.target.value }); setShowErr(false) }} placeholder="e.g. Senior Product Manager" error={showErr && !form.targetRole?.trim()} />
+        <Grid2>
+          <Field label="Full name *">
+            <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }}
+              placeholder="Alex Johnson" error={showErr && !form.name?.trim()} />
           </Field>
-          <Field label="Full name">
-            <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }} placeholder="Alex Johnson" error={showErr && !form.name?.trim()} />
+          <Field label="Email *">
+            <Input type="email" value={form.email} onChange={e => { patch({ email: e.target.value }); setShowErr(false) }}
+              placeholder="alex@email.com" error={showErr && !form.email?.trim()} />
           </Field>
-          <Grid2>
-            <Field label="Email"><Input type="email" value={form.email} onChange={e => patch({ email: e.target.value })} placeholder="alex@email.com" /></Field>
-            <Field label="Phone"><Input value={form.phone} onChange={e => patch({ phone: e.target.value })} placeholder="+1 (415) 000-0000" /></Field>
-          </Grid2>
-          <Grid2>
-            <Field label="Country"><AutoInput value={form.country} onChange={e => patch({ country: e.target.value })} placeholder="United States" suggestions={COUNTRY_SUGG} /></Field>
-            <Field label="City"><AutoInput value={form.city} onChange={e => patch({ city: e.target.value })} placeholder="San Francisco" suggestions={CITY_SUGG} /></Field>
-          </Grid2>
-        </div>
+        </Grid2>
+
+        <Field label="Job description" hint="Paste a vacancy to tailor your resume to this specific role.">
+          <Textarea value={form.jobDescription} onChange={e => patch({ jobDescription: e.target.value })}
+            placeholder="Paste the job description here to generate a more relevant resume." style={{ minHeight: 120 }} />
+        </Field>
       </div>
 
       <Footer step={1} onBack={onBack} onNext={handleNext} />
@@ -781,140 +780,130 @@ function StepPersonal({ form, patch, onBack, onNext }) {
   )
 }
 
-// ─── Step 2: Profile ──────────────────────────────────────────────────────────
+// ─── Step 2: Experience ───────────────────────────────────────────────────────
 
-function StepProfile({ form, patch, onBack, onNext }) {
-  return (
-    <>
-      <div style={{ flex: 1 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, letterSpacing: '-.01em' }}>Professional profile</h2>
-        <p style={{ fontSize: T.f13, color: T.text2, marginBottom: '1.75rem', lineHeight: 1.6 }}>Helps AI tailor tone and keywords to your field.</p>
+const EXP_CARD_H = 72
 
-        <Field label="LinkedIn">
-          <Input value={form.linkedin} onChange={e => patch({ linkedin: e.target.value })} placeholder="linkedin.com/in/alexjohnson" />
-        </Field>
-        <Field label="GitHub / Portfolio" hint="Recommended for tech and design roles.">
-          <Input value={form.github} onChange={e => patch({ github: e.target.value })} placeholder="github.com/alex or yoursite.com" />
-        </Field>
-
-        <Divider />
-        <SecLbl>Industry</SecLbl>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: '1.25rem' }}>
-          {INDUSTRIES.map(ind => (
-            <button key={ind.id} type="button" onClick={() => patch({ industry: ind.id })} style={{
-              border: `1.5px solid ${T.border1}`,
-              borderRadius: T.r10, height: ROW_H, padding: '0 11px', cursor: 'pointer',
-              background: form.industry === ind.id ? 'rgba(83,74,183,.28)' : T.bg1,
-              textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8,
-              fontFamily: 'inherit', transition: 'border-color .15s, background .15s',
-            }}>
-              <span style={{ fontSize: 16 }}>{ind.icon}</span>
-              <div>
-                <div style={{ fontSize: T.f12, fontWeight: 500, color: form.industry === ind.id ? T.accentD : T.text1, lineHeight: 1.3 }}>{ind.name}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <Divider />
-        <SecLbl>Seniority level</SecLbl>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {LEVELS.map((lvl, i) => (
-            <button key={lvl} type="button" onClick={() => patch({ level: i })} style={{
-              flex: 1, border: `1.5px solid ${T.border1}`,
-              borderRadius: T.r10, height: ROW_H, padding: '0 4px', cursor: 'pointer',
-              background: form.level === i ? 'rgba(83,74,183,.28)' : T.bg1,
-              fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'border-color .15s, background .15s',
-            }}>
-              <div style={{ fontSize: T.f13, fontWeight: 500, color: form.level === i ? T.accentD : T.text1 }}>{lvl}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <Footer step={2} onBack={onBack} onNext={onNext} />
-    </>
-  )
-}
-
-// ─── Step 3: Experience ───────────────────────────────────────────────────────
-
-function ExpCard({ exp, index, isOpen, onToggle, onUpdate, onRemove }) {
+function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
+  const [isHov, setIsHov] = useState(false)
   const headName = [exp.role, exp.company].filter(Boolean).join(' · ') || 'New position'
   const headMeta = [exp.start, exp.end].filter(Boolean).join(' – ')
-  return (
-    <div style={{ background: T.bg1, border: `1.5px solid ${T.border1}`, borderRadius: T.r12, overflow: 'hidden', marginBottom: 8 }}>
-      <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer', userSelect: 'none', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, background: T.border2, color: T.text3, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{index + 1}</div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: T.f13, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{headName}</div>
-            {headMeta && <div style={{ fontSize: T.f11, color: T.text3 }}>{headMeta}</div>}
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <button type="button" onClick={e => { e.stopPropagation(); onRemove() }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.border1, fontSize: 15, padding: 2, lineHeight: 1 }}
-            onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-            onMouseLeave={e => e.currentTarget.style.color = T.border1}>🗑</button>
-          <span style={{ color: T.text3, fontSize: 13, display: 'inline-block', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
-        </div>
-      </div>
-      {isOpen && (
-        <div style={{ padding: '12px 16px 16px', borderTop: `0.5px solid ${T.border2}` }}>
-          <Grid2>
-            <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Acme Corp" /></Field>
-            <Field label="Job title"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Senior Designer" /></Field>
-            <Field label="Start date"><Input value={exp.start} onChange={e => onUpdate({ start: e.target.value })} placeholder="Jan 2021" /></Field>
-            <Field label="End date"><Input value={exp.end} onChange={e => onUpdate({ end: e.target.value })} placeholder="Present" /></Field>
-          </Grid2>
-          <Field label="What you did & achieved" hint="Use numbers where you can. AI will polish the wording.">
-            <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })} placeholder="Led a redesign that reduced drop-off by 22%..." />
-          </Field>
-        </div>
-      )}
-    </div>
-  )
-}
 
-function EduCard({ edu, index, isOpen, onToggle, onUpdate, onRemove }) {
-  const headName = [edu.degree, edu.institution].filter(Boolean).join(' · ') || 'New education'
-  const headMeta = [edu.yearFrom, edu.yearTo].filter(Boolean).join(' – ')
   return (
-    <div style={{ background: T.bg1, border: `1.5px solid ${T.border1}`, borderRadius: T.r12, overflow: 'hidden', marginBottom: 8 }}>
-      <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', cursor: 'pointer', userSelect: 'none', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, background: T.border2, color: T.text3, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{index + 1}</div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: T.f13, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{headName}</div>
-            {headMeta && <div style={{ fontSize: T.f11, color: T.text3 }}>{headMeta}</div>}
+    <div
+      data-expid={exp.id}
+      style={{ position: 'relative', userSelect: 'none' }}
+      onMouseEnter={() => setIsHov(true)}
+      onMouseLeave={() => setIsHov(false)}
+    >
+      {/* Drag handle — outside left */}
+      <div
+        onPointerDown={onHandleDown}
+        style={{
+          position: 'absolute', left: -32, top: 0,
+          height: EXP_CARD_H, width: 28,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
+          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+          userSelect: 'none', touchAction: 'none',
+        }}
+      >⠿</div>
+
+      {/* Card */}
+      <div className="exp-card-inner" style={{
+        background: '#fff',
+        border: '1px solid rgba(175,178,178,0.5)',
+        borderRadius: 12, overflow: 'hidden',
+      }}>
+        <div
+          onClick={onToggle}
+          style={{
+            height: isOpen ? 'auto' : EXP_CARD_H,
+            minHeight: isOpen ? EXP_CARD_H : undefined,
+            display: 'flex', alignItems: 'center',
+            padding: '0 16px', gap: 10,
+            cursor: 'pointer', userSelect: 'none',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 500, color: '#05070A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{headName}</div>
+            {headMeta && <div style={{ fontSize: 14, color: '#AFB2B2', marginTop: 2 }}>{headMeta}</div>}
           </div>
+          <span style={{ color: '#AFB2B2', fontSize: 13, flexShrink: 0, display: 'inline-block', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <button type="button" onClick={e => { e.stopPropagation(); onRemove() }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.border1, fontSize: 15, padding: 2, lineHeight: 1 }}
-            onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-            onMouseLeave={e => e.currentTarget.style.color = T.border1}>🗑</button>
-          <span style={{ color: T.text3, fontSize: 13, display: 'inline-block', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
-        </div>
+
+        {isOpen && (
+          <div style={{ padding: '16px', borderTop: '1px solid rgba(175,178,178,0.2)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Grid2>
+              <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
+              <Field label="Job title"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
+              <Field label="Start date"><Input value={exp.start} onChange={e => onUpdate({ start: e.target.value })} placeholder="Jan 2022" /></Field>
+              <Field label="End date"><Input value={exp.end} onChange={e => onUpdate({ end: e.target.value })} placeholder="Present" /></Field>
+            </Grid2>
+            <Field label="What you did & achieved" hint="Use numbers where you can. AI will polish the wording.">
+              <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
+                placeholder={'Led redesign of onboarding flow\nIncreased conversion by 15%\nBuilt design system used by 4 teams'} />
+            </Field>
+          </div>
+        )}
       </div>
-      {isOpen && (
-        <div style={{ padding: '12px 16px 16px', borderTop: `0.5px solid ${T.border2}` }}>
-          <Grid2 style={{ marginBottom: 0 }}>
-            <Field label="Degree"><Input value={edu.degree} onChange={e => onUpdate({ degree: e.target.value })} placeholder="B.Sc. Computer Science" /></Field>
-            <Field label="School"><Input value={edu.institution} onChange={e => onUpdate({ institution: e.target.value })} placeholder="MIT" /></Field>
-            <Field label="From"><Input value={edu.yearFrom} onChange={e => onUpdate({ yearFrom: e.target.value })} placeholder="2016" /></Field>
-            <Field label="To"><Input value={edu.yearTo} onChange={e => onUpdate({ yearTo: e.target.value })} placeholder="2020" /></Field>
-          </Grid2>
-        </div>
-      )}
+
+      {/* Delete × — outside right */}
+      <button
+        type="button"
+        onClick={onRemove}
+        style={{
+          position: 'absolute', right: -32, top: 0,
+          height: EXP_CARD_H, width: 28,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: 20, color: '#AFB2B2', padding: 0, lineHeight: 1,
+          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
+        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
+      >×</button>
     </div>
   )
 }
 
 function StepExperience({ form, patch, onBack, onNext }) {
-  const [openId, setOpenId] = useState(null)
+  const [openId, setOpenId]       = useState(null)
+  const [dragState, setDragState] = useState(null)
+  const expRef        = useRef(form.experience)
+  const lastBeforeRef = useRef(null)
+  const snapRef       = useRef({}) // FLIP: id → top before reorder
+
+  useEffect(() => { expRef.current = form.experience }, [form.experience])
+
+  // FLIP animation: after every reorder, animate cards from their old positions
+  useEffect(() => {
+    if (!dragState) return
+    const snap = snapRef.current
+    form.experience.forEach(exp => {
+      if (exp.id === dragState.id) return
+      const el = document.querySelector(`[data-expid="${exp.id}"] .exp-card-inner`)
+      if (!el || snap[exp.id] === undefined) return
+      const newTop = el.getBoundingClientRect().top
+      const delta = snap[exp.id] - newTop
+      if (Math.abs(delta) < 1) return
+      el.style.transition = 'none'
+      el.style.transform = `translateY(${delta}px)`
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform .18s ease'
+        el.style.transform = 'translateY(0)'
+      })
+    })
+  }, [form.experience])
+
+  // Auto-open first card on mount
+  useEffect(() => {
+    if (form.experience.length === 0) {
+      const id = uid()
+      patch({ experience: [{ id, company: '', role: '', start: '', end: '', desc: '' }] })
+      setOpenId(id)
+    }
+  }, [])
 
   function addExp() {
     const id = uid()
@@ -928,57 +917,263 @@ function StepExperience({ form, patch, onBack, onNext }) {
   function updateExp(id, p) {
     patch({ experience: form.experience.map(e => e.id === id ? { ...e, ...p } : e) })
   }
-  function addEdu() {
-    const id = uid()
-    patch({ education: [...form.education, { id, degree: '', institution: '', yearFrom: '', yearTo: '' }] })
-    setOpenId(id)
+
+  function startDrag(expId, e) {
+    e.preventDefault()
+    const cardEl = document.querySelector(`[data-expid="${expId}"]`)
+    if (!cardEl) return
+    const rect = cardEl.getBoundingClientRect()
+    const offsetY = e.clientY - rect.top
+    const offsetX = e.clientX - rect.left
+    lastBeforeRef.current = null
+
+    setDragState({ id: expId, top: rect.top, left: rect.left, width: rect.width, offsetY, offsetX })
+
+    function takeSnap() {
+      const snap = {}
+      expRef.current.forEach(exp => {
+        const el = document.querySelector(`[data-expid="${exp.id}"] .exp-card-inner`)
+        if (el) snap[exp.id] = el.getBoundingClientRect().top
+      })
+      snapRef.current = snap
+    }
+
+    function onMove(ev) {
+      setDragState(d => d ? { ...d, top: ev.clientY - offsetY, left: ev.clientX - offsetX } : null)
+
+      const exps = expRef.current
+      let beforeId = null
+      for (const item of exps) {
+        if (item.id === expId) continue
+        const el = document.querySelector(`[data-expid="${item.id}"]`)
+        if (!el) continue
+        const r = el.getBoundingClientRect()
+        if (ev.clientY < r.top + r.height / 2) { beforeId = item.id; break }
+      }
+
+      if (beforeId === lastBeforeRef.current) return
+      lastBeforeRef.current = beforeId
+
+      takeSnap()
+
+      const from    = exps.findIndex(x => x.id === expId)
+      const arr     = [...exps]
+      const [moved] = arr.splice(from, 1)
+      const insertAt = beforeId ? arr.findIndex(x => x.id === beforeId) : arr.length
+      arr.splice(insertAt, 0, moved)
+      patch({ experience: arr })
+    }
+
+    function onUp() {
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup', onUp)
+      setDragState(null)
+      lastBeforeRef.current = null
+    }
+
+    document.addEventListener('pointermove', onMove)
+    document.addEventListener('pointerup', onUp)
   }
-  function removeEdu(id) {
-    patch({ education: form.education.filter(e => e.id !== id) })
-    if (openId === id) setOpenId(null)
-  }
-  function updateEdu(id, p) {
-    patch({ education: form.education.map(e => e.id === id ? { ...e, ...p } : e) })
-  }
+
+  const dragExp = dragState ? form.experience.find(e => e.id === dragState.id) : null
+
   return (
     <>
-      <div style={{ flex: 1 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, letterSpacing: '-.01em' }}>Work experience & Education</h2>
-        <p style={{ fontSize: T.f13, color: T.text2, marginBottom: '1.75rem', lineHeight: 1.6 }}>Most recent first. Rough notes are fine — AI will polish everything.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Work experience</h2>
+          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Most recent first. Rough notes are fine — AI will polish everything.</p>
+        </div>
 
-        {form.experience.length === 0 && (
-          <div style={{ border: `1.5px dashed ${T.border1}`, borderRadius: T.r12, padding: '1.75rem', textAlign: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>💼</div>
-            <div style={{ fontSize: T.f13, color: T.text3 }}>No positions yet — add your most recent role</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {form.experience.map(exp => (
+            <div key={exp.id} style={{ opacity: dragState?.id === exp.id ? 0 : 1 }}>
+              <ExpCard exp={exp}
+                isOpen={openId === exp.id}
+                onToggle={() => setOpenId(openId === exp.id ? null : exp.id)}
+                onUpdate={p => updateExp(exp.id, p)}
+                onRemove={() => removeExp(exp.id)}
+                onHandleDown={e => startDrag(exp.id, e)}
+              />
+            </div>
+          ))}
+          <button type="button" onClick={addExp} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 14, fontWeight: 600, color: '#05070A',
+            fontFamily: 'inherit', padding: '8px 0', textAlign: 'left',
+          }}>＋ Add position</button>
+        </div>
+      </div>
+
+      {/* Floating ghost */}
+      {dragState && dragExp && (
+        <div style={{
+          position: 'fixed', zIndex: 9999, pointerEvents: 'none',
+          top: dragState.top, left: dragState.left, width: dragState.width,
+          height: EXP_CARD_H, display: 'flex', alignItems: 'center', padding: '0 16px',
+          background: '#fff', borderRadius: 12,
+          border: '1px solid rgba(175,178,178,0.5)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+          userSelect: 'none',
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 500, color: '#05070A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {[dragExp.role, dragExp.company].filter(Boolean).join(' · ') || 'New position'}
+            </div>
+            {[dragExp.start, dragExp.end].filter(Boolean).join(' – ') &&
+              <div style={{ fontSize: 14, color: '#AFB2B2', marginTop: 2 }}>{[dragExp.start, dragExp.end].filter(Boolean).join(' – ')}</div>
+            }
           </div>
-        )}
-        {form.experience.map((exp, i) => (
-          <ExpCard key={exp.id} exp={exp} index={i}
-            isOpen={openId === exp.id}
-            onToggle={() => setOpenId(openId === exp.id ? null : exp.id)}
-            onUpdate={p => updateExp(exp.id, p)}
-            onRemove={() => removeExp(exp.id)}
-          />
+          <span style={{ color: '#AFB2B2', fontSize: 13 }}>▾</span>
+        </div>
+      )}
+
+      <Footer step={2} onBack={onBack} onNext={onNext} />
+    </>
+  )
+}
+
+// ─── Step 3: Skills, Languages & Education ───────────────────────────────────
+
+function SkillChips({ skills, onChange, targetRole }) {
+  const [input, setInput] = useState('')
+  const [focused, setFocused] = useState(false)
+  const inputRef = useRef(null)
+  const suggestions = getSkillSuggestions(targetRole).filter(s => !skills.includes(s))
+
+  function addSkill(skill) {
+    const t = skill.trim()
+    if (!t || skills.includes(t)) return
+    onChange([...skills, t])
+    setInput('')
+  }
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addSkill(input) }
+    else if (e.key === 'Backspace' && !input && skills.length > 0) {
+      onChange(skills.slice(0, -1))
+    }
+  }
+
+  return (
+    <div>
+      <div
+        onClick={() => inputRef.current?.focus()}
+        style={{
+          display: 'flex', flexWrap: 'wrap', gap: 6, padding: '10px 14px',
+          border: `1px solid ${focused ? '#05070A' : 'rgba(175,178,178,0.5)'}`,
+          borderRadius: 12, minHeight: 47, alignItems: 'center',
+          cursor: 'text', transition: 'border-color .15s', background: '#fff',
+        }}
+      >
+        {skills.map(s => (
+          <span key={s} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: '#F7F8FA', border: '1px solid rgba(175,178,178,0.4)',
+            borderRadius: 6, padding: '3px 8px', fontSize: 13, color: '#05070A',
+          }}>
+            {s}
+            <button onClick={e => { e.stopPropagation(); onChange(skills.filter(x => x !== s)) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#AFB2B2', fontSize: 15, padding: 0, lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+          </span>
         ))}
-        <BtnAdd onClick={addExp}>＋ Add position</BtnAdd>
+        <input
+          ref={inputRef}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setFocused(true)}
+          onBlur={() => { setFocused(false); if (input.trim()) addSkill(input) }}
+          placeholder={skills.length === 0 ? 'Figma, User Research, Design Systems…' : ''}
+          style={{ border: 'none', outline: 'none', fontFamily: 'inherit', fontSize: 14, color: '#05070A', background: 'transparent', minWidth: 100, flex: 1 }}
+        />
+      </div>
+      {suggestions.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {suggestions.slice(0, 8).map(s => (
+            <button key={s} onClick={() => addSkill(s)} style={{
+              fontSize: 12, padding: '4px 12px', borderRadius: 20,
+              border: '1px solid rgba(175,178,178,0.5)', background: '#fff',
+              color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit',
+            }}>+ {s}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
-        <Divider />
+function LangRow({ item, onNameChange, onLevelChange, onRemove }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 28px', gap: 10, alignItems: 'center' }}>
+      <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)} placeholder="English" suggestions={LANG_SUGG} />
+      <div style={{ display: 'flex', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, overflow: 'hidden', height: 47 }}>
+        {LANG_LEVELS.map((lvl, i) => (
+          <button key={lvl} type="button" onClick={() => onLevelChange(i)} style={{
+            padding: '0 10px', border: 'none', fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+            cursor: 'pointer', whiteSpace: 'nowrap',
+            background: item.level === i ? '#05070A' : '#fff',
+            color: item.level === i ? '#fff' : '#4A4A4D',
+            borderRight: i < LANG_LEVELS.length - 1 ? '1px solid rgba(175,178,178,0.3)' : 'none',
+            transition: 'background .12s',
+          }}>{lvl}</button>
+        ))}
+      </div>
+      <button type="button" onClick={onRemove}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#AFB2B2', fontSize: 18, padding: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color .15s', height: 47 }}
+        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
+        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}>×</button>
+    </div>
+  )
+}
 
-        {form.education.length === 0 && (
-          <div style={{ border: `1.5px dashed ${T.border1}`, borderRadius: T.r12, padding: '1.75rem', textAlign: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>🎓</div>
-            <div style={{ fontSize: T.f13, color: T.text3 }}>No education yet — add your degree or diploma</div>
+function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
+  const updLang = (id, p) => patch({ languages: form.languages.map(l => l.id === id ? { ...l, ...p } : l) })
+
+  return (
+    <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Skills, languages & education</h2>
+          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Add skills as chips. AI determines proficiency from your experience.</p>
+        </div>
+
+        {/* Skills */}
+        <Field label="Skills">
+          <SkillChips skills={form.skills} onChange={v => patch({ skills: v })} targetRole={form.targetRole} />
+        </Field>
+
+        {/* Languages */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Lbl>Languages</Lbl>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {form.languages.map(l => (
+              <LangRow key={l.id} item={l}
+                onNameChange={v => updLang(l.id, { name: v })}
+                onLevelChange={v => updLang(l.id, { level: v })}
+                onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
+              />
+            ))}
+            <BtnAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })}>＋ Add language</BtnAdd>
           </div>
-        )}
-        {form.education.map((edu, i) => (
-          <EduCard key={edu.id} edu={edu} index={i}
-            isOpen={openId === edu.id}
-            onToggle={() => setOpenId(openId === edu.id ? null : edu.id)}
-            onUpdate={p => updateEdu(edu.id, p)}
-            onRemove={() => removeEdu(edu.id)}
-          />
-        ))}
-        <BtnAdd onClick={addEdu}>＋ Add education</BtnAdd>
+        </div>
+
+        {/* Education */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Lbl>Education</Lbl>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {form.education.map(edu => (
+              <div key={edu.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Input value={edu.text} onChange={e => patch({ education: form.education.map(x => x.id === edu.id ? { ...x, text: e.target.value } : x) })}
+                  placeholder="Bachelor of Computer Science — MIT" style={{ flex: 1 }} />
+                <button type="button" onClick={() => patch({ education: form.education.filter(x => x.id !== edu.id) })}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#AFB2B2', fontSize: 18, padding: 0, lineHeight: 1, flexShrink: 0, transition: 'color .15s', height: 47, width: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}>×</button>
+              </div>
+            ))}
+            <BtnAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })}>＋ Add education</BtnAdd>
+          </div>
+        </div>
       </div>
 
       <Footer step={3} onBack={onBack} onNext={onNext} />
@@ -986,156 +1181,33 @@ function StepExperience({ form, patch, onBack, onNext }) {
   )
 }
 
-// ─── Step 4: Skills ───────────────────────────────────────────────────────────
+// ─── Step 4: Links & Contact ──────────────────────────────────────────────────
 
-function Seg({ options, selected, onChange }) {
-  return (
-    <div style={{
-      display: 'flex', border: `1.5px solid ${T.border1}`,
-      borderRadius: T.r10, overflow: 'hidden',
-      height: ROW_H, width: '100%',
-    }}>
-      {options.map((opt, i) => (
-        <button key={i} type="button" onClick={() => onChange(i)} title={opt}
-          onMouseEnter={e => { if (selected !== i) e.currentTarget.style.background = 'rgba(83,74,183,.08)' }}
-          onMouseLeave={e => { if (selected !== i) e.currentTarget.style.background = T.bg1 }}
-          style={{
-            flex: 1, border: 'none',
-            borderRight: i < options.length - 1 ? `1px solid ${T.border1}` : 'none',
-            background: selected === i ? 'rgba(83,74,183,.28)' : T.bg1,
-            color: selected === i ? T.accentD : T.text2,
-            fontFamily: 'inherit', fontSize: T.f11, fontWeight: 600,
-            cursor: 'pointer', padding: '0 2px',
-            transition: 'background .12s, color .12s',
-            whiteSpace: 'nowrap',
-          }}>
-          {opt}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function ProgressSeg({ options, selected, onChange }) {
-  return (
-    <div style={{
-      display: 'flex', border: `1.5px solid ${T.border1}`,
-      borderRadius: T.r10, overflow: 'hidden',
-      height: ROW_H, width: '100%',
-    }}>
-      {options.map((opt, i) => {
-        const isActive = i === selected
-        const bg = isActive ? 'rgba(83,74,183,.28)' : T.bg1
-        return (
-          <button key={i} type="button" onClick={() => onChange(i)} title={opt}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = isActive ? 'rgba(83,74,183,.38)' : 'rgba(83,74,183,.08)'
-            }}
-            onMouseLeave={e => { e.currentTarget.style.background = bg }}
-            style={{
-              flex: 1, border: 'none',
-              borderRight: i < options.length - 1 ? `1px solid ${T.border1}` : 'none',
-              background: bg,
-              color: isActive ? T.accentD : T.text2,
-              fontFamily: 'inherit', fontSize: T.f12, fontWeight: 700,
-              cursor: 'pointer', padding: 0,
-              transition: 'background .12s',
-            }}>
-            {i + 1}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function SkillRow({ item, levels, onNameChange, onLevelChange, onRemove, placeholder, segmented, suggestions }) {
-  const isMobile = useIsMobile()
-
-  const NameField = suggestions ? AutoInput : Input
-  const removeBtn = (
-    <button type="button" onClick={onRemove}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.border1, fontSize: 15, padding: 0, width: 28, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color .15s' }}
-      onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-      onMouseLeave={e => e.currentTarget.style.color = T.border1}>🗑</button>
-  )
-  const levelControl = segmented
-    ? <Seg options={levels} selected={item.level} onChange={onLevelChange} />
-    : <ProgressSeg options={levels} selected={item.level} onChange={onLevelChange} />
-
-  if (isMobile) {
-    return (
-      <div style={{ marginBottom: 10 }}>
-        <div style={{ position: 'relative', marginBottom: 6 }}>
-          <NameField value={item.name} onChange={e => onNameChange(e.target.value)} placeholder={placeholder} suggestions={suggestions} style={{ paddingRight: 40 }} />
-          <button type="button" onClick={onRemove} style={{
-            position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: T.text3, fontSize: 15, padding: 4, lineHeight: 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'color .15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-            onMouseLeave={e => e.currentTarget.style.color = T.text3}
-          >🗑</button>
-        </div>
-        <div>{levelControl}</div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 28px', gap: 10, marginBottom: 8, alignItems: 'center' }}>
-      <NameField value={item.name} onChange={e => onNameChange(e.target.value)} placeholder={placeholder} suggestions={suggestions} />
-      {levelControl}
-      {removeBtn}
-    </div>
-  )
-}
-
-function ColHeaders({ c1, c2 }) {
-  const isMobile = useIsMobile()
-
-  if (isMobile) {
-    return <div style={{ marginBottom: 6 }}><Lbl>{c1}</Lbl></div>
-  }
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 28px', gap: 10, marginBottom: 6 }}>
-      <Lbl>{c1}</Lbl><Lbl>{c2}</Lbl><span />
-    </div>
-  )
-}
-
-function StepSkills({ form, patch, onBack, onNext }) {
-  const updSkill = (id, p) => patch({ skills: form.skills.map(s => s.id === id ? { ...s, ...p } : s) })
-  const updLang  = (id, p) => patch({ languages: form.languages.map(l => l.id === id ? { ...l, ...p } : l) })
-
+function StepLinks({ form, patch, onBack, onNext }) {
   return (
     <>
-      <div style={{ flex: 1 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, letterSpacing: '-.01em' }}>Skills & languages</h2>
-        <p style={{ fontSize: T.f13, color: T.text2, marginBottom: '1.75rem', lineHeight: 1.6 }}>Add what you know and how well. AI will group skills automatically.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Links & contact</h2>
+          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>All optional. Add what's relevant for your role.</p>
+        </div>
 
-        <ColHeaders c1="Skill" c2="Level" />
-        {form.skills.map(s => (
-          <SkillRow key={s.id} item={s} levels={SKILL_LEVELS} placeholder="e.g. Figma, Python, Excel…"
-            onNameChange={v => updSkill(s.id, { name: v })}
-            onLevelChange={v => updSkill(s.id, { level: v })}
-            onRemove={() => patch({ skills: form.skills.filter(x => x.id !== s.id) })}
-          />
-        ))}
-        <BtnAdd onClick={() => patch({ skills: [...form.skills, { id: uid(), name: '', level: 2 }] })}>＋ Add skill</BtnAdd>
+        <Grid2>
+          <Field label="Phone">
+            <Input value={form.phone} onChange={e => patch({ phone: e.target.value })} placeholder="+1 (415) 555-1234" />
+          </Field>
+          <Field label="Location">
+            <Input value={form.location} onChange={e => patch({ location: e.target.value })} placeholder="San Francisco, CA" />
+          </Field>
+        </Grid2>
 
-        <Divider />
-        <ColHeaders c1="Language" c2="Proficiency" />
-        {form.languages.map(l => (
-          <SkillRow key={l.id} item={l} levels={LANG_LEVELS} placeholder="e.g. English, Spanish…" segmented suggestions={LANG_SUGG}
-            onNameChange={v => updLang(l.id, { name: v })}
-            onLevelChange={v => updLang(l.id, { level: v })}
-            onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
-          />
-        ))}
-        <BtnAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })}>＋ Add language</BtnAdd>
+        <Field label="LinkedIn">
+          <Input value={form.linkedin} onChange={e => patch({ linkedin: e.target.value })} placeholder="linkedin.com/in/alexjohnson" />
+        </Field>
+
+        <Field label="Portfolio / GitHub">
+          <Input value={form.portfolio} onChange={e => patch({ portfolio: e.target.value })} placeholder="alexjohnson.com or github.com/alex" />
+        </Field>
       </div>
 
       <Footer step={4} onBack={onBack} onNext={onNext} nextLabel="Review →" />
@@ -1184,11 +1256,12 @@ function SumRow({ label, value }) {
 
 function Summary({ form, goTo, onGenerate, generating, genError }) {
   const tpl = TEMPLATES.find(t => t.id === form.template)
-  const ind = INDUSTRIES.find(i => i.id === form.industry)
   return (
     <>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 2, letterSpacing: '-.01em' }}>Review & generate</h2>
-      <p style={{ fontSize: T.f12, color: T.text2, marginBottom: '1.25rem' }}>Expand any section to check details.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Review & generate</h2>
+        <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Expand any section to check details.</p>
+      </div>
 
       <SumCard icon="🎨" title="Template" statusOk={!!form.template} statusText="Selected" onEdit={() => goTo(-1)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 8 }}>
@@ -1197,21 +1270,14 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
         </div>
       </SumCard>
 
-      <SumCard icon="👤" title="Personal" statusOk={!!(form.name || form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => goTo(1)}>
+      <SumCard icon="👤" title="Basic info" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => goTo(1)}>
         <SumRow label="Name" value={form.name} />
         <SumRow label="Target role" value={form.targetRole} />
         <SumRow label="Email" value={form.email} />
-        <SumRow label="Phone" value={form.phone} />
-        <SumRow label="Location" value={[form.city, form.country].filter(Boolean).join(', ')} />
+        <SumRow label="Job desc." value={form.jobDescription ? `${form.jobDescription.slice(0, 60)}…` : null} />
       </SumCard>
 
-      <SumCard icon="🪪" title="Profile" statusOk={!!(form.industry || form.linkedin)} statusText={form.industry ? 'Filled' : 'Empty'} onEdit={() => goTo(2)}>
-        <SumRow label="LinkedIn" value={form.linkedin} />
-        <SumRow label="Industry" value={ind ? `${ind.icon} ${ind.name}` : null} />
-        <SumRow label="Level" value={form.level != null ? `${LEVELS[form.level]} · ${LEVEL_SUBS[form.level]}` : null} />
-      </SumCard>
-
-      <SumCard icon="💼" title="Experience" statusOk={form.experience.length > 0} statusText={`${form.experience.length} position${form.experience.length !== 1 ? 's' : ''}`} onEdit={() => goTo(3)}>
+      <SumCard icon="💼" title="Experience" statusOk={form.experience.length > 0} statusText={`${form.experience.length} position${form.experience.length !== 1 ? 's' : ''}`} onEdit={() => goTo(2)}>
         {form.experience.length === 0
           ? <div style={{ padding: '7px 0', fontSize: T.f12, color: T.border1, fontStyle: 'italic' }}>No experience added</div>
           : form.experience.map((e, i) => (
@@ -1221,45 +1287,40 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
             </div>
           ))
         }
-        <SumRow label="Education" value={form.education.filter(e => e.degree || e.institution).map(e =>
-          [e.degree, e.institution, [e.yearFrom, e.yearTo].filter(Boolean).join('–')].filter(Boolean).join(' · ')
-        ).join('; ')} />
       </SumCard>
 
       <SumCard icon="⭐" title="Skills & languages"
-        statusOk={form.skills.some(s => s.name) || form.languages.some(l => l.name)}
-        statusText={`${form.skills.filter(s => s.name).length} skills, ${form.languages.filter(l => l.name).length} languages`}
-        onEdit={() => goTo(4)}>
-        <SumRow label="Skills" value={form.skills.filter(s => s.name).map(s => `${s.name} (${SKILL_LEVELS[s.level]})`).join(', ')} />
+        statusOk={form.skills.length > 0 || form.languages.some(l => l.name)}
+        statusText={`${form.skills.length} skills, ${form.languages.filter(l => l.name).length} languages`}
+        onEdit={() => goTo(3)}>
+        <SumRow label="Skills" value={form.skills.join(', ')} />
         <SumRow label="Languages" value={form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`).join(', ')} />
+        <SumRow label="Education" value={form.education.filter(e => e.text).map(e => e.text).join('; ')} />
       </SumCard>
 
-      <div style={{
-        background: T.bg2, border: `1.5px solid ${T.border1}`,
-        borderRadius: T.r12, padding: '1.75rem', textAlign: 'center', marginTop: '1.5rem', marginBottom: '2.25rem',
-      }}>
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, letterSpacing: '-.01em' }}>Ready to generate</div>
-        <div style={{ fontSize: T.f14, color: T.text2, marginBottom: '1.25rem', lineHeight: 1.6 }}>
-          AI will write polished bullet points, a professional summary,<br />and group your skills — tailored to your target role.
+      <SumCard icon="🔗" title="Links & contact" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => goTo(4)}>
+        <SumRow label="Phone" value={form.phone} />
+        <SumRow label="Location" value={form.location} />
+        <SumRow label="LinkedIn" value={form.linkedin} />
+        <SumRow label="Portfolio" value={form.portfolio} />
+      </SumCard>
+
+      <div style={{ background: '#F7F8FA', borderRadius: 16, padding: '1.75rem', textAlign: 'center', marginTop: 8 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: '#05070A', marginBottom: 6 }}>Ready to generate</div>
+        <div style={{ fontSize: 14, color: '#4A4A4D', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+          AI will write polished bullet points, a professional summary, and tailor everything to your target role.
         </div>
         <BtnPrimary onClick={onGenerate} disabled={generating}>
           {generating ? '⏳ Generating…' : '✦ Generate resume'}
         </BtnPrimary>
-
         {genError && (
-          <div style={{
-            marginTop: 12, padding: '10px 14px',
-            background: '#FEF2F2', border: '1.5px solid #FECACA',
-            borderRadius: T.r10, fontSize: T.f13, color: '#DC2626', lineHeight: 1.5,
-          }}>
+          <div style={{ marginTop: 12, padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>
             ⚠ {genError}
           </div>
         )}
-
-        <button onClick={() => goTo(4)} style={{
-          display: 'block', margin: '12px auto 0', fontSize: T.f13,
-          color: T.text3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-        }}>← Back to step 4</button>
+        <button onClick={() => goTo(4)} style={{ display: 'block', margin: '12px auto 0', fontSize: 13, color: '#AFB2B2', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          ← Back to step 4
+        </button>
       </div>
     </>
   )
@@ -1408,21 +1469,23 @@ export default function ResumeBuilder() {
       const langs = form.languages
         .filter(l => l.name)
         .map(l => `${l.name} (${LANG_LEVELS[l.level]})`)
+      // Parse "Degree — Institution" text into structured education
       const formEdu = form.education
-        .filter(e => e.degree || e.institution)
-        .map(e => ({
-          institution: e.institution || '',
-          degree: e.degree || '',
-          year: [e.yearFrom, e.yearTo].filter(Boolean).join('–'),
-        }))
+        .filter(e => e.text)
+        .map(e => {
+          const parts = e.text.split(/\s*[—–-]\s*/)
+          return parts.length >= 2
+            ? { degree: parts[0].trim(), institution: parts[1].trim(), year: '' }
+            : { degree: e.text, institution: '', year: '' }
+        })
       setResume({
         ...raw,
         title:     raw.title || form.targetRole || undefined,
         email:     form.email    || undefined,
         phone:     form.phone    || undefined,
-        location:  [form.city, form.country].filter(Boolean).join(', ') || undefined,
+        location:  form.location || undefined,
         linkedin:  form.linkedin || undefined,
-        github:    form.github   || undefined,
+        github:    form.portfolio || undefined,
         languages: langs.length ? langs : undefined,
         education: raw.education?.length ? raw.education : formEdu,
       })
@@ -1457,10 +1520,10 @@ export default function ResumeBuilder() {
   }
 
   const content = (() => {
-    if (screen === 1) return <StepPersonal   form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} />
-    if (screen === 2) return <StepProfile    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => goTo(3)} />
-    if (screen === 3) return <StepExperience form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => goTo(4)} />
-    if (screen === 4) return <StepSkills     form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => goTo(0)} />
+    if (screen === 1) return <StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} />
+    if (screen === 2) return <StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => goTo(3)} />
+    if (screen === 3) return <StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => goTo(4)} />
+    if (screen === 4) return <StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => goTo(0)} />
     if (screen === 0) return <Summary form={form} goTo={goTo} onGenerate={generate} generating={generating} genError={genError} />
   })()
 
