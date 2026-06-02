@@ -7,7 +7,7 @@ const FS_PUBLIC_KEY = 'pk_0c8f1a770c6e4345670337792dd5b'
 const PLANS = [
   {
     id: 'one_time',
-    planId: 67050,
+    planId: 50965,
     label: 'One-time Download',
     price: '$2.90',
     period: null,
@@ -16,7 +16,7 @@ const PLANS = [
   },
   {
     id: 'monthly',
-    planId: 67051,
+    planId: 50967,
     label: 'Monthly Access',
     price: '$4.90',
     period: '/month',
