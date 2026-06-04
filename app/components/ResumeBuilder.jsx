@@ -36,8 +36,31 @@ const INDUSTRIES = [
 ]
 
 const LANG_LEVELS  = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-const STEP_NAMES   = ['Basic Info', 'Experience', 'Skills', 'Links']
+const STEP_NAMES   = ['Profile', 'Experience', 'Skills', 'Contact']
 const LANG_SUGG    = ['English','Spanish','French','German','Portuguese','Italian','Russian','Chinese','Japanese','Korean','Arabic','Hindi','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Turkish','Ukrainian','Hebrew','Persian','Thai','Vietnamese','Indonesian','Malay','Romanian','Hungarian','Greek','Czech']
+
+const ROLE_SUGG = [
+  // Design
+  'Product Designer','Senior Product Designer','Lead Product Designer','UX Designer','UI Designer','UX/UI Designer','Graphic Designer','Brand Designer','Motion Designer','Visual Designer',
+  // Engineering
+  'Software Engineer','Senior Software Engineer','Frontend Engineer','Backend Engineer','Full Stack Engineer','iOS Engineer','Android Engineer','DevOps Engineer','Platform Engineer','Site Reliability Engineer','ML Engineer','Data Engineer',
+  // Product
+  'Product Manager','Senior Product Manager','Lead Product Manager','Group Product Manager','Head of Product',
+  // Data
+  'Data Scientist','Data Analyst','Business Intelligence Analyst',
+  // Marketing
+  'Marketing Manager','Content Manager','Growth Manager','SEO Specialist','Performance Marketing Manager','Brand Manager','Social Media Manager','Copywriter',
+  // Sales & BD
+  'Sales Manager','Account Executive','Business Development Manager','Account Manager','Sales Development Representative',
+  // Management
+  'Project Manager','Program Manager','Scrum Master','Engineering Manager','Design Manager',
+  // HR
+  'HR Manager','Recruiter','Talent Acquisition Specialist','People Partner',
+  // Finance
+  'Financial Analyst','Investment Analyst','Business Analyst','Controller','CFO',
+  // CS & Ops
+  'Customer Success Manager','Operations Manager','Chief of Staff','COO','CEO',
+]
 
 const SKILL_SUGGESTIONS = {
   design:    ['Figma', 'Design Systems', 'UX Research', 'Prototyping', 'Product Thinking', 'A/B Testing', 'Sketch', 'Adobe XD', 'User Testing', 'Wireframing', 'Typography', 'Visual Design'],
@@ -97,7 +120,16 @@ const LS_KEY = 'resume-form-v2'
 function loadSavedForm() {
   try {
     const raw = localStorage.getItem(LS_KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      const allIds = [
+        ...(parsed.experience || []),
+        ...(parsed.languages  || []),
+        ...(parsed.education  || []),
+      ].map(x => x.id).filter(Number.isFinite)
+      if (allIds.length) _uid = Math.max(_uid, ...allIds)
+      return parsed
+    }
   } catch {}
   return INITIAL_FORM
 }
@@ -273,28 +305,153 @@ function SecLbl({ children }) {
 
 
 function BtnPrimary({ children, disabled, onClick, style }) {
+  const [hov, setHov] = useState(false)
   return (
-    <button type="button" onClick={onClick} disabled={disabled} style={{
-      fontSize: 14, fontWeight: 600, padding: '20px 32px',
-      borderRadius: 38, border: 'none',
-      background: disabled ? '#AFB2B2' : '#05070A',
-      color: '#fff', cursor: disabled ? 'not-allowed' : 'pointer',
-      fontFamily: 'inherit', height: 55,
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-      transition: 'background .15s', ...style,
-    }}>{children}</button>
+    <button type="button" onClick={onClick} disabled={disabled}
+      className="btn-primary"
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        fontSize: 14, fontWeight: 600, padding: '20px 32px',
+        borderRadius: 38, border: 'none',
+        background: disabled ? '#AFB2B2' : hov ? '#1f2024' : '#05070A',
+        color: '#fff', cursor: disabled ? 'not-allowed' : 'pointer',
+        fontFamily: 'inherit', height: 55,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        transition: 'background .15s', ...style,
+      }}>{children}</button>
   )
 }
 
-function BtnSecondary({ children, onClick }) {
+function BtnSecondary({ children, onClick, style }) {
+  const [hov, setHov] = useState(false)
   return (
-    <button type="button" onClick={onClick} style={{
-      fontSize: 14, fontWeight: 600, padding: '20px 32px',
-      borderRadius: 38, border: '1px solid rgba(175,178,178,0.3)',
-      background: '#fff', color: '#4A4A4D',
-      cursor: 'pointer', fontFamily: 'inherit', height: 55,
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-    }}>{children}</button>
+    <button type="button" onClick={onClick}
+      className="btn-secondary"
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        fontSize: 14, fontWeight: 600, padding: '20px 32px',
+        borderRadius: 38,
+        border: '1px solid rgba(175,178,178,0.3)',
+        background: hov ? '#F7F8FA' : '#fff', color: '#4A4A4D',
+        cursor: 'pointer', fontFamily: 'inherit', height: 55,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        transition: 'background .15s, border-color .15s',
+        ...style,
+      }}>{children}</button>
+  )
+}
+
+function GlobalStyles() {
+  return (
+    <style>{`
+      .btn-arrow-right, .btn-arrow-left { transition: transform 0.15s ease; }
+      .btn-primary:hover .btn-arrow-right { transform: translateX(3px); }
+      .btn-secondary:hover .btn-arrow-left { transform: translateX(-3px); }
+      .tpl-hover-btn:hover .btn-arrow-right { transform: translateX(3px); }
+      .drag-handle:hover svg path { stroke: #05070A; transition: stroke 0.15s; }
+      .card-toggle:hover .chevron path { stroke: #05070A; transition: stroke 0.15s; }
+      .chevron path { transition: stroke 0.15s; }
+      .close-btn svg path { transition: stroke 0.15s; }
+      .close-btn:hover svg path { stroke: #EF4444; }
+    `}</style>
+  )
+}
+
+function ChevronDown({ color = '#AFB2B2' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="chevron" style={{ flexShrink: 0 }}>
+      <path d="M8 9.76936L3.74952 6.22852" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M7.99952 9.76936L12.25 6.22852" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function ChevronUp({ color = '#AFB2B2' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="chevron" style={{ flexShrink: 0 }}>
+      <path d="M8 6.22987L12.2491 9.76953" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M8.00004 6.22987L3.75098 9.76953" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function CloseIcon({ color = '#AFB2B2' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M11.749 4.25L4.25007 11.749" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M4.25 4.25L11.749 11.749" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function DragIcon({ color = '#AFB2B2' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M5.59961 3.2002L5.5964 3.2002" stroke={color} strokeWidth="2.4" strokeLinecap="round"/>
+      <path d="M5.59961 8L5.5964 8.00001" stroke={color} strokeWidth="2.4" strokeLinecap="round"/>
+      <path d="M5.59961 12.7998L5.5964 12.7998" stroke={color} strokeWidth="2.4" strokeLinecap="round"/>
+      <path d="M10.4033 3.2002L10.4001 3.2002" stroke={color} strokeWidth="2.4" strokeLinecap="round"/>
+      <path d="M10.4033 8L10.4001 8.00001" stroke={color} strokeWidth="2.4" strokeLinecap="round"/>
+      <path d="M10.4033 12.7998L10.4001 12.7998" stroke={color} strokeWidth="2.4" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function PlusIcon({ color = '#05070A' }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M10 6H2" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M6 2L6 10" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function BtnClose({ onClick, onPointerDown, style }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <button type="button" onClick={onClick} onPointerDown={onPointerDown}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', ...style }}
+    >
+      <CloseIcon color={hov ? '#EF4444' : '#AFB2B2'} />
+    </button>
+  )
+}
+
+function SparkleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M2 8C6.17835 8 8 6.24204 8 2C8 6.24204 9.80893 8 14 8C9.80893 8 8 9.80893 8 14C8 9.80893 6.17835 8 2 8Z" fill="white" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function AnimDots() {
+  const [dots, setDots] = useState(1)
+  useEffect(() => {
+    const id = setInterval(() => setDots(d => d >= 3 ? 1 : d + 1), 500)
+    return () => clearInterval(id)
+  }, [])
+  return <span>Generating{'.'.repeat(dots)}</span>
+}
+
+function ArrowRight({ color = 'white' }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="btn-arrow-right" style={{ flexShrink: 0 }}>
+      <path d="M10.9998 6L8.6665 8.99998" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M10.9998 5.99998L8.6665 3" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M1 6L11 6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function ArrowLeft({ color = '#4A4A4D' }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="btn-arrow-left" style={{ flexShrink: 0 }}>
+      <path d="M1.00065 6L3.33398 3.00002" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M1.00065 6.00002L3.33398 9" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M11 6L1 6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
   )
 }
 
@@ -310,6 +467,7 @@ function BtnTextAdd({ children, onClick, style }) {
         fontSize: 14, fontWeight: 600, color: '#05070A',
         fontFamily: 'inherit', padding: '8px 16px',
         textAlign: 'left', borderRadius: 20,
+        display: 'inline-flex', alignItems: 'center', gap: 6,
         transition: 'background .15s',
         ...style,
       }}>{children}</button>
@@ -432,8 +590,8 @@ function Footer({ step, onBack, onNext, nextLabel }) {
         borderTop: '1px solid rgba(175,178,178,0.3)',
         display: 'flex', gap: 10,
       }}>
-        <BtnSecondary onClick={onBack}>← Back</BtnSecondary>
-        <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue →'}</BtnPrimary>
+        <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+        <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
       </div>
     )
   }
@@ -445,8 +603,8 @@ function Footer({ step, onBack, onNext, nextLabel }) {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '0',
       }}>
-        <BtnSecondary onClick={onBack}>← Back</BtnSecondary>
-        <BtnPrimary onClick={onNext}>{nextLabel || 'Continue →'}</BtnPrimary>
+        <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+        <BtnPrimary onClick={onNext}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
       </div>
     </>
   )
@@ -689,7 +847,7 @@ function TemplatePicker({ form, patch, onNext }) {
         <div style={{ padding: '1.5rem 1rem 3rem', marginTop: 68 }}>
           <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 8, color: '#000' }}>Choose a template</h1>
           <p style={{ fontSize: 14, color: '#4A4A4D', marginBottom: 24, lineHeight: 1.6 }}>
-            Pick your favorite design. You can always change it later.
+            Create a professional resume in under 5 minutes.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
             {TEMPLATES.map(tpl => {
@@ -766,14 +924,14 @@ function TemplatePicker({ form, patch, onNext }) {
             fontWeight: 600, fontSize: 32, lineHeight: '110%',
             textAlign: 'center', color: '#000',
           }}>
-            Choose the right template for your needs
+            Choose a template
           </h1>
           <p style={{
             width: '100%', margin: 0,
             fontWeight: 400, fontSize: 16, lineHeight: '170%',
             textAlign: 'center', color: '#000',
           }}>
-            Pick your favorite design. And don&apos;t worry, you can always change the design later.
+            Create a professional resume in under 5 minutes.
           </p>
         </div>
 
@@ -827,10 +985,10 @@ function TemplatePicker({ form, patch, onNext }) {
                         background: '#fff', color: '#05070A',
                         height: 55, display: 'inline-flex',
                         alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'inherit',
+                        fontFamily: 'inherit', gap: 8,
                         boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-                      }}>
-                        Use this template →
+                      }} className="tpl-hover-btn">
+                        Use this template <ArrowRight color="#05070A" />
                       </div>
                     </div>
                   </div>
@@ -863,11 +1021,16 @@ function TemplatePicker({ form, patch, onNext }) {
 
 // ─── Step 1: Basic Info ───────────────────────────────────────────────────────
 
+const isValidEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+
 function StepBasic({ form, patch, onBack, onNext }) {
   const [showErr, setShowErr] = useState(false)
 
+  const emailEmpty   = !form.email?.trim()
+  const emailInvalid = !emailEmpty && !isValidEmail(form.email)
+
   function handleNext() {
-    if (!form.name?.trim() || !form.targetRole?.trim() || !form.email?.trim()) {
+    if (!form.name?.trim() || !form.targetRole?.trim() || emailEmpty || emailInvalid) {
       setShowErr(true); return
     }
     onNext()
@@ -878,28 +1041,28 @@ function StepBasic({ form, patch, onBack, onNext }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Basic information</h2>
-          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Tell us who you are and what role you're targeting.</p>
+          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Let&apos;s start with the essentials.</p>
         </div>
 
-        <Field label="Target role *">
+        <Field label="Target role (required)">
           <Input value={form.targetRole} onChange={e => { patch({ targetRole: e.target.value }); setShowErr(false) }}
             placeholder="Senior Product Designer" error={showErr && !form.targetRole?.trim()} />
         </Field>
 
         <Grid2>
-          <Field label="Full name *">
+          <Field label="Full name (required)">
             <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }}
               placeholder="Alex Johnson" error={showErr && !form.name?.trim()} />
           </Field>
-          <Field label="Email *">
+          <Field label="Email (required)" hint={showErr && emailInvalid ? 'Enter a valid email address' : undefined}>
             <Input type="email" value={form.email} onChange={e => { patch({ email: e.target.value }); setShowErr(false) }}
-              placeholder="alex@email.com" error={showErr && !form.email?.trim()} />
+              placeholder="alex@email.com" error={showErr && (emailEmpty || emailInvalid)} />
           </Field>
         </Grid2>
 
-        <Field label="Job description" hint="Paste a vacancy to tailor your resume to this specific role.">
+        <Field label="Job description (recommended)" hint="Paste a job description to generate a more relevant resume.">
           <Textarea value={form.jobDescription} onChange={e => patch({ jobDescription: e.target.value })}
-            placeholder="Paste the job description here to generate a more relevant resume." style={{ minHeight: 120 }} />
+            placeholder="Paste here…" style={{ minHeight: 120 }} />
         </Field>
       </div>
 
@@ -928,14 +1091,15 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
       <div
         onPointerDown={onHandleDown}
         style={{
-          position: 'absolute', left: -32, top: 0,
-          height: EXP_CARD_H, width: 28,
+          position: 'absolute', left: -36, top: 0,
+          height: EXP_CARD_H, width: 36,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
           opacity: isHov ? 1 : 0, transition: 'opacity .15s',
           userSelect: 'none', touchAction: 'none',
         }}
-      >⠿</div>
+        className="drag-handle"
+      ><DragIcon /></div>
 
       {/* Card */}
       <div className="exp-card-inner" style={{
@@ -945,9 +1109,9 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
       }}>
         <div
           onClick={onToggle}
+          className="card-toggle"
           style={{
-            height: isOpen ? 'auto' : EXP_CARD_H,
-            minHeight: isOpen ? EXP_CARD_H : undefined,
+            height: EXP_CARD_H,
             display: 'flex', alignItems: 'center',
             padding: '0 24px', gap: 10,
             cursor: 'pointer', userSelect: 'none',
@@ -957,40 +1121,28 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
             <div style={{ fontSize: 14, fontWeight: 500, color: '#05070A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{headName}</div>
             {headMeta && <div style={{ fontSize: 14, color: '#AFB2B2', marginTop: 2 }}>{headMeta}</div>}
           </div>
-          <span style={{ color: '#AFB2B2', fontSize: 13, flexShrink: 0, display: 'inline-block', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+          {isOpen ? <ChevronUp /> : <ChevronDown />}
         </div>
 
-        {isOpen && (
-          <div style={{ padding: '24px', borderTop: '1px solid rgba(175,178,178,0.2)', display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <Grid2>
-              <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
-              <Field label="Job title"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
-              <Field label="Start date"><Input value={exp.start} onChange={e => onUpdate({ start: e.target.value })} placeholder="Jan 2022" /></Field>
-              <Field label="End date"><Input value={exp.end} onChange={e => onUpdate({ end: e.target.value })} placeholder="Present" /></Field>
-            </Grid2>
-            <Field label="What you did & achieved" hint="Use numbers where you can. AI will polish the wording.">
-              <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
-                placeholder={'Led redesign of onboarding flow\nIncreased conversion by 15%\nBuilt design system used by 4 teams'} />
-            </Field>
+        <div style={{ display: 'grid', gridTemplateRows: isOpen ? '1fr' : '0fr', transition: 'grid-template-rows 0.28s ease' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '24px', borderTop: '1px solid rgba(175,178,178,0.2)', display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <Grid2>
+                <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
+                <Field label="Role"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
+                <Field label="Start date"><Input value={exp.start} onChange={e => onUpdate({ start: e.target.value })} placeholder="Jan 2022" /></Field>
+                <Field label="End date"><Input value={exp.end} onChange={e => onUpdate({ end: e.target.value })} placeholder="Present" /></Field>
+              </Grid2>
+              <Field label="What you did & achieved" hint="Use bullet points or simple notes.">
+                <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
+                  placeholder={'Led redesign of onboarding flow\nIncreased conversion by 15%\nBuilt design system used by 4 teams'} />
+              </Field>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Delete × — outside right */}
-      <button
-        type="button"
-        onClick={onRemove}
-        style={{
-          position: 'absolute', right: -32, top: 0,
-          height: EXP_CARD_H, width: 28,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 20, color: '#AFB2B2', padding: 0, lineHeight: 1,
-          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
-        }}
-        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
-      >×</button>
+      <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: EXP_CARD_H, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
     </div>
   )
 }
@@ -1125,7 +1277,7 @@ function StepExperience({ form, patch, onBack, onNext }) {
               />
             </div>
           ))}
-          <BtnTextAdd onClick={addExp} style={{ paddingLeft: 24 }}>＋ Add position</BtnTextAdd>
+          <BtnTextAdd onClick={addExp} style={{ paddingLeft: 24 }}><PlusIcon /> Add position</BtnTextAdd>
         </div>
       </div>
 
@@ -1148,7 +1300,7 @@ function StepExperience({ form, patch, onBack, onNext }) {
               <div style={{ fontSize: 14, color: '#AFB2B2', marginTop: 2 }}>{[dragExp.start, dragExp.end].filter(Boolean).join(' – ')}</div>
             }
           </div>
-          <span style={{ color: '#AFB2B2', fontSize: 13 }}>▾</span>
+          <ChevronDown />
         </div>
       )}
 
@@ -1275,17 +1427,10 @@ function SkillChips({ skills, onChange, targetRole }) {
             }}
           >
             {s}
-            <button
-              onPointerDown={e => e.stopPropagation()}
+            <BtnClose
               onClick={e => { e.stopPropagation(); onChange(skills.filter(x => x !== s)) }}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: '#AFB2B2', fontSize: 15, padding: 0,
-                lineHeight: 1, display: 'flex', alignItems: 'center',
-              }}
-              onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-              onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
-            >×</button>
+              onPointerDown={e => e.stopPropagation()}
+            />
           </span>
         ))}
         <input
@@ -1306,7 +1451,8 @@ function SkillChips({ skills, onChange, targetRole }) {
               fontSize: 12, padding: '4px 12px', borderRadius: 20,
               border: '1px solid rgba(175,178,178,0.5)', background: '#fff',
               color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit',
-            }}>+ {s}</button>
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+            }}><PlusIcon color="#4A4A4D" /> {s}</button>
           ))}
         </div>
       )}
@@ -1410,14 +1556,14 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
       onMouseLeave={() => setIsHov(false)}
     >
       {/* Drag handle outside left */}
-      <div onPointerDown={onHandleDown} style={{
-        position: 'absolute', left: -32, top: 0,
-        height: 47, width: 28,
+      <div onPointerDown={onHandleDown} className="drag-handle" style={{
+        position: 'absolute', left: -36, top: 0,
+        height: 47, width: 36,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
         opacity: isHov ? 1 : 0, transition: 'opacity .15s',
         userSelect: 'none', touchAction: 'none',
-      }}>⠿</div>
+      }}><DragIcon /></div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'center' }}>
         <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
@@ -1436,18 +1582,7 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
         </div>
       </div>
 
-      {/* × outside right */}
-      <button type="button" onClick={onRemove}
-        style={{
-          position: 'absolute', right: -32, top: 0, height: 47, width: 28,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 20, color: '#AFB2B2', padding: 0, lineHeight: 1,
-          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
-        }}
-        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
-      >×</button>
+      <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: 47, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
     </div>
   )
 }
@@ -1462,30 +1597,19 @@ function EduRow({ text, onChange, onRemove, onHandleDown, isDragging, sortKey })
       onMouseLeave={() => setIsHov(false)}
     >
       {/* Drag handle outside left */}
-      <div onPointerDown={onHandleDown} style={{
-        position: 'absolute', left: -32, top: 0,
-        height: 47, width: 28,
+      <div onPointerDown={onHandleDown} className="drag-handle" style={{
+        position: 'absolute', left: -36, top: 0,
+        height: 47, width: 36,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
         opacity: isHov ? 1 : 0, transition: 'opacity .15s',
         userSelect: 'none', touchAction: 'none',
-      }}>⠿</div>
+      }}><DragIcon /></div>
 
       <Input value={text} onChange={e => onChange(e.target.value)}
         placeholder="Bachelor of Computer Science — MIT" />
 
-      {/* × outside right */}
-      <button type="button" onClick={onRemove}
-        style={{
-          position: 'absolute', right: -32, top: 0, height: 47, width: 28,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 20, color: '#AFB2B2', padding: 0, lineHeight: 1,
-          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
-        }}
-        onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-        onMouseLeave={e => e.currentTarget.style.color = '#AFB2B2'}
-      >×</button>
+      <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: 47, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
     </div>
   )
 }
@@ -1530,7 +1654,7 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
               />
             ))}
-            <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })}>＋ Add language</BtnTextAdd>
+            <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })}><PlusIcon /> Add language</BtnTextAdd>
           </div>
         </div>
 
@@ -1547,7 +1671,7 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 onRemove={() => patch({ education: form.education.filter(x => x.id !== edu.id) })}
               />
             ))}
-            <BtnTextAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })}>＋ Add education</BtnTextAdd>
+            <BtnTextAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })}><PlusIcon /> Add education</BtnTextAdd>
           </div>
         </div>
       </div>
@@ -1593,8 +1717,8 @@ function StepLinks({ form, patch, onBack, onNext }) {
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Links & contact</h2>
-          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>All optional. Add what's relevant for your role.</p>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Contact details</h2>
+          <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>All optional. Add what&apos;s relevant for your role.</p>
         </div>
 
         <Grid2>
@@ -1610,12 +1734,12 @@ function StepLinks({ form, patch, onBack, onNext }) {
           <Input value={form.linkedin} onChange={e => patch({ linkedin: e.target.value })} placeholder="linkedin.com/in/alexjohnson" />
         </Field>
 
-        <Field label="Portfolio / GitHub">
+        <Field label="Portfolio / Website">
           <Input value={form.portfolio} onChange={e => patch({ portfolio: e.target.value })} placeholder="alexjohnson.com or github.com/alex" />
         </Field>
       </div>
 
-      <Footer step={4} onBack={onBack} onNext={onNext} nextLabel="Review →" />
+      <Footer step={4} onBack={onBack} onNext={onNext} nextLabel="Review" />
     </>
   )
 }
@@ -1631,7 +1755,7 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
       borderRadius: 16, overflow: 'hidden',
     }}>
       {/* Header */}
-      <div onClick={() => setOpen(o => !o)} style={{
+      <div onClick={() => setOpen(o => !o)} className="card-toggle" style={{
         height: 64, display: 'flex', alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px', gap: 10,
@@ -1649,13 +1773,15 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
             style={{ fontSize: 14, padding: '4px 12px', borderRadius: 8, border: `1px solid rgba(175,178,178,0.5)`, background: '#fff', color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#05070A'; e.currentTarget.style.color = '#05070A' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(175,178,178,0.5)'; e.currentTarget.style.color = '#4A4A4D' }}>Edit</button>
-          <span style={{ color: T.text3, fontSize: 14, display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+          {open ? <ChevronUp color={T.text3} /> : <ChevronDown color={T.text3} />}
         </div>
       </div>
       {/* Body */}
-      {open && (
-        <div style={{ padding: '12px 24px', borderTop: `1px solid rgba(175,178,178,0.2)` }}>{children}</div>
-      )}
+      <div style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', transition: 'grid-template-rows 0.28s ease' }}>
+        <div style={{ overflow: 'hidden' }}>
+          <div style={{ padding: '12px 24px', borderTop: `1px solid rgba(175,178,178,0.2)` }}>{children}</div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1688,11 +1814,11 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
           </div>
         </SumCard>
 
-        <SumCard icon="👤" title="Basic info" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => goTo(1)}>
-          <SumRow label="Name" value={form.name} />
+        <SumCard icon="👤" title="Profile" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => goTo(1)}>
           <SumRow label="Target role" value={form.targetRole} />
+          <SumRow label="Full name" value={form.name} />
           <SumRow label="Email" value={form.email} />
-          <SumRow label="Job desc." value={form.jobDescription ? `${form.jobDescription.slice(0, 60)}…` : null} />
+          <SumRow label="Job description" value={form.jobDescription ? `${form.jobDescription.slice(0, 60)}…` : null} />
         </SumCard>
 
         <SumCard icon="💼" title="Experience"
@@ -1726,7 +1852,7 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
           <SumRow label="Education" value={form.education.filter(e => e.text).map(e => e.text).join('; ')} />
         </SumCard>
 
-        <SumCard icon="🔗" title="Links & contact" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => goTo(4)}>
+        <SumCard icon="🔗" title="Contact details" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => goTo(4)}>
           <SumRow label="Phone" value={form.phone} />
           <SumRow label="Location" value={form.location} />
           <SumRow label="LinkedIn" value={form.linkedin} />
@@ -1739,17 +1865,24 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
         <div style={{ fontSize: 16, color: '#4A4A4D', marginBottom: '1.25rem', lineHeight: 1.6 }}>
           AI will write polished bullet points, a professional summary, and tailor everything to your target role.
         </div>
-        <BtnPrimary onClick={onGenerate} disabled={generating}>
-          {generating ? '⏳ Generating…' : '✦ Generate resume'}
-        </BtnPrimary>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <BtnPrimary onClick={onGenerate} disabled={generating} style={{ position: 'relative' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: generating ? 0 : 1 }}>
+              <SparkleIcon /> Generate resume
+            </span>
+            {generating && (
+              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AnimDots />
+              </span>
+            )}
+          </BtnPrimary>
+          <BtnSecondary onClick={() => goTo(4)} style={{ background: 'none', border: 'none' }}><ArrowLeft /> Back</BtnSecondary>
+        </div>
         {genError && (
           <div style={{ marginTop: 12, padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>
             ⚠ {genError}
           </div>
         )}
-        <button onClick={() => goTo(4)} style={{ display: 'block', margin: '20px auto 0', fontSize: 13, color: '#AFB2B2', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-          ← Back to step 4
-        </button>
       </div>
     </>
   )
@@ -1950,7 +2083,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
                 <BtnPrimary onClick={handleCheckout} disabled={!fsReady} style={{ width: '100%' }}>
                   {ctaLabel}
                 </BtnPrimary>
-                <BtnSecondary onClick={onReset}>← Start over</BtnSecondary>
+                <BtnSecondary onClick={onReset} style={{ width: '100%' }}><ArrowLeft /> Start over</BtnSecondary>
               </div>
               <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
                 Secure payment · Card, PayPal
@@ -2048,32 +2181,20 @@ export default function ResumeBuilder() {
     }
   }
 
-  if (resume) {
-    return (
-      <ResumeResult
-        resume={resume}
-        template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'}
-        onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }}
-        downloadRef={downloadRef}
-      />
-    )
-  }
-
-  if (screen === -1) {
-    return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
-  }
-
   const content = (() => {
-    if (screen === 1) return <StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} />
-    if (screen === 2) return <StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => goTo(3)} />
-    if (screen === 3) return <StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => goTo(4)} />
-    if (screen === 4) return <StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => goTo(0)} />
-    if (screen === 0) return <Summary form={form} goTo={goTo} onGenerate={generate} generating={generating} genError={genError} />
+    if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} />
+    if (screen === -1) return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
+    if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} /></PageShell>
+    if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => goTo(3)} /></PageShell>
+    if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => goTo(4)} /></PageShell>
+    if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => goTo(0)} /></PageShell>
+    if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goTo} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
   })()
 
   return (
-    <PageShell step={screen} form={form}>
+    <>
+      <GlobalStyles />
       {content}
-    </PageShell>
+    </>
   )
 }
