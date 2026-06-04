@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import dynamic from 'next/dynamic'
-import PaywallModal from './PaywallModal'
 
 const ResumePreview = dynamic(
   () => import('./ResumePDF').then(m => m.ResumePreview),
@@ -1783,72 +1782,196 @@ function A4Frame({ children }) {
   )
 }
 
-function ResumeResult({ resume, template, onReset, onDownload, downloadRef }) {
+const FS_PLANS = [
+  {
+    id: 'one_time',
+    planId: 50965,
+    label: 'Resume PDF',
+    price: '$2.90',
+    period: null,
+    badge: null,
+    cta: 'Download Resume — $2.90',
+    features: ['Download your resume', 'ATS-friendly format', 'All templates included'],
+  },
+  {
+    id: 'monthly',
+    planId: 50967,
+    label: 'Unlimited Access',
+    price: '$4.90',
+    period: '/mo',
+    badge: 'Best value',
+    cta: 'Start Unlimited Access — $4.90/mo',
+    features: ['Unlimited downloads', 'Unlimited updates', 'All templates included'],
+  },
+]
+
+function ResumeResult({ resume, template, onReset, downloadRef }) {
   const isMobile = useIsMobile()
+  const [selectedPlan, setSelectedPlan] = useState('monthly')
+  const [fsReady, setFsReady] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.FS?.Checkout) { setFsReady(true); return }
+    const existing = document.querySelector('script[src="https://checkout.freemius.com/js/v1/"]')
+    if (existing) { existing.addEventListener('load', () => setFsReady(true), { once: true }); return }
+    const script = document.createElement('script')
+    script.src = 'https://checkout.freemius.com/js/v1/'
+    script.async = true
+    script.onload = () => setFsReady(true)
+    document.head.appendChild(script)
+  }, [])
+
+  function handleCheckout() {
+    if (!fsReady || !window.FS?.Checkout) return
+    const plan = FS_PLANS.find(p => p.id === selectedPlan)
+    const checkout = new window.FS.Checkout({
+      product_id: 31066,
+      plan_id: plan.planId,
+      public_key: 'pk_0c8f1a770c6e4345670337792dd5b',
+    })
+    checkout.open({
+      success: () => { if (downloadRef.current) downloadRef.current.click() },
+      cancel: () => {},
+    })
+  }
+
+  const ctaLabel = fsReady
+    ? (FS_PLANS.find(p => p.id === selectedPlan)?.cta ?? 'Continue to payment →')
+    : 'Loading…'
+
+  const CheckIcon = () => (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M2.5 6L5 8.5L9.5 4" stroke="#9DD162" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+
+  const PlanCards = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {FS_PLANS.map(plan => {
+        const sel = selectedPlan === plan.id
+        return (
+          <button key={plan.id} onClick={() => setSelectedPlan(plan.id)} style={{
+            display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px',
+            borderRadius: 12,
+            border: `2px solid ${sel ? '#05070A' : 'rgba(175,178,178,0.35)'}`,
+            background: sel ? '#F7F8FA' : '#fff',
+            cursor: 'pointer', textAlign: 'left', width: '100%',
+            fontFamily: 'inherit', boxSizing: 'border-box',
+          }}>
+            {/* Radio */}
+            <div style={{
+              width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 2,
+              border: sel ? '5px solid #05070A' : '2px solid rgba(175,178,178,0.5)',
+              background: '#fff', boxSizing: 'border-box',
+            }} />
+            {/* Info */}
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontWeight: 600, fontSize: 16, color: '#05070A' }}>{plan.label}</span>
+                {plan.badge && (
+                  <span style={{ fontSize: 11, fontWeight: 600, background: '#9DD162', color: '#05070A', padding: '2px 8px', borderRadius: 20 }}>
+                    {plan.badge}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {plan.features.map(f => (
+                  <span key={f} style={{ fontSize: 14, color: '#4A4A4D', display: 'flex', gap: 7, alignItems: 'center' }}>
+                    <CheckIcon /> {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {/* Price */}
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#05070A' }}>{plan.price}</span>
+              {plan.period && <span style={{ fontSize: 12, color: '#AFB2B2', display: 'block' }}>{plan.period}</span>}
+            </div>
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
-    <div style={{ minHeight: '100vh', background: T.bg2, display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
+    <div style={{ minHeight: '100vh', background: '#F7F8FA', display: 'flex', flexDirection: 'column' }}>
       <AppHeader>
         <LogoMark />
         <div />
-        <div />
+        <LogoMark style={{ opacity: 0, pointerEvents: 'none' }} />
       </AppHeader>
 
-      {/* Content */}
-      <div style={{ flex: 1, padding: isMobile ? '1.25rem 1rem 120px' : '2rem 1.5rem 3rem', display: 'flex', justifyContent: 'center' }}>
+      <div style={{
+        flex: 1,
+        padding: isMobile ? '1.25rem 1rem 200px' : '2rem 1.5rem 3rem',
+        display: 'flex', justifyContent: 'center',
+        boxSizing: 'border-box',
+      }}>
         <div style={{
           width: '100%', maxWidth: 1280,
-          display: isMobile ? 'block' : 'flex', gap: '2rem', alignItems: 'flex-start',
+          display: isMobile ? 'block' : 'flex',
+          gap: '2rem', alignItems: 'flex-start',
         }}>
-
-          {/* Preview: A4-proportional */}
-          <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%' }}>
+          {/* Preview */}
+          <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%', borderRadius: 24, overflow: 'hidden', boxShadow: '0 6px 32px rgba(0,0,0,.14)' }}>
             <A4Frame>
               <ResumePreview data={resume} template={template} bare />
             </A4Frame>
           </div>
 
-          {/* Controls: floating card (desktop) / fixed footer (mobile) */}
-          {isMobile ? (
+          {/* Controls column — desktop */}
+          {!isMobile && (
             <div style={{
-              position: 'fixed', bottom: 0, left: 0, right: 0,
-              background: T.bg1, borderTop: `0.5px solid ${T.border1}`,
-              padding: '12px 16px 28px',
-              display: 'flex', flexDirection: 'column', gap: 8, zIndex: 10,
+              flex: 1, position: 'sticky', top: '2rem',
+              background: '#fff', borderRadius: 32,
+              padding: '40px',
+              display: 'flex', flexDirection: 'column', gap: 24,
             }}>
-              <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
-              <button onClick={onReset} style={{
-                fontSize: T.f13, color: T.text3, textAlign: 'center',
-                background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-              }}>← Start over</button>
-            </div>
-          ) : (
-            <div style={{ flex: 1, position: 'sticky', top: '2rem' }}>
-              <div style={{
-                background: T.bg1, border: `0.5px solid ${T.border1}`,
-                borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,.08)',
-                padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem',
-              }}>
-                <div>
-                  <div style={{ fontSize: 32, marginBottom: 10 }}>🎉</div>
-                  <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, letterSpacing: '-.02em' }}>Resume ready!</h2>
-                  <p style={{ color: T.text2, fontSize: T.f13, lineHeight: 1.6 }}>
-                    Review the preview — download your PDF when you're happy with it.
-                  </p>
-                </div>
-                <button onClick={onDownload} style={{ padding: '12px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer', width: '100%' }}>⬇ Download Resume (PDF)</button>
-                <button onClick={onReset} style={{
-                  fontSize: T.f13, color: T.text3,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontFamily: 'inherit', textAlign: 'left', padding: 0,
-                }}>← Start over</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Your resume is ready</h2>
+                <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0, lineHeight: 1.6 }}>
+                  Choose how you'd like to access it.
+                </p>
               </div>
+              <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
+              <PlanCards />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <BtnPrimary onClick={handleCheckout} disabled={!fsReady} style={{ width: '100%' }}>
+                  {ctaLabel}
+                </BtnPrimary>
+                <BtnSecondary onClick={onReset}>← Start over</BtnSecondary>
+              </div>
+              <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
+                Secure payment · Card, PayPal
+              </p>
             </div>
           )}
 
+          {/* Plans — mobile (in scroll area) */}
+          {isMobile && (
+            <div style={{ marginTop: '1.5rem' }}>
+              <PlanCards />
+            </div>
+          )}
         </div>
       </div>
-      {/* Hidden download button — triggered programmatically after payment */}
+
+      {/* Mobile footer */}
+      {isMobile && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
+          background: '#fff', padding: '12px 16px 28px',
+          borderTop: '1px solid rgba(175,178,178,0.3)',
+          display: 'flex', flexDirection: 'column', gap: 8,
+        }}>
+          <BtnPrimary onClick={handleCheckout} disabled={!fsReady} style={{ width: '100%' }}>
+            {ctaLabel}
+          </BtnPrimary>
+          <BtnSecondary onClick={onReset}>← Start over</BtnSecondary>
+        </div>
+      )}
+
       <div style={{ display: 'none' }}>
         <ResumeDownloadButton ref={downloadRef} data={resume} template={template} filename="resume.pdf" />
       </div>
@@ -1864,7 +1987,6 @@ export default function ResumeBuilder() {
   const [resume, setResume] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
-  const [paywallOpen, setPaywallOpen] = useState(false)
   const downloadRef = useRef(null)
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
@@ -1918,20 +2040,12 @@ export default function ResumeBuilder() {
 
   if (resume) {
     return (
-      <>
-        <ResumeResult
-          resume={resume}
-          template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'}
-          onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }}
-          onDownload={() => setPaywallOpen(true)}
-          downloadRef={downloadRef}
-        />
-        <PaywallModal
-          isOpen={paywallOpen}
-          onClose={() => setPaywallOpen(false)}
-          onSuccess={() => downloadRef.current?.click()}
-        />
-      </>
+      <ResumeResult
+        resume={resume}
+        template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'}
+        onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }}
+        downloadRef={downloadRef}
+      />
     )
   }
 
