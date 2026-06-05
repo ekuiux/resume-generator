@@ -224,8 +224,7 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], style, show
           width: dropRect.width,
           zIndex: 9999,
           background: T.bg1,
-          border: `1.5px solid ${T.border1}`,
-          borderRadius: T.r10,
+          borderRadius: 12,
           boxShadow: '0 8px 24px rgba(0,0,0,.12)',
           maxHeight: 240,
           overflowY: 'auto',
@@ -297,9 +296,10 @@ function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
     setOpen(false)
   }
 
-  const [hov, setHov]         = useState(null)
-  const [hovPrev, setHovPrev] = useState(false)
-  const [hovNext, setHovNext] = useState(false)
+  const [hov, setHov]               = useState(null)
+  const [hovPrev, setHovPrev]       = useState(false)
+  const [hovNext, setHovNext]       = useState(false)
+  const [hovPresent, setHovPresent] = useState(false)
   const focused = open
 
   return (
@@ -334,8 +334,7 @@ function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
             width: 240,
             zIndex: 9999,
             background: '#fff',
-            border: '1.5px solid rgba(175,178,178,0.4)',
-            borderRadius: 16,
+            borderRadius: 12,
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
             padding: 12,
           }}
@@ -378,10 +377,12 @@ function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
             <>
               <button
                 onClick={() => { onChange('Present'); setOpen(false) }}
+                onMouseEnter={() => setHovPresent(true)}
+                onMouseLeave={() => setHovPresent(false)}
                 style={{
                   marginTop: 8, width: '100%', padding: '8px', borderRadius: 8,
                   border: '1px solid rgba(175,178,178,0.3)',
-                  background: value === 'Present' ? '#05070A' : 'none',
+                  background: value === 'Present' ? '#05070A' : hovPresent ? '#F7F8FA' : 'none',
                   color: value === 'Present' ? '#fff' : '#05070A',
                   cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', fontWeight: 500,
                   transition: 'background .1s',
@@ -1686,7 +1687,8 @@ function useSortable(items, onReorder, group) {
 // ─── LangRow & EduRow ────────────────────────────────────────────────────────
 
 function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, isDragging, sortKey }) {
-  const [isHov, setIsHov] = useState(false)
+  const [isHov, setIsHov]   = useState(false)
+  const [hovLvl, setHovLvl] = useState(null)
   return (
     <div
       data-sk={sortKey}
@@ -1707,16 +1709,33 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'center' }}>
         <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
           placeholder="English" suggestions={LANG_SUGG} showOnFocus />
-        <div style={{ display: 'flex', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, overflow: 'hidden', height: 47 }}>
+        <div style={{
+          position: 'relative',
+          display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
+          border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
+          height: 47, padding: 4, overflow: 'hidden', boxSizing: 'border-box',
+        }}>
+          {/* Sliding pill */}
+          <div style={{
+            position: 'absolute',
+            top: 4, bottom: 4,
+            left: `calc(4px + ${item.level} * ((100% - 8px) / 6))`,
+            width: 'calc((100% - 8px) / 6)',
+            background: '#05070A', borderRadius: 8,
+            transition: 'left 0.2s ease',
+            pointerEvents: 'none',
+          }} />
           {LANG_LEVELS.map((lvl, i) => (
-            <button key={lvl} type="button" onClick={() => onLevelChange(i)} style={{
-              flex: 1, padding: '0 4px', border: 'none', fontFamily: 'inherit', fontSize: 11, fontWeight: 600,
-              cursor: 'pointer', whiteSpace: 'nowrap',
-              background: item.level === i ? '#05070A' : '#fff',
-              color: item.level === i ? '#fff' : '#4A4A4D',
-              borderRight: i < LANG_LEVELS.length - 1 ? '1px solid rgba(175,178,178,0.3)' : 'none',
-              transition: 'background .12s',
-            }}>{lvl}</button>
+            <button key={lvl} type="button" onClick={() => onLevelChange(i)}
+              onMouseEnter={() => setHovLvl(i)} onMouseLeave={() => setHovLvl(null)}
+              style={{
+                position: 'relative',
+                border: 'none', background: hovLvl === i && item.level !== i ? '#F7F8FA' : 'none',
+                fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+              <span style={{ color: '#fff', mixBlendMode: 'difference', pointerEvents: 'none' }}>{lvl}</span>
+            </button>
           ))}
         </div>
       </div>
