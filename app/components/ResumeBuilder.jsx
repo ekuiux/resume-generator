@@ -36,6 +36,45 @@ const INDUSTRIES = [
 ]
 
 const MONTHS       = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const DIAL_CODES = [
+  { code:'US', flag:'🇺🇸', dial:'+1',   name:'United States' },
+  { code:'GB', flag:'🇬🇧', dial:'+44',  name:'United Kingdom' },
+  { code:'CA', flag:'🇨🇦', dial:'+1',   name:'Canada' },
+  { code:'AU', flag:'🇦🇺', dial:'+61',  name:'Australia' },
+  { code:'DE', flag:'🇩🇪', dial:'+49',  name:'Germany' },
+  { code:'FR', flag:'🇫🇷', dial:'+33',  name:'France' },
+  { code:'IT', flag:'🇮🇹', dial:'+39',  name:'Italy' },
+  { code:'ES', flag:'🇪🇸', dial:'+34',  name:'Spain' },
+  { code:'NL', flag:'🇳🇱', dial:'+31',  name:'Netherlands' },
+  { code:'CH', flag:'🇨🇭', dial:'+41',  name:'Switzerland' },
+  { code:'AT', flag:'🇦🇹', dial:'+43',  name:'Austria' },
+  { code:'BE', flag:'🇧🇪', dial:'+32',  name:'Belgium' },
+  { code:'SE', flag:'🇸🇪', dial:'+46',  name:'Sweden' },
+  { code:'NO', flag:'🇳🇴', dial:'+47',  name:'Norway' },
+  { code:'DK', flag:'🇩🇰', dial:'+45',  name:'Denmark' },
+  { code:'FI', flag:'🇫🇮', dial:'+358', name:'Finland' },
+  { code:'PL', flag:'🇵🇱', dial:'+48',  name:'Poland' },
+  { code:'CZ', flag:'🇨🇿', dial:'+420', name:'Czech Republic' },
+  { code:'HU', flag:'🇭🇺', dial:'+36',  name:'Hungary' },
+  { code:'RO', flag:'🇷🇴', dial:'+40',  name:'Romania' },
+  { code:'GR', flag:'🇬🇷', dial:'+30',  name:'Greece' },
+  { code:'PT', flag:'🇵🇹', dial:'+351', name:'Portugal' },
+  { code:'RU', flag:'🇷🇺', dial:'+7',   name:'Russia' },
+  { code:'UA', flag:'🇺🇦', dial:'+380', name:'Ukraine' },
+  { code:'TR', flag:'🇹🇷', dial:'+90',  name:'Turkey' },
+  { code:'IL', flag:'🇮🇱', dial:'+972', name:'Israel' },
+  { code:'AE', flag:'🇦🇪', dial:'+971', name:'UAE' },
+  { code:'KZ', flag:'🇰🇿', dial:'+7',   name:'Kazakhstan' },
+  { code:'GE', flag:'🇬🇪', dial:'+995', name:'Georgia' },
+  { code:'IN', flag:'🇮🇳', dial:'+91',  name:'India' },
+  { code:'CN', flag:'🇨🇳', dial:'+86',  name:'China' },
+  { code:'JP', flag:'🇯🇵', dial:'+81',  name:'Japan' },
+  { code:'KR', flag:'🇰🇷', dial:'+82',  name:'South Korea' },
+  { code:'BR', flag:'🇧🇷', dial:'+55',  name:'Brazil' },
+  { code:'MX', flag:'🇲🇽', dial:'+52',  name:'Mexico' },
+  { code:'AR', flag:'🇦🇷', dial:'+54',  name:'Argentina' },
+]
+
 const LANG_LEVELS  = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 const STEP_NAMES   = ['Profile', 'Experience', 'Skills', 'Contact']
 const LANG_SUGG    = ['English','Spanish','French','German','Portuguese','Italian','Russian','Chinese','Japanese','Korean','Arabic','Hindi','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Turkish','Ukrainian','Hebrew','Persian','Thai','Vietnamese','Indonesian','Malay','Romanian','Hungarian','Greek','Czech']
@@ -264,6 +303,166 @@ function Textarea({ style, ...props }) {
       onFocus={e => { setFocused(true); props.onFocus?.(e) }}
       onBlur={e => { setFocused(false); props.onBlur?.(e) }}
     />
+  )
+}
+
+function PhoneInput({ value, onChange }) {
+  function parseValue(v) {
+    if (!v) return { country: DIAL_CODES[0], number: '' }
+    // Sort by dial length descending to match longest code first
+    const sorted = [...DIAL_CODES].sort((a, b) => b.dial.length - a.dial.length)
+    for (const c of sorted) {
+      if (v.startsWith(c.dial + ' ')) return { country: c, number: v.slice(c.dial.length + 1) }
+    }
+    return { country: DIAL_CODES[0], number: v }
+  }
+
+  const parsed = parseValue(value)
+  const [country, setCountry]   = useState(parsed.country)
+  const [open, setOpen]         = useState(false)
+  const [dropRect, setDropRect] = useState(null)
+  const [search, setSearch]     = useState('')
+  const [focused, setFocused]   = useState(false)
+  const [hovItem, setHovItem]   = useState(null)
+  const wrapRef  = useRef(null)
+  const inputRef = useRef(null)
+
+  const numberPart = parseValue(value).number
+
+  function openDrop() {
+    if (wrapRef.current) setDropRect(wrapRef.current.getBoundingClientRect())
+    setSearch('')
+    setOpen(true)
+  }
+
+  function selectCountry(c) {
+    setCountry(c)
+    onChange(c.dial + ' ' + numberPart)
+    setOpen(false)
+    setSearch('')
+    inputRef.current?.focus()
+  }
+
+  function formatPhone(raw) {
+    const d = raw.replace(/\D/g, '').slice(0, 7)
+    if (d.length <= 3) return d
+    return `${d.slice(0,3)}-${d.slice(3)}`
+  }
+
+  function handleNumber(e) {
+    onChange(country.dial + ' ' + formatPhone(e.target.value))
+  }
+
+  const filtered = DIAL_CODES.filter(c =>
+    !search ||
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.dial.includes(search)
+  )
+
+  const borderColor = focused ? '#05070A' : 'rgba(175,178,178,0.5)'
+  const shadow      = focused ? '0 0 0 3px rgba(175,178,178,0.35)' : 'none'
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative' }}>
+      <div style={{
+        display: 'flex', height: 47,
+        border: `1px solid ${borderColor}`,
+        borderRadius: 12, overflow: 'hidden', background: '#fff',
+        boxShadow: shadow, transition: 'border-color .15s, box-shadow .15s',
+      }}>
+        {/* Country selector */}
+        <button
+          type="button"
+          onMouseDown={e => { e.preventDefault(); open ? setOpen(false) : openDrop() }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: '0 10px 0 14px', flexShrink: 0,
+            background: 'none', border: 'none', cursor: 'pointer',
+            borderRight: '1px solid rgba(175,178,178,0.3)',
+          }}
+        >
+          <span style={{ fontSize: 18, lineHeight: 1 }}>{country.flag}</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#05070A' }}>{country.dial}</span>
+          <ChevronDown color="#AFB2B2" />
+        </button>
+
+        {/* Number input */}
+        <input
+          ref={inputRef}
+          value={numberPart}
+          onChange={handleNumber}
+          onFocus={() => setFocused(true)}
+          onBlur={() => { setFocused(false); setTimeout(() => setOpen(false), 150) }}
+          placeholder="555-1223"
+          style={{
+            flex: 1, height: '100%', padding: '0 16px',
+            border: 'none', outline: 'none', background: 'transparent',
+            fontFamily: 'inherit', fontSize: 14, color: '#05070A',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      {/* Dropdown */}
+      {open && dropRect && (
+        <div
+          onMouseDown={e => e.preventDefault()}
+          style={{
+            position: 'fixed',
+            top: dropRect.bottom + 4,
+            left: dropRect.left,
+            width: Math.max(dropRect.width, 260),
+            zIndex: 9999,
+            background: '#fff',
+            borderRadius: 12,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Search */}
+          <div style={{ padding: '10px 10px 6px' }}>
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search…"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                height: 36, padding: '0 12px',
+                border: '1px solid rgba(175,178,178,0.4)',
+                borderRadius: 8, outline: 'none',
+                fontFamily: 'inherit', fontSize: 13, color: '#05070A',
+                background: '#F7F8FA',
+              }}
+            />
+          </div>
+          {/* List */}
+          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+            {filtered.map(c => (
+              <div
+                key={c.code}
+                onMouseDown={() => selectCountry(c)}
+                onMouseEnter={() => setHovItem(c.code)}
+                onMouseLeave={() => setHovItem(null)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 14px', cursor: 'pointer',
+                  background: hovItem === c.code ? '#F7F8FA' : '#fff',
+                  transition: 'background .1s',
+                }}
+              >
+                <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{c.flag}</span>
+                <span style={{ fontSize: 13, color: '#05070A', flex: 1 }}>{c.name}</span>
+                <span style={{ fontSize: 12, color: '#AFB2B2', flexShrink: 0 }}>{c.dial}</span>
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <div style={{ padding: '12px 14px', fontSize: 13, color: '#AFB2B2' }}>No results</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -1192,11 +1391,11 @@ function StepBasic({ form, patch, onBack, onNext }) {
         <Grid2>
           <Field label="Full name (required)">
             <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }}
-              placeholder="Alex Johnson" error={showErr && !form.name?.trim()} />
+              placeholder="Taylor Parker" error={showErr && !form.name?.trim()} />
           </Field>
           <Field label="Email (required)" hint={showErr && emailInvalid ? 'Enter a valid email address' : undefined}>
             <Input type="email" value={form.email} onChange={e => { patch({ email: e.target.value }); setShowErr(false) }}
-              placeholder="alex@email.com" error={showErr && (emailEmpty || emailInvalid)} />
+              placeholder="taylor@email.com" error={showErr && (emailEmpty || emailInvalid)} />
           </Field>
         </Grid2>
 
@@ -1889,11 +2088,11 @@ function StepLinks({ form, patch, onBack, onNext }) {
         </Grid2>
 
         <Field label="LinkedIn">
-          <Input value={form.linkedin} onChange={e => patch({ linkedin: e.target.value })} placeholder="linkedin.com/in/alexjohnson" />
+          <Input value={form.linkedin} onChange={e => patch({ linkedin: e.target.value })} placeholder="linkedin.com/in/taylorparker" />
         </Field>
 
         <Field label="Portfolio / Website">
-          <Input value={form.portfolio} onChange={e => patch({ portfolio: e.target.value })} placeholder="alexjohnson.com or github.com/alex" />
+          <Input value={form.portfolio} onChange={e => patch({ portfolio: e.target.value })} placeholder="taylorparker.com or github.com/taylor" />
         </Field>
       </div>
 
