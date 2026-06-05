@@ -35,6 +35,7 @@ const INDUSTRIES = [
   { id: 'other',     icon: '···', name: 'Other',      sub: '' },
 ]
 
+const MONTHS       = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const LANG_LEVELS  = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 const STEP_NAMES   = ['Profile', 'Experience', 'Skills', 'Contact']
 const LANG_SUGG    = ['English','Spanish','French','German','Portuguese','Italian','Russian','Chinese','Japanese','Korean','Arabic','Hindi','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Turkish','Ukrainian','Hebrew','Persian','Thai','Vietnamese','Indonesian','Malay','Romanian','Hungarian','Greek','Czech']
@@ -267,6 +268,133 @@ function Textarea({ style, ...props }) {
   )
 }
 
+function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
+  const [open, setOpen]       = useState(false)
+  const [dropRect, setDropRect] = useState(null)
+  const wrapRef = useRef(null)
+
+  function parseVal(v) {
+    if (!v || v === 'Present') return null
+    const [m, y] = v.split(' ')
+    const mi = MONTHS.indexOf(m)
+    const yi = parseInt(y)
+    return (!isNaN(yi) && mi >= 0) ? { month: mi, year: yi } : null
+  }
+
+  const parsed = parseVal(value)
+  const [viewYear, setViewYear] = useState(() => parsed?.year ?? new Date().getFullYear())
+
+  function open_() {
+    if (!wrapRef.current) return
+    setDropRect(wrapRef.current.getBoundingClientRect())
+    const p = parseVal(value)
+    setViewYear(p?.year ?? new Date().getFullYear())
+    setOpen(true)
+  }
+
+  function pick(monthIdx) {
+    onChange(`${MONTHS[monthIdx]} ${viewYear}`)
+    setOpen(false)
+  }
+
+  const [hov, setHov]         = useState(null)
+  const [hovPrev, setHovPrev] = useState(false)
+  const [hovNext, setHovNext] = useState(false)
+  const focused = open
+
+  return (
+    <div ref={wrapRef}>
+      <div
+        onClick={open_}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        tabIndex={0}
+        style={{
+          width: '100%', boxSizing: 'border-box',
+          height: 47, padding: '0 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          border: `1px solid ${focused ? '#05070A' : 'rgba(175,178,178,0.5)'}`,
+          borderRadius: 12, background: '#fff', cursor: 'pointer',
+          boxShadow: focused ? '0 0 0 3px rgba(175,178,178,0.35)' : 'none',
+          transition: 'border-color .15s, box-shadow .15s',
+          fontSize: 14, color: value ? '#05070A' : '#AFB2B2',
+          userSelect: 'none',
+        }}
+      >
+        <span>{value || placeholder}</span>
+        <CalendarIcon />
+      </div>
+
+      {open && dropRect && (
+        <div
+          onMouseDown={e => e.preventDefault()}
+          style={{
+            position: 'fixed',
+            top: dropRect.bottom + 4,
+            left: dropRect.left,
+            width: 240,
+            zIndex: 9999,
+            background: '#fff',
+            border: '1.5px solid rgba(175,178,178,0.4)',
+            borderRadius: 16,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            padding: 12,
+          }}
+        >
+          {/* Year nav */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <button onClick={() => setViewYear(y => y - 1)}
+              onMouseEnter={() => setHovPrev(true)} onMouseLeave={() => setHovPrev(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 8 }}>
+              <ArrowLeft color={hovPrev ? '#05070A' : '#AFB2B2'} />
+            </button>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#05070A' }}>{viewYear}</span>
+            <button onClick={() => setViewYear(y => y + 1)}
+              onMouseEnter={() => setHovNext(true)} onMouseLeave={() => setHovNext(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 8 }}>
+              <ArrowRight color={hovNext ? '#05070A' : '#AFB2B2'} />
+            </button>
+          </div>
+
+          {/* Month grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+            {MONTHS.map((m, i) => {
+              const sel = parsed?.month === i && parsed?.year === viewYear
+              return (
+                <button key={m} onClick={() => pick(i)}
+                  onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
+                  style={{
+                    padding: '12px 4px', borderRadius: 8, border: 'none',
+                    background: sel ? '#05070A' : hov === i ? '#F7F8FA' : 'none',
+                    color: sel ? '#fff' : '#05070A',
+                    cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', fontWeight: 500,
+                    transition: 'background .1s',
+                  }}
+                >{m}</button>
+              )
+            })}
+          </div>
+
+          {allowPresent && (
+            <>
+              <button
+                onClick={() => { onChange('Present'); setOpen(false) }}
+                style={{
+                  marginTop: 8, width: '100%', padding: '8px', borderRadius: 8,
+                  border: '1px solid rgba(175,178,178,0.3)',
+                  background: value === 'Present' ? '#05070A' : 'none',
+                  color: value === 'Present' ? '#fff' : '#05070A',
+                  cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', fontWeight: 500,
+                  transition: 'background .1s',
+                }}
+              >Present</button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Lbl({ children }) {
   return (
     <label style={{
@@ -397,6 +525,17 @@ function DragIcon({ color = '#AFB2B2' }) {
   )
 }
 
+function CalendarIcon({ color = '#AFB2B2' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="2" y="3.5" width="12" height="10.5" rx="2" stroke={color} strokeWidth="1.5"/>
+      <path d="M2 7H14" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M5.5 2V5" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M10.5 2V5" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 function PlusIcon({ color = '#05070A' }) {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
@@ -421,7 +560,7 @@ function BtnClose({ onClick, onPointerDown, style }) {
 function SparkleIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M2 8C6.17835 8 8 6.24204 8 2C8 6.24204 9.80893 8 14 8C9.80893 8 8 9.80893 8 14C8 9.80893 6.17835 8 2 8Z" fill="white" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M2 8C6.17835 8 8 6.24204 8 2C8 6.24204 9.80893 8 14 8C9.80893 8 8 9.80893 8 14C8 9.80893 6.17835 8 2 8Z" fill="white" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
     </svg>
   )
 }
@@ -1130,8 +1269,8 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
               <Grid2>
                 <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
                 <Field label="Role"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
-                <Field label="Start date"><Input value={exp.start} onChange={e => onUpdate({ start: e.target.value })} placeholder="Jan 2022" /></Field>
-                <Field label="End date"><Input value={exp.end} onChange={e => onUpdate({ end: e.target.value })} placeholder="Present" /></Field>
+                <Field label="Start date"><MonthPicker value={exp.start} onChange={v => onUpdate({ start: v })} placeholder="Jan 2022" /></Field>
+                <Field label="End date"><MonthPicker value={exp.end} onChange={v => onUpdate({ end: v })} placeholder="Present" allowPresent /></Field>
               </Grid2>
               <Field label="What you did & achieved" hint="Use bullet points or simple notes.">
                 <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
