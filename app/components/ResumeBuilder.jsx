@@ -615,7 +615,8 @@ function Field({ label, hint, children, style }) {
 }
 
 function Grid2({ children, style }) {
-  return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, ...style }}>{children}</div>
+  const isMobile = useIsMobile()
+  return <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, ...style }}>{children}</div>
 }
 
 function Divider() {
@@ -757,6 +758,26 @@ function BtnClose({ onClick, onPointerDown, style }) {
   )
 }
 
+function StartOverIcon({ color = '#4A4A4D' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M2.33301 11.334L2.33301 4.66699" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M9.33301 4.66699L5.99968 8.00033L9.33301 11.3337" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6 8L14 8" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function DownloadIcon({ color = 'white' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M4.66699 6.66699L8.00033 10.0003L11.3337 6.66699" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8 10V2" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
 function SparkleIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
@@ -833,6 +854,7 @@ function BtnAdd({ children, onClick }) {
 // ─── Shared header ────────────────────────────────────────────────────────────
 
 function AppHeader({ children }) {
+  const isMobile = useIsMobile()
   return (
     <div style={{
       background: '#F7F8FA',
@@ -845,7 +867,7 @@ function AppHeader({ children }) {
         width: '100%',
         maxWidth: 1280,
         margin: '0 auto',
-        padding: '0',
+        padding: isMobile ? '0 16px' : '0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -1071,20 +1093,22 @@ function PageShell({ step, form, children, rightPanel }) {
       {/* Card */}
       <div style={{
         flex: 1,
-        padding: isMobile ? '0' : '16px 80px 40px',
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        padding: isMobile ? '12px 0 0' : '16px 80px 40px',
+        display: 'flex', alignItems: isMobile ? 'stretch' : 'flex-start', justifyContent: 'center',
         boxSizing: 'border-box',
       }}>
         <div style={{
           width: '100%', maxWidth: 1280,
-          borderRadius: isMobile ? 0 : 32,
-          display: isMobile ? 'block' : 'flex',
+          borderRadius: isMobile ? '24px 24px 0 0' : 32,
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          flex: isMobile ? 1 : 'unset',
           gap: 2,
           overflow: 'hidden',
         }}>
           {/* Form column */}
           <div style={{
-            flex: isMobile ? 'unset' : '0 0 66%',
+            flex: isMobile ? 1 : '0 0 66%',
             maxWidth: isMobile ? '100%' : '66%',
             width: isMobile ? '100%' : undefined,
             padding: isMobile ? '1.25rem 1rem 0' : '40px',
@@ -1183,12 +1207,12 @@ function TemplatePicker({ form, patch, onNext }) {
     return (
       <div style={{ minHeight: '100vh', background: '#F7F8FA' }}>
         <AppHeader><LogoMark /><div /><div /></AppHeader>
-        <div style={{ padding: '1.5rem 1rem 3rem', marginTop: 68 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 8, color: '#000' }}>Choose a template</h1>
-          <p style={{ fontSize: 14, color: '#4A4A4D', marginBottom: 24, lineHeight: 1.6 }}>
+        <div style={{ padding: '16px 16px 3rem' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 8, color: '#000', textAlign: 'center' }}>Choose a template</h1>
+          <p style={{ fontSize: 14, color: '#4A4A4D', marginBottom: 24, lineHeight: 1.6, textAlign: 'center' }}>
             Create a professional resume in under 5 minutes.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24, padding: '0 5%' }}>
             {TEMPLATES.map(tpl => {
               const isHov = hovered === tpl.id
               const pdfTemplate = PDF_TEMPLATE_MAP[tpl.id] ?? 'minimal'
@@ -1197,24 +1221,39 @@ function TemplatePicker({ form, patch, onNext }) {
                   onMouseEnter={() => setHovered(tpl.id)}
                   onMouseLeave={() => setHovered(null)}
                   onClick={() => { patch({ template: tpl.id }); onNext() }}
-                  style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
+                  style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
                 >
                   <div style={{
                     width: '100%', borderRadius: 12, overflow: 'hidden', position: 'relative',
                     boxShadow: isHov ? '0 16px 48px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.07)',
-                    transform: isHov ? 'translateY(-3px)' : 'none',
-                    transition: 'transform .2s ease, box-shadow .2s ease',
+                    transition: 'box-shadow .2s ease',
                   }}>
                     <A4Frame><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
-                    {tpl.badge && (
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
                       <div style={{
-                        position: 'absolute', top: 8, left: 8, zIndex: 2,
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        padding: '20px 32px', height: 55, borderRadius: 38,
+                        border: 'none', background: '#05070A',
+                        fontSize: 14, fontWeight: 600, color: '#fff',
+                        fontFamily: 'inherit',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                      }}>
+                        Use this template <ArrowRight color="#fff" />
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 15, fontWeight: 500, color: '#05070A' }}>{tpl.name}</span>
+                    {tpl.badge && (
+                      <span style={{
                         fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
                         background: tpl.badge.bg, color: tpl.badge.color,
-                      }}>{tpl.badge.text}</div>
+                      }}>{tpl.badge.text}</span>
                     )}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#05070A' }}>{tpl.name}</span>
                 </div>
               )
             })}
@@ -1388,7 +1427,7 @@ function StepBasic({ form, patch, onBack, onNext }) {
             placeholder="Senior Product Designer" error={showErr && !form.targetRole?.trim()} />
         </Field>
 
-        <Grid2>
+        <Grid2 style={{ gap: 24 }}>
           <Field label="Full name (required)">
             <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }}
               placeholder="Taylor Parker" error={showErr && !form.name?.trim()} />
@@ -1416,8 +1455,69 @@ const EXP_CARD_H = 72
 
 function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
   const [isHov, setIsHov] = useState(false)
+  const isMobile = useIsMobile()
   const headName = [exp.role, exp.company].filter(Boolean).join(' · ') || 'New position'
   const headMeta = [exp.start, exp.end].filter(Boolean).join(' – ')
+
+  const CardInner = (
+    <div className="exp-card-inner" style={{
+      background: '#fff',
+      border: '1px solid rgba(175,178,178,0.5)',
+      borderRadius: 16, overflow: 'hidden',
+    }}>
+      <div
+        onClick={onToggle}
+        className="card-toggle"
+        style={{
+          height: EXP_CARD_H,
+          display: 'flex', alignItems: 'center',
+          padding: isMobile ? '0 16px' : '0 24px', gap: 10,
+          cursor: 'pointer', userSelect: 'none',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: '#05070A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{headName}</div>
+          {headMeta && <div style={{ fontSize: 14, color: '#AFB2B2', marginTop: 2 }}>{headMeta}</div>}
+        </div>
+        {isOpen ? <ChevronUp /> : <ChevronDown />}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateRows: isOpen ? '1fr' : '0fr', transition: 'grid-template-rows 0.28s ease' }}>
+        <div style={{ overflow: 'hidden' }}>
+          <div style={{ padding: isMobile ? '16px' : '24px', borderTop: '1px solid rgba(175,178,178,0.2)', display: 'flex', flexDirection: 'column', gap: isMobile ? 16 : 24 }}>
+            <Grid2>
+              <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
+              <Field label="Role"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
+              <Field label="Start date"><MonthPicker value={exp.start} onChange={v => onUpdate({ start: v })} placeholder="Jan 2022" /></Field>
+              <Field label="End date"><MonthPicker value={exp.end} onChange={v => onUpdate({ end: v })} placeholder="Present" allowPresent /></Field>
+            </Grid2>
+            <Field label="What you did & achieved" hint="Use bullet points or simple notes.">
+              <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
+                placeholder={'Led redesign of onboarding flow\nIncreased conversion by 15%\nBuilt design system used by 4 teams'} />
+            </Field>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (isMobile) {
+    return (
+      <div data-expid={exp.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 0, userSelect: 'none' }}>
+        {/* Drag — left */}
+        <div onPointerDown={onHandleDown}
+          style={{ width: 20, height: EXP_CARD_H, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', cursor: 'grab', touchAction: 'none', marginTop: 1 }}>
+          <DragIcon />
+        </div>
+        {/* Card */}
+        <div style={{ flex: 1, minWidth: 0 }}>{CardInner}</div>
+        {/* Close — right */}
+        <div style={{ width: 20, height: EXP_CARD_H, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: 1 }}>
+          <BtnClose onClick={onRemove} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -1426,60 +1526,20 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
       onMouseEnter={() => setIsHov(true)}
       onMouseLeave={() => setIsHov(false)}
     >
-      {/* Drag handle — outside left */}
       <div
         onPointerDown={onHandleDown}
         style={{
           position: 'absolute', left: -36, top: 0,
           height: EXP_CARD_H, width: 36,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
+          cursor: 'grab', color: '#AFB2B2',
           opacity: isHov ? 1 : 0, transition: 'opacity .15s',
           userSelect: 'none', touchAction: 'none',
         }}
         className="drag-handle"
       ><DragIcon /></div>
 
-      {/* Card */}
-      <div className="exp-card-inner" style={{
-        background: '#fff',
-        border: '1px solid rgba(175,178,178,0.5)',
-        borderRadius: 16, overflow: 'hidden',
-      }}>
-        <div
-          onClick={onToggle}
-          className="card-toggle"
-          style={{
-            height: EXP_CARD_H,
-            display: 'flex', alignItems: 'center',
-            padding: '0 24px', gap: 10,
-            cursor: 'pointer', userSelect: 'none',
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 500, color: '#05070A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{headName}</div>
-            {headMeta && <div style={{ fontSize: 14, color: '#AFB2B2', marginTop: 2 }}>{headMeta}</div>}
-          </div>
-          {isOpen ? <ChevronUp /> : <ChevronDown />}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateRows: isOpen ? '1fr' : '0fr', transition: 'grid-template-rows 0.28s ease' }}>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '24px', borderTop: '1px solid rgba(175,178,178,0.2)', display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <Grid2>
-                <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
-                <Field label="Role"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
-                <Field label="Start date"><MonthPicker value={exp.start} onChange={v => onUpdate({ start: v })} placeholder="Jan 2022" /></Field>
-                <Field label="End date"><MonthPicker value={exp.end} onChange={v => onUpdate({ end: v })} placeholder="Present" allowPresent /></Field>
-              </Grid2>
-              <Field label="What you did & achieved" hint="Use bullet points or simple notes.">
-                <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
-                  placeholder={'Led redesign of onboarding flow\nIncreased conversion by 15%\nBuilt design system used by 4 teams'} />
-              </Field>
-            </div>
-          </div>
-        </div>
-      </div>
+      {CardInner}
 
       <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: EXP_CARD_H, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
     </div>
@@ -1489,6 +1549,7 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
 function StepExperience({ form, patch, onBack, onNext }) {
   const [openId, setOpenId]       = useState(null)
   const [dragState, setDragState] = useState(null)
+  const isMobile = useIsMobile()
   const expRef        = useRef(form.experience)
   const lastBeforeRef = useRef(null)
   const snapRef       = useRef({}) // FLIP: id → top before reorder
@@ -1624,8 +1685,11 @@ function StepExperience({ form, patch, onBack, onNext }) {
       {dragState && dragExp && (
         <div style={{
           position: 'fixed', zIndex: 9999, pointerEvents: 'none',
-          top: dragState.top, left: dragState.left, width: dragState.width,
-          height: EXP_CARD_H, display: 'flex', alignItems: 'center', padding: '0 24px',
+          top: dragState.top + (isMobile ? 1 : 0),
+          left: isMobile ? dragState.left + 20 : dragState.left,
+          width: isMobile ? dragState.width - 40 : dragState.width,
+          height: EXP_CARD_H, display: 'flex', alignItems: 'center',
+          padding: isMobile ? '0 16px' : '0 24px',
           background: '#fff', borderRadius: 16,
           border: '1px solid rgba(175,178,178,0.5)',
           boxShadow: '0 12px 40px rgba(0,0,0,0.16)',
@@ -1888,6 +1952,7 @@ function useSortable(items, onReorder, group) {
 function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, isDragging, sortKey }) {
   const [isHov, setIsHov]   = useState(false)
   const [hovLvl, setHovLvl] = useState(null)
+  const isMobile = useIsMobile()
   return (
     <div
       data-sk={sortKey}
@@ -1895,20 +1960,57 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
       onMouseEnter={() => setIsHov(true)}
       onMouseLeave={() => setIsHov(false)}
     >
-      {/* Drag handle outside left */}
-      <div onPointerDown={onHandleDown} className="drag-handle" style={{
-        position: 'absolute', left: -36, top: 0,
-        height: 47, width: 36,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
-        opacity: isHov ? 1 : 0, transition: 'opacity .15s',
-        userSelect: 'none', touchAction: 'none',
-      }}><DragIcon /></div>
+      {/* Drag handle — desktop only */}
+      {!isMobile && (
+        <div onPointerDown={onHandleDown} className="drag-handle" style={{
+          position: 'absolute', left: -36, top: 0,
+          height: 47, width: 36,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'grab', color: '#AFB2B2',
+          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+          userSelect: 'none', touchAction: 'none',
+        }}><DragIcon /></div>
+      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'center' }}>
+      {isMobile ? (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
+          {/* Drag — left, aligned to first input */}
+          <div onPointerDown={onHandleDown}
+            style={{ width: 20, height: 47, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', cursor: 'grab', touchAction: 'none', marginTop: 1 }}>
+            <DragIcon />
+          </div>
+          {/* Content: input + levels */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
+              placeholder="English" suggestions={LANG_SUGG} showOnFocus />
+            <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
+              border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
+              height: 47, padding: 4, overflow: 'hidden', boxSizing: 'border-box' }}>
+              <div style={{ position: 'absolute', top: 4, bottom: 4,
+                left: `calc(4px + ${item.level} * ((100% - 8px) / 6))`,
+                width: 'calc((100% - 8px) / 6)',
+                background: '#05070A', borderRadius: 8, transition: 'left 0.2s ease', pointerEvents: 'none' }} />
+              {LANG_LEVELS.map((lvl, i) => (
+                <button key={lvl} type="button" onClick={() => onLevelChange(i)}
+                  style={{ position: 'relative', border: 'none', background: 'none',
+                    fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: item.level === i ? '#fff' : '#4A4A4D', transition: 'color 0.2s ease' }}>
+                  <span style={{ pointerEvents: 'none' }}>{lvl}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Close — right, aligned to first input */}
+          <div style={{ width: 20, height: 47, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: 1 }}>
+            <BtnClose onClick={onRemove} />
+          </div>
+        </div>
+      ) : (
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
-          placeholder="English" suggestions={LANG_SUGG} showOnFocus />
-        <div style={{
+          placeholder="English" suggestions={LANG_SUGG} showOnFocus style={{ flex: 1 }} />
+        <div style={{ flexShrink: 0, width: undefined,
           position: 'relative',
           display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
           border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
@@ -1932,20 +2034,25 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
                 border: 'none', background: hovLvl === i && item.level !== i ? '#F7F8FA' : 'none',
                 fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                 borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: item.level === i ? '#fff' : '#4A4A4D', transition: 'color 0.2s ease',
               }}>
-              <span style={{ color: '#fff', mixBlendMode: 'difference', pointerEvents: 'none' }}>{lvl}</span>
+              <span style={{ pointerEvents: 'none' }}>{lvl}</span>
             </button>
           ))}
         </div>
       </div>
+      )}
 
-      <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: 47, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
+      {!isMobile && (
+        <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: 47, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
+      )}
     </div>
   )
 }
 
 function EduRow({ text, onChange, onRemove, onHandleDown, isDragging, sortKey }) {
   const [isHov, setIsHov] = useState(false)
+  const isMobile = useIsMobile()
   return (
     <div
       data-sk={sortKey}
@@ -1953,25 +2060,46 @@ function EduRow({ text, onChange, onRemove, onHandleDown, isDragging, sortKey })
       onMouseEnter={() => setIsHov(true)}
       onMouseLeave={() => setIsHov(false)}
     >
-      {/* Drag handle outside left */}
-      <div onPointerDown={onHandleDown} className="drag-handle" style={{
-        position: 'absolute', left: -36, top: 0,
-        height: 47, width: 36,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'grab', color: '#AFB2B2', fontSize: 16, lineHeight: 1,
-        opacity: isHov ? 1 : 0, transition: 'opacity .15s',
-        userSelect: 'none', touchAction: 'none',
-      }}><DragIcon /></div>
+      {/* Drag handle — desktop only */}
+      {!isMobile && (
+        <div onPointerDown={onHandleDown} className="drag-handle" style={{
+          position: 'absolute', left: -36, top: 0,
+          height: 47, width: 36,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'grab', color: '#AFB2B2',
+          opacity: isHov ? 1 : 0, transition: 'opacity .15s',
+          userSelect: 'none', touchAction: 'none',
+        }}><DragIcon /></div>
+      )}
 
-      <Input value={text} onChange={e => onChange(e.target.value)}
-        placeholder="Bachelor of Computer Science — MIT" />
+      {isMobile ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+          <div onPointerDown={onHandleDown}
+            style={{ width: 20, height: 47, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', cursor: 'grab', touchAction: 'none', marginTop: 1 }}>
+            <DragIcon />
+          </div>
+          <div style={{ flex: 1 }}>
+            <Input value={text} onChange={e => onChange(e.target.value)}
+              placeholder="Bachelor of Computer Science — MIT" />
+          </div>
+          <div style={{ width: 20, height: 47, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: 1 }}>
+            <BtnClose onClick={onRemove} />
+          </div>
+        </div>
+      ) : (
+        <Input value={text} onChange={e => onChange(e.target.value)}
+          placeholder="Bachelor of Computer Science — MIT" />
+      )}
 
-      <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: 47, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
+      {!isMobile && (
+        <BtnClose onClick={onRemove} style={{ position: 'absolute', right: -36, top: 0, height: 47, width: 36, justifyContent: 'center', opacity: isHov ? 1 : 0, transition: 'opacity .15s' }} />
+      )}
     </div>
   )
 }
 
 function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
+  const isMobile = useIsMobile()
   const updLang = (id, p) => patch({ languages: form.languages.map(l => l.id === id ? { ...l, ...p } : l) })
 
   const { dragState: langDrag, startDrag: startLangDrag } = useSortable(
@@ -2011,7 +2139,7 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
               />
             ))}
-            <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })}><PlusIcon /> Add language</BtnTextAdd>
+            <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })} style={{ padding: '8px 24px' }}><PlusIcon /> Add language</BtnTextAdd>
           </div>
         </div>
 
@@ -2028,29 +2156,46 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 onRemove={() => patch({ education: form.education.filter(x => x.id !== edu.id) })}
               />
             ))}
-            <BtnTextAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })}><PlusIcon /> Add education</BtnTextAdd>
+            <BtnTextAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })} style={{ padding: '8px 24px' }}><PlusIcon /> Add education</BtnTextAdd>
           </div>
         </div>
       </div>
 
       {/* Ghosts */}
       {langDrag && langDragItem && (
-        <div style={{
-          position: 'fixed', zIndex: 9999, pointerEvents: 'none',
-          top: langDrag.top, left: langDrag.left, width: langDrag.width,
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'center',
-          opacity: 0.9,
-        }}>
-          <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: 14, color: '#05070A', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
-            {langDragItem.name || 'Language'}
+        isMobile ? (
+          <div style={{
+            position: 'fixed', zIndex: 9999, pointerEvents: 'none',
+            top: langDrag.top + 1,
+            left: langDrag.left + 20,
+            width: langDrag.width - 40,
+            display: 'flex', flexDirection: 'column', gap: 8, opacity: 0.9,
+          }}>
+            <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: 14, color: '#05070A', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+              {langDragItem.name || 'Language'}
+            </div>
+            <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
           </div>
-          <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
-        </div>
+        ) : (
+          <div style={{
+            position: 'fixed', zIndex: 9999, pointerEvents: 'none',
+            top: langDrag.top, left: langDrag.left, width: langDrag.width,
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'center',
+            opacity: 0.9,
+          }}>
+            <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: 14, color: '#05070A', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+              {langDragItem.name || 'Language'}
+            </div>
+            <div style={{ height: 47, background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} />
+          </div>
+        )
       )}
       {eduDrag && eduDragItem && (
         <div style={{
           position: 'fixed', zIndex: 9999, pointerEvents: 'none',
-          top: eduDrag.top, left: eduDrag.left, width: eduDrag.width,
+          top: eduDrag.top + (isMobile ? 1 : 0),
+          left: isMobile ? eduDrag.left + 20 : eduDrag.left,
+          width: isMobile ? eduDrag.width - 40 : eduDrag.width,
           height: 47, background: '#fff',
           border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
           display: 'flex', alignItems: 'center', padding: '0 16px',
@@ -2078,7 +2223,7 @@ function StepLinks({ form, patch, onBack, onNext }) {
           <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>All optional. Add what&apos;s relevant for your role.</p>
         </div>
 
-        <Grid2>
+        <Grid2 style={{ gap: 24 }}>
           <Field label="Phone">
             <Input value={form.phone} onChange={e => patch({ phone: e.target.value })} placeholder="+1 (415) 555-1234" />
           </Field>
@@ -2105,6 +2250,7 @@ function StepLinks({ form, patch, onBack, onNext }) {
 
 function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
   const [open, setOpen] = useState(false)
+  const isMobile = useIsMobile()
   return (
     <div style={{
       background: '#fff',
@@ -2115,7 +2261,7 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
       <div onClick={() => setOpen(o => !o)} className="card-toggle" style={{
         height: 64, display: 'flex', alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px', gap: 10,
+        padding: isMobile ? '0 16px' : '0 24px', gap: 10,
         cursor: 'pointer', userSelect: 'none',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -2136,7 +2282,7 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
       {/* Body */}
       <div style={{ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', transition: 'grid-template-rows 0.28s ease' }}>
         <div style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '12px 24px', borderTop: `1px solid rgba(175,178,178,0.2)` }}>{children}</div>
+          <div style={{ padding: isMobile ? '12px 16px' : '12px 24px', borderTop: `1px solid rgba(175,178,178,0.2)` }}>{children}</div>
         </div>
       </div>
     </div>
@@ -2145,8 +2291,9 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
 
 function SumRow({ label, value }) {
   const empty = !value || !value.toString().trim()
+  const isMobile = useIsMobile()
   return (
-    <div style={{ display: 'flex', gap: 12, padding: '6px 0' }}>
+    <div style={{ display: 'flex', gap: 12, padding: isMobile ? '2px 0' : '6px 0' }}>
       <span style={{ fontSize: 14, color: T.text3, width: 104, flexShrink: 0 }}>{label}</span>
       <span style={{ fontSize: 14, color: empty ? T.border1 : T.text1, fontStyle: empty ? 'italic' : 'normal', lineHeight: 1.5 }}>{empty ? '—' : value}</span>
     </div>
@@ -2156,6 +2303,20 @@ function SumRow({ label, value }) {
 
 function Summary({ form, goTo, onGenerate, generating, genError }) {
   const tpl = TEMPLATES.find(t => t.id === form.template)
+  const isMobile = useIsMobile()
+
+  const GenerateBtn = () => (
+    <BtnPrimary onClick={onGenerate} disabled={generating} style={{ position: 'relative', ...(isMobile ? { flex: 1 } : {}) }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: generating ? 0 : 1 }}>
+        <SparkleIcon /> Generate resume
+      </span>
+      {generating && (
+        <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <AnimDots />
+        </span>
+      )}
+    </BtnPrimary>
+  )
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2217,30 +2378,35 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
         </SumCard>
       </div>
 
-      <div style={{ background: '#F7F8FA', borderRadius: 16, padding: '32px 64px', textAlign: 'center' }}>
-        <div style={{ fontSize: 18, fontWeight: 600, color: '#05070A', marginBottom: 8 }}>Ready to generate</div>
-        <div style={{ fontSize: 16, color: '#4A4A4D', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-          AI will write polished bullet points, a professional summary, and tailor everything to your target role.
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          <BtnPrimary onClick={onGenerate} disabled={generating} style={{ position: 'relative' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: generating ? 0 : 1 }}>
-              <SparkleIcon /> Generate resume
-            </span>
-            {generating && (
-              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AnimDots />
-              </span>
-            )}
-          </BtnPrimary>
-          <BtnSecondary onClick={() => goTo(4)} style={{ background: 'none', border: 'none' }}><ArrowLeft /> Back</BtnSecondary>
-        </div>
-        {genError && (
-          <div style={{ marginTop: 12, padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>
-            ⚠ {genError}
+      {!isMobile && (
+        <div style={{ background: '#F7F8FA', borderRadius: 16, padding: '32px 64px', textAlign: 'center' }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#05070A', marginBottom: 8 }}>Ready to generate</div>
+          <div style={{ fontSize: 16, color: '#4A4A4D', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+            AI will write polished bullet points, a professional summary, and tailor everything to your target role.
           </div>
-        )}
-      </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <GenerateBtn />
+            <BtnSecondary onClick={() => goTo(4)} style={{ background: 'none', border: 'none' }}><ArrowLeft /> Back</BtnSecondary>
+          </div>
+          {genError && (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, fontSize: 13, color: '#DC2626', lineHeight: 1.5 }}>
+              ⚠ {genError}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isMobile && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
+          background: '#fff', padding: '12px 16px 28px',
+          borderTop: '1px solid rgba(175,178,178,0.3)',
+          display: 'flex', gap: 10,
+        }}>
+          <BtnSecondary onClick={() => goTo(4)}><ArrowLeft /> Back</BtnSecondary>
+          <GenerateBtn />
+        </div>
+      )}
     </>
   )
 }
@@ -2309,6 +2475,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
   const isMobile = useIsMobile()
   const [selectedPlan, setSelectedPlan] = useState('monthly')
   const [fsReady, setFsReady] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -2404,7 +2571,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
 
       <div style={{
         flex: 1,
-        padding: isMobile ? '1.25rem 1rem 200px' : '16px 1.5rem 3rem',
+        padding: isMobile ? '12px 16px 100px' : '16px 1.5rem 3rem',
         display: 'flex', justifyContent: 'center',
         boxSizing: 'border-box',
       }}>
@@ -2420,7 +2587,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
             </A4Frame>
           </div>
 
-          {/* Controls column — desktop */}
+          {/* Controls column — desktop only */}
           {!isMobile && (
             <div style={{
               flex: 1, position: 'sticky', top: '2rem',
@@ -2440,36 +2607,72 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
                 <BtnPrimary onClick={handleCheckout} disabled={!fsReady} style={{ width: '100%' }}>
                   {ctaLabel}
                 </BtnPrimary>
-                <BtnSecondary onClick={onReset} style={{ width: '100%' }}><ArrowLeft /> Start over</BtnSecondary>
+                <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
               </div>
               <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
                 Secure payment · Card, PayPal
               </p>
             </div>
           )}
-
-          {/* Plans — mobile (in scroll area) */}
-          {isMobile && (
-            <div style={{ marginTop: '1.5rem' }}>
-              <PlanCards />
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Mobile footer */}
+      {/* Mobile footer — single Download button */}
       {isMobile && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
           background: '#fff', padding: '12px 16px 28px',
           borderTop: '1px solid rgba(175,178,178,0.3)',
-          display: 'flex', flexDirection: 'column', gap: 8,
+          display: 'flex', gap: 10,
         }}>
-          <BtnPrimary onClick={handleCheckout} disabled={!fsReady} style={{ width: '100%' }}>
-            {ctaLabel}
+          <BtnSecondary onClick={onReset}><StartOverIcon /> Start over</BtnSecondary>
+          <BtnPrimary onClick={() => setSheetOpen(true)} style={{ flex: 1 }}>
+            Download <DownloadIcon />
           </BtnPrimary>
-          <BtnSecondary onClick={onReset}>← Start over</BtnSecondary>
         </div>
+      )}
+
+      {/* Bottom sheet — mobile plan selection */}
+      {isMobile && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setSheetOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 20,
+              background: 'rgba(0,0,0,0.5)',
+              opacity: sheetOpen ? 1 : 0,
+              pointerEvents: sheetOpen ? 'auto' : 'none',
+              transition: 'opacity 0.3s ease',
+            }}
+          />
+          {/* Sheet */}
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 21,
+            background: '#fff',
+            borderRadius: '24px 24px 0 0',
+            padding: '12px 16px 40px',
+            display: 'flex', flexDirection: 'column', gap: 16,
+            transform: sheetOpen ? 'translateY(0)' : 'translateY(100%)',
+            transition: 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
+          }}>
+            {/* Drag pill */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(175,178,178,0.5)' }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#05070A', margin: '0 0 4px' }}>Your resume is ready</h2>
+              <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Choose how you'd like to access it.</p>
+            </div>
+            <PlanCards />
+            <BtnPrimary onClick={handleCheckout} disabled={!fsReady} style={{ width: '100%' }}>
+              {ctaLabel}
+            </BtnPrimary>
+            <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
+              Secure payment · Card, PayPal
+            </p>
+          </div>
+        </>
       )}
 
       <div style={{ display: 'none' }}>
