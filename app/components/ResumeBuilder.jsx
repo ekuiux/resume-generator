@@ -1004,13 +1004,6 @@ function ResumeDocPreview({ step }) {
       <rect x={10}  y={30.5} width={48} height={3}  rx={1.5} fill="black" fillOpacity={0.1} />
       <rect x={64}  y={30.5} width={42} height={3}  rx={1.5} fill="black" fillOpacity={0.1} />
       <rect x={112} y={30.5} width={50} height={3}  rx={1.5} fill="black" fillOpacity={0.1} />
-      {/* Avatar circle (Frame 152, x=180, y=8, 30×30, r=15) */}
-      <rect x={180} y={8} width={30} height={30} rx={15} fill="black" fillOpacity={0.1} />
-      {/* Avatar head (10×10 circle): padding-top=5 → cy=8+5+5=18, cx=180+7+3+5=195 */}
-      <circle cx={195} cy={18} r={5} fill="black" fillOpacity={0.15} />
-      {/* Avatar body (16×10 rect): y=8+5+10+1=24, x=180+7=187 */}
-      <rect x={187} y={24} width={16} height={10} rx={4} fill="black" fillOpacity={0.15} />
-
       {/* Divider 1 (y=46) */}
       <rect x={10} y={46} width={200} height={0.5} fill="black" fillOpacity={0.08} />
 
@@ -2454,6 +2447,7 @@ function A4Frame({ children }) {
       position: 'relative', overflow: 'hidden',
       background: '#fff',
       borderRadius: 4,
+      userSelect: 'none',
       boxShadow: '0 6px 32px rgba(0,0,0,.14)',
     }}>
       <div style={{

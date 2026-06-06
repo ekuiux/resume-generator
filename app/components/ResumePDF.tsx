@@ -220,8 +220,6 @@ const bizStyles = StyleSheet.create({
   sidebar:     { width: 185, backgroundColor: BIZ_BLUE, padding: '44 20 44 20', flexDirection: 'column' },
   main:        { flex: 1, padding: '44 36 44 32' },
   // Sidebar
-  avatar:      { width: 72, height: 72, borderRadius: 36, backgroundColor: BIZ_ACCENT, marginBottom: 18, alignSelf: 'center', justifyContent: 'center', alignItems: 'center' },
-  avatarText:  { fontSize: 22, fontWeight: 'bold', color: '#ffffff' },
   sbName:      { fontSize: 14, fontWeight: 'bold', color: '#ffffff', textAlign: 'center', marginBottom: 4 },
   sbTitle:     { fontSize: 9, color: '#93c5fd', textAlign: 'center', marginBottom: 24, letterSpacing: 0.5 },
   sbSection:   { marginBottom: 20 },
@@ -247,17 +245,12 @@ const bizStyles = StyleSheet.create({
 })
 
 function BusinessResume({ data }: { data: ResumeData }) {
-  const initials = data.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-
   return (
     <Document>
       <Page size="A4" style={bizStyles.page}>
 
         {/* Sidebar */}
         <View style={bizStyles.sidebar}>
-          <View style={bizStyles.avatar}>
-            <Text style={bizStyles.avatarText}>{initials}</Text>
-          </View>
           <Text style={bizStyles.sbName}>{data.name}</Text>
           <Text style={bizStyles.sbTitle}>{data.title}</Text>
 
@@ -1095,9 +1088,6 @@ function PreviewCorporate({ data }: { data: ResumeData }) {
           <p style={{ fontSize: 10, color: '#93c5fd', letterSpacing: 1.8, textTransform: 'uppercase', marginBottom: 10 }}>{data.title}</p>
           <PreviewContacts data={data} style={{ fontSize: 11, color: '#bfdbfe', gap: '3px 16px' }} />
         </div>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: accentBlue, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff', flexShrink: 0, marginLeft: 20 }}>
-          {data.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
-        </div>
       </div>
       <div style={{ padding: '24px 40px 32px' }}>
         {data.summary && <div style={{ marginBottom: 18 }}><p style={sec}>Profile</p><p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>{data.summary}</p></div>}
@@ -1190,10 +1180,6 @@ function PreviewAcademic({ data }: { data: ResumeData }) {
     <div style={{ fontFamily: 'system-ui, sans-serif', display: 'flex', minHeight: Math.round(680 * 297 / 210) }}>
       {/* Sidebar */}
       <div style={{ width: 168, background: '#f7f8fa', borderRight: `1px solid ${line}`, padding: '32px 16px 32px 24px', flexShrink: 0, alignSelf: 'stretch' }}>
-        {/* Photo */}
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: line, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: dark, marginBottom: 12 }}>
-          {data.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
-        </div>
         <p style={{ fontSize: 15, fontWeight: 700, color: dark, marginBottom: 2, lineHeight: 1.3 }}>{data.name}</p>
         <p style={{ fontSize: 10, color: gray, fontStyle: 'italic', marginBottom: 12 }}>{data.title}</p>
         <p style={sec}>Contact</p>
