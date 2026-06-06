@@ -673,9 +673,12 @@ function BtnSecondary({ children, onClick, style }) {
 function GlobalStyles() {
   return (
     <style>{`
-      .btn-arrow-right, .btn-arrow-left { transition: transform 0.15s ease; }
+      .btn-arrow-right, .btn-arrow-left, .btn-sparkle, .btn-startover, .btn-download { transition: transform 0.15s ease; }
+      .btn-primary:hover .btn-sparkle { transform: translateY(-3px); }
       .btn-primary:hover .btn-arrow-right { transform: translateX(3px); }
       .btn-secondary:hover .btn-arrow-left { transform: translateX(-3px); }
+      .btn-secondary:hover .btn-startover { transform: translateX(-3px); }
+      .btn-primary:hover .btn-download { transform: translateY(3px); }
       .tpl-hover-btn:hover .btn-arrow-right { transform: translateX(3px); }
       .drag-handle:hover svg path { stroke: #05070A; transition: stroke 0.15s; }
       .card-toggle:hover .chevron path { stroke: #05070A; transition: stroke 0.15s; }
@@ -760,7 +763,7 @@ function BtnClose({ onClick, onPointerDown, style }) {
 
 function StartOverIcon({ color = '#4A4A4D' }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="btn-startover" style={{ flexShrink: 0 }}>
       <path d="M2.33301 11.334L2.33301 4.66699" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M9.33301 4.66699L5.99968 8.00033L9.33301 11.3337" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M6 8L14 8" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -770,7 +773,7 @@ function StartOverIcon({ color = '#4A4A4D' }) {
 
 function DownloadIcon({ color = 'white' }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="btn-download" style={{ flexShrink: 0 }}>
       <path d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M4.66699 6.66699L8.00033 10.0003L11.3337 6.66699" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M8 10V2" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -780,7 +783,7 @@ function DownloadIcon({ color = 'white' }) {
 
 function SparkleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="btn-sparkle" style={{ flexShrink: 0 }}>
       <path d="M2 8C6.17835 8 8 6.24204 8 2C8 6.24204 9.80893 8 14 8C9.80893 8 8 9.80893 8 14C8 9.80893 6.17835 8 2 8Z" fill="white" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
     </svg>
   )
@@ -1986,19 +1989,28 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
             <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
               border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
               height: 47, padding: 4, overflow: 'hidden', boxSizing: 'border-box' }}>
-              <div style={{ position: 'absolute', top: 4, bottom: 4,
-                left: `calc(4px + ${item.level} * ((100% - 8px) / 6))`,
-                width: 'calc((100% - 8px) / 6)',
-                background: '#05070A', borderRadius: 8, transition: 'left 0.2s ease', pointerEvents: 'none' }} />
               {LANG_LEVELS.map((lvl, i) => (
                 <button key={lvl} type="button" onClick={() => onLevelChange(i)}
-                  style={{ position: 'relative', border: 'none', background: 'none',
+                  style={{ position: 'relative', zIndex: 1, border: 'none', background: 'none',
                     fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                     borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: item.level === i ? '#fff' : '#4A4A4D', transition: 'color 0.2s ease' }}>
+                    color: '#4A4A4D' }}>
                   <span style={{ pointerEvents: 'none' }}>{lvl}</span>
                 </button>
               ))}
+              <div style={{ position: 'absolute', top: 4, bottom: 4, zIndex: 2,
+                left: `calc(4px + ${item.level} * ((100% - 8px) / 6))`,
+                width: 'calc((100% - 8px) / 6)',
+                background: '#05070A', borderRadius: 8, transition: 'left 0.2s ease',
+                pointerEvents: 'none', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', position: 'absolute', top: 0, bottom: 0, alignItems: 'center',
+                  width: '600%', left: `calc(${-item.level} * 100%)`, transition: 'left 0.2s ease' }}>
+                  {LANG_LEVELS.map(lvl => (
+                    <div key={lvl} style={{ flex: '0 0 calc(100% / 6)', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#fff' }}>{lvl}</div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
           {/* Close — right, aligned to first input */}
@@ -2008,37 +2020,45 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
         </div>
       ) : (
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
-          placeholder="English" suggestions={LANG_SUGG} showOnFocus style={{ flex: 1 }} />
-        <div style={{ flexShrink: 0, width: undefined,
+        <div style={{ flex: 1 }}>
+          <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
+            placeholder="English" suggestions={LANG_SUGG} showOnFocus />
+        </div>
+        <div style={{ flex: 1,
           position: 'relative',
           display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
           border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
           height: 47, padding: 4, overflow: 'hidden', boxSizing: 'border-box',
         }}>
-          {/* Sliding pill */}
-          <div style={{
-            position: 'absolute',
-            top: 4, bottom: 4,
-            left: `calc(4px + ${item.level} * ((100% - 8px) / 6))`,
-            width: 'calc((100% - 8px) / 6)',
-            background: '#05070A', borderRadius: 8,
-            transition: 'left 0.2s ease',
-            pointerEvents: 'none',
-          }} />
           {LANG_LEVELS.map((lvl, i) => (
             <button key={lvl} type="button" onClick={() => onLevelChange(i)}
               onMouseEnter={() => setHovLvl(i)} onMouseLeave={() => setHovLvl(null)}
               style={{
-                position: 'relative',
+                position: 'relative', zIndex: 1,
                 border: 'none', background: hovLvl === i && item.level !== i ? '#F7F8FA' : 'none',
                 fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                 borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: item.level === i ? '#fff' : '#4A4A4D', transition: 'color 0.2s ease',
+                color: '#4A4A4D',
               }}>
               <span style={{ pointerEvents: 'none' }}>{lvl}</span>
             </button>
           ))}
+          <div style={{
+            position: 'absolute', top: 4, bottom: 4, zIndex: 2,
+            left: `calc(4px + ${item.level} * ((100% - 8px) / 6))`,
+            width: 'calc((100% - 8px) / 6)',
+            background: '#05070A', borderRadius: 8,
+            transition: 'left 0.2s ease',
+            pointerEvents: 'none', overflow: 'hidden',
+          }}>
+            <div style={{ display: 'flex', position: 'absolute', top: 0, bottom: 0, alignItems: 'center',
+              width: '600%', left: `calc(${-item.level} * 100%)`, transition: 'left 0.2s ease' }}>
+              {LANG_LEVELS.map(lvl => (
+                <div key={lvl} style={{ flex: '0 0 calc(100% / 6)', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', fontSize: 11, fontWeight: 600, color: '#fff' }}>{lvl}</div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
       )}
@@ -2139,7 +2159,7 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
               />
             ))}
-            <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })} style={{ padding: '8px 24px' }}><PlusIcon /> Add language</BtnTextAdd>
+            <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })} style={{ padding: isMobile ? '8px 24px' : '8px 16px' }}><PlusIcon /> Add language</BtnTextAdd>
           </div>
         </div>
 
@@ -2156,7 +2176,7 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 onRemove={() => patch({ education: form.education.filter(x => x.id !== edu.id) })}
               />
             ))}
-            <BtnTextAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })} style={{ padding: '8px 24px' }}><PlusIcon /> Add education</BtnTextAdd>
+            <BtnTextAdd onClick={() => patch({ education: [...form.education, { id: uid(), text: '' }] })} style={{ padding: isMobile ? '8px 24px' : '8px 16px' }}><PlusIcon /> Add education</BtnTextAdd>
           </div>
         </div>
       </div>
@@ -2274,8 +2294,8 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
           <span style={{ fontSize: 14, color: T.text3 }}>{statusText}</span>
           <button onClick={e => { e.stopPropagation(); onEdit() }}
             style={{ fontSize: 14, padding: '4px 12px', borderRadius: 8, border: `1px solid rgba(175,178,178,0.5)`, background: '#fff', color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#05070A'; e.currentTarget.style.color = '#05070A' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(175,178,178,0.5)'; e.currentTarget.style.color = '#4A4A4D' }}>Edit</button>
+            onMouseEnter={e => { e.currentTarget.style.background = '#F7F8FA' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}>Edit</button>
           {open ? <ChevronUp color={T.text3} /> : <ChevronDown color={T.text3} />}
         </div>
       </div>
