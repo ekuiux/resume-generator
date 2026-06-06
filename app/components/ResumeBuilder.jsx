@@ -685,6 +685,7 @@ function GlobalStyles() {
       .chevron path { transition: stroke 0.15s; }
       .close-btn svg path { transition: stroke 0.15s; }
       .close-btn:hover svg path { stroke: #EF4444; }
+      @media (max-width: 768px) { input, textarea, select { font-size: 16px !important; } }
     `}</style>
   )
 }
