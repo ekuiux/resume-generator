@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { track } from '@vercel/analytics'
+import posthog from 'posthog-js'
 
 const ResumePreview = dynamic(
   () => import('./ResumePDF').then(m => m.ResumePreview),
@@ -1218,7 +1218,7 @@ function TemplatePicker({ form, patch, onNext }) {
                 <div key={tpl.id}
                   onMouseEnter={() => setHovered(tpl.id)}
                   onMouseLeave={() => setHovered(null)}
-                  onClick={() => { patch({ template: tpl.id }); track('template_selected', { template: tpl.id }); onNext() }}
+                  onClick={() => { patch({ template: tpl.id }); posthog.capture('template_selected', { template: tpl.id }); onNext() }}
                   style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
                 >
                   <div style={{
@@ -1325,7 +1325,7 @@ function TemplatePicker({ form, patch, onNext }) {
                   key={tpl.id}
                   onMouseEnter={() => setHovered(tpl.id)}
                   onMouseLeave={() => setHovered(null)}
-                  onClick={() => { patch({ template: tpl.id }); track('template_selected', { template: tpl.id }); onNext() }}
+                  onClick={() => { patch({ template: tpl.id }); posthog.capture('template_selected', { template: tpl.id }); onNext() }}
                   style={{
                     display: 'flex', flexDirection: 'column',
                     justifyContent: 'center', alignItems: 'center',
@@ -1409,7 +1409,7 @@ function StepBasic({ form, patch, onBack, onNext }) {
     if (!form.name?.trim() || !form.targetRole?.trim() || emailEmpty || emailInvalid) {
       setShowErr(true); return
     }
-    track('step_completed', { step: 1 })
+    posthog.capture('step_completed', { step: 1 })
     onNext()
   }
 
@@ -2515,7 +2515,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
       public_key: 'pk_0c8f1a770c6e4345670337792dd5b',
     })
     checkout.open({
-      success: () => { track('payment_success', { plan: selectedPlan }); if (downloadRef.current) downloadRef.current.click() },
+      success: () => { posthog.capture('payment_success', { plan: selectedPlan }); if (downloadRef.current) downloadRef.current.click() },
       cancel: () => {},
     })
   }
@@ -2621,7 +2621,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
               <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
               <PlanCards />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <BtnPrimary onClick={() => { track('download_clicked'); handleCheckout() }} disabled={!fsReady} style={{ width: '100%' }}>
+                <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={!fsReady} style={{ width: '100%' }}>
                   {ctaLabel}
                 </BtnPrimary>
                 <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
@@ -2643,7 +2643,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
           display: 'flex', gap: 10,
         }}>
           <BtnSecondary onClick={onReset}><StartOverIcon /> Start over</BtnSecondary>
-          <BtnPrimary onClick={() => { track('download_clicked'); setSheetOpen(true) }} style={{ flex: 1 }}>
+          <BtnPrimary onClick={() => { posthog.capture('download_clicked'); setSheetOpen(true) }} style={{ flex: 1 }}>
             Download <DownloadIcon />
           </BtnPrimary>
         </div>
@@ -2682,7 +2682,7 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
               <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Choose how you'd like to access it.</p>
             </div>
             <PlanCards />
-            <BtnPrimary onClick={() => { track('download_clicked'); handleCheckout() }} disabled={!fsReady} style={{ width: '100%' }}>
+            <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={!fsReady} style={{ width: '100%' }}>
               {ctaLabel}
             </BtnPrimary>
             <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
@@ -2717,7 +2717,7 @@ export default function ResumeBuilder() {
   }, [form])
 
   async function generate() {
-    track('generate_clicked')
+    posthog.capture('generate_clicked')
     setGenerating(true)
     setGenError(null)
     try {
@@ -2759,7 +2759,7 @@ export default function ResumeBuilder() {
         languages: langs.length ? langs : undefined,
         education: edu,
       })
-      track('resume_generated')
+      posthog.capture('resume_generated')
     } catch (e) {
       setGenError(e.message || 'Something went wrong. Please try again.')
     } finally {
@@ -2771,9 +2771,9 @@ export default function ResumeBuilder() {
     if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} />
     if (screen === -1) return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
     if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} /></PageShell>
-    if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { track('step_completed', { step: 2 }); goTo(3) }} /></PageShell>
-    if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => { track('step_completed', { step: 3 }); goTo(4) }} /></PageShell>
-    if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => { track('step_completed', { step: 4 }); goTo(0) }} /></PageShell>
+    if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} /></PageShell>
+    if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); goTo(4) }} /></PageShell>
+    if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); goTo(0) }} /></PageShell>
     if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goTo} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
   })()
 
