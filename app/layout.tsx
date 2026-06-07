@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Onest } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const onest = Onest({
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en" className={onest.variable}>
       <body style={{ fontFamily: "var(--font-onest), system-ui, sans-serif", margin: 0 }}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
