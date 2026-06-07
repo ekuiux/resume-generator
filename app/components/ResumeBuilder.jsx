@@ -2725,19 +2725,26 @@ export default function ResumeBuilder() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Server error')
-      const raw = data.resume.ru ?? data.resume
-      const langs = form.languages
-        .filter(l => l.name)
-        .map(l => `${l.name} (${LANG_LEVELS[l.level]})`)
-      // Parse "Degree — Institution" text into structured education
-      const formEdu = form.education
-        .filter(e => e.text)
-        .map(e => {
-          const parts = e.text.split(/\s*[—–-]\s*/)
-          return parts.length >= 2
-            ? { degree: parts[0].trim(), institution: parts[1].trim(), year: '' }
-            : { degree: e.text, institution: '', year: '' }
-        })
+      const raw = data.resume.resume ?? data.resume.ru ?? data.resume
+      // Languages: new schema returns string[], old schema built from form
+      const langs = raw.languages?.length
+        ? raw.languages
+        : form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`)
+      // Education: new schema returns [{text}], convert to {institution,degree,year}
+      const parseEdu = (list) => (list || []).map(e => {
+        const str = e.text ?? e.degree ?? ''
+        const parts = str.split(/\s*[—–-]\s*/)
+        return parts.length >= 2
+          ? { degree: parts[0].trim(), institution: parts[1].trim(), year: e.year || '' }
+          : { degree: str, institution: '', year: e.year || '' }
+      })
+      const formEdu = form.education.filter(e => e.text).map(e => {
+        const parts = e.text.split(/\s*[—–-]\s*/)
+        return parts.length >= 2
+          ? { degree: parts[0].trim(), institution: parts[1].trim(), year: '' }
+          : { degree: e.text, institution: '', year: '' }
+      })
+      const edu = raw.education?.length ? parseEdu(raw.education) : formEdu
       setResume({
         ...raw,
         title:     raw.title || form.targetRole || undefined,
@@ -2747,7 +2754,7 @@ export default function ResumeBuilder() {
         linkedin:  form.linkedin || undefined,
         github:    form.portfolio || undefined,
         languages: langs.length ? langs : undefined,
-        education: raw.education?.length ? raw.education : formEdu,
+        education: edu,
       })
     } catch (e) {
       setGenError(e.message || 'Something went wrong. Please try again.')
