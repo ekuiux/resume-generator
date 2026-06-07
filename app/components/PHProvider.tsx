@@ -7,7 +7,7 @@ import { useEffect } from 'react'
 export function PHProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: 'https://app.posthog.com',
+      api_host: 'https://eu.i.posthog.com',
       capture_pageview: true,
       capture_pageleave: true,
     })
