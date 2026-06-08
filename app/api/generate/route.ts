@@ -224,12 +224,17 @@ export async function POST(req: NextRequest) {
     .join('; ')
 
   const expList = (formData.experience || [])
-    .map((e: any) => `
+    .map((e: any) => {
+      const period = e.start
+        ? `${e.start} — ${e.end || 'Present'}`
+        : e.end ? e.end : ''
+      return `
   Company: ${e.company}
   Role: ${e.role}
-  Period: ${e.start || ''} — ${e.end || 'Present'}
+  ${period ? `Period: ${period}` : ''}
   Description: ${e.desc || ''}
-`).join('\n')
+`
+    }).join('\n')
 
   const userPrompt = `Generate a resume for the following candidate.
 Only use the information provided. If a field is empty, skip it.

@@ -474,7 +474,7 @@ function PhoneInput({ value, onChange }) {
   )
 }
 
-function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
+function MonthPicker({ value, onChange, placeholder, allowPresent = false, minDate, maxDate, disableFuture = false }) {
   const [open, setOpen]       = useState(false)
   const [dropRect, setDropRect] = useState(null)
   const wrapRef = useRef(null)
@@ -489,6 +489,21 @@ function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
 
   const parsed = parseVal(value)
   const [viewYear, setViewYear] = useState(() => parsed?.year ?? new Date().getFullYear())
+
+  const now = new Date()
+  const curY = now.getFullYear()
+  const curM = now.getMonth()
+  const parsedMin = minDate ? parseVal(minDate) : null
+  const parsedMax = maxDate ? parseVal(maxDate) : null
+  const effMaxYear = disableFuture ? curY : (parsedMax?.year ?? 9999)
+  const effMinYear = parsedMin?.year ?? 1900
+
+  function isMonthDisabled(monthIdx) {
+    if (disableFuture && (viewYear > curY || (viewYear === curY && monthIdx > curM))) return true
+    if (parsedMax && (viewYear > parsedMax.year || (viewYear === parsedMax.year && monthIdx > parsedMax.month))) return true
+    if (parsedMin && (viewYear < parsedMin.year || (viewYear === parsedMin.year && monthIdx < parsedMin.month))) return true
+    return false
+  }
 
   function open_() {
     if (!wrapRef.current) return
@@ -557,15 +572,23 @@ function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
           {/* Year nav */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <button onClick={() => setViewYear(y => y - 1)}
+              disabled={viewYear <= effMinYear}
               onMouseEnter={() => setHovPrev(true)} onMouseLeave={() => setHovPrev(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 8 }}>
-              <ArrowLeft color={hovPrev ? '#05070A' : '#AFB2B2'} />
+              style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 8,
+                cursor: viewYear <= effMinYear ? 'default' : 'pointer',
+                opacity: viewYear <= effMinYear ? 0.25 : 1,
+              }}>
+              <ArrowLeft color={hovPrev && viewYear > effMinYear ? '#05070A' : '#AFB2B2'} />
             </button>
             <span style={{ fontSize: 14, fontWeight: 600, color: '#05070A' }}>{viewYear}</span>
             <button onClick={() => setViewYear(y => y + 1)}
+              disabled={viewYear >= effMaxYear}
               onMouseEnter={() => setHovNext(true)} onMouseLeave={() => setHovNext(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 8 }}>
-              <ArrowRight color={hovNext ? '#05070A' : '#AFB2B2'} />
+              style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', padding: 4, borderRadius: 8,
+                cursor: viewYear >= effMaxYear ? 'default' : 'pointer',
+                opacity: viewYear >= effMaxYear ? 0.25 : 1,
+              }}>
+              <ArrowRight color={hovNext && viewYear < effMaxYear ? '#05070A' : '#AFB2B2'} />
             </button>
           </div>
 
@@ -573,14 +596,17 @@ function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
             {MONTHS.map((m, i) => {
               const sel = parsed?.month === i && parsed?.year === viewYear
+              const disabled = isMonthDisabled(i)
               return (
-                <button key={m} onClick={() => pick(i)}
-                  onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
+                <button key={m} onClick={() => !disabled && pick(i)}
+                  onMouseEnter={() => !disabled && setHov(i)} onMouseLeave={() => setHov(null)}
                   style={{
                     padding: '12px 4px', borderRadius: 8, border: 'none',
-                    background: sel ? '#05070A' : hov === i ? '#F7F8FA' : 'none',
+                    background: sel ? '#05070A' : (!disabled && hov === i) ? '#F7F8FA' : 'none',
                     color: sel ? '#fff' : '#05070A',
-                    cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', fontWeight: 500,
+                    cursor: disabled ? 'default' : 'pointer',
+                    opacity: disabled ? 0.25 : 1,
+                    fontSize: 13, fontFamily: 'inherit', fontWeight: 500,
                     transition: 'background .1s',
                   }}
                 >{m}</button>
@@ -1515,8 +1541,8 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
             <Grid2>
               <Field label="Company"><Input value={exp.company} onChange={e => onUpdate({ company: e.target.value })} placeholder="Google" /></Field>
               <Field label="Role"><Input value={exp.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Product Designer" /></Field>
-              <Field label="Start date"><MonthPicker value={exp.start} onChange={v => onUpdate({ start: v })} placeholder="Jan 2022" /></Field>
-              <Field label="End date"><MonthPicker value={exp.end} onChange={v => onUpdate({ end: v })} placeholder="Present" allowPresent /></Field>
+              <Field label="Start date"><MonthPicker value={exp.start} onChange={v => onUpdate({ start: v })} placeholder="Jan 2022" disableFuture maxDate={exp.end && exp.end !== 'Present' ? exp.end : undefined} /></Field>
+              <Field label="End date"><MonthPicker value={exp.end} onChange={v => onUpdate({ end: v })} placeholder="Present" allowPresent disableFuture minDate={exp.start || undefined} /></Field>
             </Grid2>
             <Field label="What you did & achieved" hint="Use bullet points or simple notes.">
               <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
@@ -1799,6 +1825,7 @@ function SkillChips({ skills, onChange, targetRole }) {
           style={{ border: 'none', outline: 'none', fontFamily: 'inherit', fontSize: 14, color: '#05070A', background: 'transparent', minWidth: 100, flex: 1 }}
         />
       </div>
+      <p style={{ fontSize: 12, color: '#AFB2B2', margin: '6px 0 0 0' }}>Press Enter or , to add a skill</p>
       {suggestions.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
           {suggestions.slice(0, 8).map(s => (
@@ -1934,7 +1961,7 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
           {/* Content: input + levels */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
-              placeholder="English" suggestions={LANG_SUGG} showOnFocus />
+              placeholder="e.g. English" suggestions={LANG_SUGG} showOnFocus />
             <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
               border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
               height: 47, padding: 4, overflow: 'hidden', boxSizing: 'border-box' }}>
@@ -1971,7 +1998,7 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <div style={{ flex: 1 }}>
           <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
-            placeholder="English" suggestions={LANG_SUGG} showOnFocus />
+            placeholder="e.g. English" suggestions={LANG_SUGG} showOnFocus />
         </div>
         <div style={{ flex: 1,
           position: 'relative',
@@ -2184,6 +2211,19 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
 // ─── Step 4: Links & Contact ──────────────────────────────────────────────────
 
 function StepLinks({ form, patch, onBack, onNext }) {
+  const [showErr, setShowErr] = useState(false)
+
+  const phoneDigits = (form.phone || '').replace(/\D/g, '')
+  const phoneSet = (form.phone || '').trim().length > 0
+  const phoneTooShort = phoneSet && phoneDigits.length < 7
+  const phoneTooLong  = phoneSet && phoneDigits.length > 15
+  const phoneErr = phoneTooShort || phoneTooLong
+
+  function handleNext() {
+    if (phoneErr) { setShowErr(true); return }
+    onNext()
+  }
+
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
@@ -2194,7 +2234,14 @@ function StepLinks({ form, patch, onBack, onNext }) {
 
         <Grid2 style={{ gap: 24 }}>
           <Field label="Phone">
-            <Input value={form.phone} onChange={e => patch({ phone: e.target.value })} placeholder="+1 (415) 555-1234" />
+            <Input
+              value={form.phone}
+              onChange={e => patch({ phone: e.target.value.replace(/[^\d+\s\-(). ]/g, '') })}
+              placeholder="+1 (415) 555-1234"
+              error={showErr && phoneErr}
+            />
+            {showErr && phoneTooShort && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>Phone number is too short</p>}
+            {showErr && phoneTooLong  && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>Phone number is too long</p>}
           </Field>
           <Field label="Location">
             <Input value={form.location} onChange={e => patch({ location: e.target.value })} placeholder="San Francisco, CA" />
@@ -2210,7 +2257,7 @@ function StepLinks({ form, patch, onBack, onNext }) {
         </Field>
       </div>
 
-      <Footer step={4} onBack={onBack} onNext={onNext} nextLabel="Review" />
+      <Footer step={4} onBack={onBack} onNext={handleNext} nextLabel="Review" />
     </>
   )
 }
@@ -2315,7 +2362,11 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
           {form.experience.length === 0
             ? <div style={{ fontSize: 14, color: T.text3 }}>No experience added</div>
             : form.experience.map((e, i) => (
-              <div key={e.id} style={{ padding: i > 0 ? '8px 0 0' : '0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div key={e.id} style={{
+                paddingTop: i > 0 ? 8 : 0, marginTop: i > 0 ? 8 : 0,
+                borderTop: i > 0 ? '1px solid rgba(175,178,178,0.15)' : 'none',
+                display: 'flex', flexDirection: 'column', gap: 2,
+              }}>
                 <div style={{ fontSize: 14, fontWeight: (e.role || e.company) ? 500 : 400, color: (e.role || e.company) ? '#05070A' : T.text3 }}>
                   {e.role || e.company
                     ? <>{e.role}{e.role && e.company && <span style={{ fontWeight: 400, color: T.text3 }}> · {e.company}</span>}{!e.role && e.company}</>
@@ -2323,7 +2374,7 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
                   }
                 </div>
                 {(e.start || e.end) && (
-                  <div style={{ fontSize: 13, color: T.text3 }}>{[e.start, e.end || 'Present'].filter(Boolean).join(' – ')}</div>
+                  <div style={{ fontSize: 13, color: T.text3 }}>{[e.start, e.end].filter(Boolean).join(' – ')}</div>
                 )}
               </div>
             ))
@@ -2386,6 +2437,7 @@ function A4Frame({ children }) {
   const outerRef = useRef(null)
   const [scale, setScale] = useState(1)
   const DESIGN_W = 680
+  const DESIGN_H = Math.round(DESIGN_W * 297 / 210)
 
   useEffect(() => {
     if (!outerRef.current) return
@@ -2398,19 +2450,18 @@ function A4Frame({ children }) {
 
   return (
     <div ref={outerRef} style={{
-      width: '100%', aspectRatio: '210 / 297',
-      position: 'relative', overflow: 'hidden',
+      width: '100%',
+      maxHeight: Math.round(DESIGN_H * scale) || DESIGN_H,
+      overflow: 'auto',
       background: '#fff',
       borderRadius: 4,
       userSelect: 'none',
       boxShadow: '0 6px 32px rgba(0,0,0,.14)',
     }}>
       <div style={{
-        position: 'absolute', top: 0, left: 0,
         width: DESIGN_W,
-        minHeight: Math.round(DESIGN_W * 297 / 210),
-        transformOrigin: 'top left',
-        transform: `scale(${scale})`,
+        minHeight: DESIGN_H,
+        zoom: scale || 1,
       }}>
         {children}
       </div>
