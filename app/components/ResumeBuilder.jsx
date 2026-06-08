@@ -147,7 +147,7 @@ const INITIAL_FORM = {
   experience:      [],
   // Step 3
   skills:          [],           // string[]
-  languages:       [{ id: uid(), name: '', level: 3 }],
+  languages:       [],
   education:       [],           // { id, text }[]
   // Step 4
   phone:           '',
@@ -610,7 +610,7 @@ function Field({ label, hint, children, style }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
       {label && <Lbl>{label}</Lbl>}
       {children}
-      {hint && <p style={{ fontSize: 12, color: '#AFB2B2', marginTop: 0, lineHeight: 1.5 }}>{hint}</p>}
+      {hint && <p style={{ fontSize: 12, color: '#AFB2B2', margin: 0, lineHeight: 1.5 }}>{hint}</p>}
     </div>
   )
 }
@@ -952,7 +952,7 @@ function Footer({ step, onBack, onNext, nextLabel }) {
     return (
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
-        background: '#fff', padding: '12px 16px 28px',
+        background: '#fff', padding: '12px 16px 12px',
         borderTop: '1px solid rgba(175,178,178,0.3)',
         display: 'flex', gap: 10,
       }}>
@@ -1110,7 +1110,7 @@ function PageShell({ step, form, children, rightPanel }) {
             maxWidth: isMobile ? '100%' : '66%',
             width: isMobile ? '100%' : undefined,
             padding: isMobile ? '1.25rem 1rem 0' : '40px',
-            paddingBottom: isMobile ? '100px' : '40px',
+            paddingBottom: isMobile ? '120px' : '40px',
             boxSizing: 'border-box',
             background: '#fff',
             display: 'flex', flexDirection: 'column', gap: 24,
@@ -1401,6 +1401,7 @@ const isValidEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 
 function StepBasic({ form, patch, onBack, onNext }) {
   const [showErr, setShowErr] = useState(false)
+  const isMobile = useIsMobile()
 
   const emailEmpty   = !form.email?.trim()
   const emailInvalid = !emailEmpty && !isValidEmail(form.email)
@@ -1421,25 +1422,37 @@ function StepBasic({ form, patch, onBack, onNext }) {
           <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Let&apos;s start with the essentials.</p>
         </div>
 
-        <Field label="Target role (required)">
+        <Field label="Target role *">
           <Input value={form.targetRole} onChange={e => { patch({ targetRole: e.target.value }); setShowErr(false) }}
             placeholder="Senior Product Designer" error={showErr && !form.targetRole?.trim()} />
+          {showErr && !form.targetRole?.trim() && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>Target role is required</p>}
         </Field>
 
         <Grid2 style={{ gap: 24 }}>
-          <Field label="Full name (required)">
+          <Field label="Full name *">
             <Input value={form.name} onChange={e => { patch({ name: e.target.value }); setShowErr(false) }}
               placeholder="Taylor Parker" error={showErr && !form.name?.trim()} />
+            {showErr && !form.name?.trim() && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>Full name is required</p>}
           </Field>
-          <Field label="Email (required)" hint={showErr && emailInvalid ? 'Enter a valid email address' : undefined}>
+          <Field label="Email *">
             <Input type="email" value={form.email} onChange={e => { patch({ email: e.target.value }); setShowErr(false) }}
               placeholder="taylor@email.com" error={showErr && (emailEmpty || emailInvalid)} />
+            {showErr && emailEmpty   && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>Email is required</p>}
+            {showErr && emailInvalid && <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>Enter a valid email address</p>}
           </Field>
         </Grid2>
 
-        <Field label="Job description (recommended)" hint="Paste a job description to generate a more relevant resume.">
-          <Textarea value={form.jobDescription} onChange={e => patch({ jobDescription: e.target.value })}
+        <Field label="Job description (recommended)">
+          <Textarea value={form.jobDescription} onChange={e => patch({ jobDescription: e.target.value.slice(0, 3000) })}
             placeholder="Paste here…" style={{ minHeight: 120 }} />
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: 4 }}>
+            <p style={{ fontSize: 12, color: '#AFB2B2', margin: 0, lineHeight: 1.5 }}>Paste a job description to generate a more relevant resume.</p>
+            {form.jobDescription?.length > 0 && (
+              <p style={{ fontSize: 12, color: form.jobDescription.length >= 3000 ? '#EF4444' : '#AFB2B2', margin: 0, flexShrink: 0 }}>
+                {form.jobDescription.length} / 3000
+              </p>
+            )}
+          </div>
         </Field>
       </div>
 
@@ -1716,13 +1729,7 @@ function StepExperience({ form, patch, onBack, onNext }) {
 function SkillChips({ skills, onChange, targetRole }) {
   const [input, setInput]     = useState('')
   const [focused, setFocused] = useState(false)
-  const [dragSkill, setDragSkill] = useState(null)
-  const [ghostPos, setGhostPos]   = useState(null)
-  const inputRef    = useRef(null)
-  const skillsRef   = useRef(skills)
-  const lastOverRef = useRef(null)
-
-  useEffect(() => { skillsRef.current = skills }, [skills])
+  const inputRef = useRef(null)
 
   const suggestions = getSkillSuggestions(targetRole).filter(s => !skills.includes(s))
 
@@ -1737,73 +1744,8 @@ function SkillChips({ skills, onChange, targetRole }) {
     else if (e.key === 'Backspace' && !input && skills.length > 0) onChange(skills.slice(0, -1))
   }
 
-  function startChipDrag(skill, e) {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragSkill(skill)
-    lastOverRef.current = null
-
-    function onMove(ev) {
-      setGhostPos({ x: ev.clientX + 12, y: ev.clientY + 12 })
-
-      const cur  = skillsRef.current
-      const from = cur.indexOf(skill)
-      if (from < 0) return
-
-      // Find insertion point by iterating all chip rects
-      // "insertBefore" = first chip where cursor is above its row OR left of its midX
-      let insertBefore = null
-      for (let i = 0; i < cur.length; i++) {
-        if (cur[i] === skill) continue
-        const el = document.querySelector(`[data-skill="${CSS.escape(cur[i])}"]`)
-        if (!el) continue
-        const r = el.getBoundingClientRect()
-        const onSameRow = ev.clientY >= r.top - 4 && ev.clientY <= r.bottom + 4
-        const aboveRow  = ev.clientY < r.top - 4
-        if (aboveRow || (onSameRow && ev.clientX < r.left + r.width / 2)) {
-          insertBefore = cur[i]
-          break
-        }
-      }
-
-      if (insertBefore === lastOverRef.current) return
-      lastOverRef.current = insertBefore
-
-      const arr = [...cur]
-      const [removed] = arr.splice(from, 1)
-      const to = insertBefore ? arr.indexOf(insertBefore) : arr.length
-      arr.splice(to < 0 ? arr.length : to, 0, removed)
-      onChange(arr)
-    }
-
-    function onUp() {
-      document.removeEventListener('pointermove', onMove)
-      document.removeEventListener('pointerup', onUp)
-      setDragSkill(null)
-      setGhostPos(null)
-      lastOverRef.current = null
-    }
-
-    document.addEventListener('pointermove', onMove)
-    document.addEventListener('pointerup', onUp)
-  }
-
   return (
     <div>
-      {/* Ghost chip following cursor */}
-      {dragSkill && ghostPos && (
-        <div style={{
-          position: 'fixed', zIndex: 9999, pointerEvents: 'none',
-          top: ghostPos.y, left: ghostPos.x,
-          display: 'inline-flex', alignItems: 'center',
-          background: '#05070A', borderRadius: 6,
-          padding: '4px 10px', fontSize: 13, color: '#fff',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
-          userSelect: 'none', whiteSpace: 'nowrap',
-        }}>
-          {dragSkill}
-        </div>
-      )}
       <div
         onClick={() => inputRef.current?.focus()}
         style={{
@@ -1817,15 +1759,11 @@ function SkillChips({ skills, onChange, targetRole }) {
         {skills.map(s => (
           <span
             key={s}
-            data-skill={s}
-            onPointerDown={e => startChipDrag(s, e)}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               background: '#F7F8FA', border: '1px solid rgba(175,178,178,0.4)',
               borderRadius: 6, padding: '3px 8px', fontSize: 13, color: '#05070A',
-              cursor: 'grab', userSelect: 'none', touchAction: 'none',
-              opacity: dragSkill === s ? 0.35 : 1,
-              transition: 'opacity .12s',
+              userSelect: 'none',
             }}
           >
             {s}

@@ -74,8 +74,8 @@ The summary should answer:
 * What is their core expertise?
 * What type of work do they do?
 
-If there is not enough information:
-Return summary as an empty string.
+Always write a summary if a target role or any experience is provided.
+Only return an empty string if there is literally no information at all.
 
 JOB DESCRIPTION RULES
 

@@ -16,7 +16,7 @@
 
 import {
   Document, Page, Text, View, StyleSheet, Font,
-  pdf,
+  Link, pdf,
 } from '@react-pdf/renderer'
 import { useState, forwardRef } from 'react'
 
@@ -72,6 +72,13 @@ export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'el
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function toUrl(val: string): string {
+  if (!val) return ''
+  if (val.startsWith('http://') || val.startsWith('https://')) return val
+  if (val.startsWith('mailto:')) return val
+  return `https://${val}`
+}
+
 const SKILL_LEVEL_PCT: Record<string, number> = {
   Beginner: 20, Familiar: 40, Proficient: 60, Advanced: 80, Expert: 100,
 }
@@ -126,8 +133,8 @@ function MinimalResume({ data }: { data: ResumeData }) {
             {data.email    && <Text style={minimalStyles.contact}>{data.email}</Text>}
             {data.phone    && <Text style={minimalStyles.contact}>{data.phone}</Text>}
             {data.location && <Text style={minimalStyles.contact}>{data.location}</Text>}
-            {data.linkedin && <Text style={minimalStyles.contact}>{data.linkedin}</Text>}
-            {data.github   && <Text style={minimalStyles.contact}>{data.github}</Text>}
+            {data.linkedin && <Link src={toUrl(data.linkedin)} style={minimalStyles.contact}>{data.linkedin}</Link>}
+            {data.github   && <Link src={toUrl(data.github)}   style={minimalStyles.contact}>{data.github}</Link>}
           </View>
         </View>
 
@@ -259,8 +266,8 @@ function BusinessResume({ data }: { data: ResumeData }) {
             {data.email    && <Text style={bizStyles.sbItem}>✉  {data.email}</Text>}
             {data.phone    && <Text style={bizStyles.sbItem}>✆  {data.phone}</Text>}
             {data.location && <Text style={bizStyles.sbItem}>⌖  {data.location}</Text>}
-            {data.linkedin && <Text style={bizStyles.sbItem}>in  {data.linkedin}</Text>}
-            {data.github   && <Text style={bizStyles.sbItem}>⌨  {data.github}</Text>}
+            {data.linkedin && <Link src={toUrl(data.linkedin)} style={bizStyles.sbItem}>in  {data.linkedin}</Link>}
+            {data.github   && <Link src={toUrl(data.github)}   style={bizStyles.sbItem}>⌨  {data.github}</Link>}
           </View>
 
           <View style={bizStyles.sbSection}>
@@ -393,8 +400,8 @@ function CreativeResume({ data }: { data: ResumeData }) {
             {data.email    && <Text style={creStyles.topContact}>{data.email}</Text>}
             {data.phone    && <Text style={creStyles.topContact}>{data.phone}</Text>}
             {data.location && <Text style={creStyles.topContact}>{data.location}</Text>}
-            {data.linkedin && <Text style={creStyles.topContact}>{data.linkedin}</Text>}
-            {data.github   && <Text style={creStyles.topContact}>{data.github}</Text>}
+            {data.linkedin && <Link src={toUrl(data.linkedin)} style={creStyles.topContact}>{data.linkedin}</Link>}
+            {data.github   && <Link src={toUrl(data.github)}   style={creStyles.topContact}>{data.github}</Link>}
           </View>
         </View>
 
@@ -542,8 +549,8 @@ function CorporateResume({ data }: { data: ResumeData }) {
             {data.email    && <Text style={corpStyles.headerContact}>{data.email}</Text>}
             {data.phone    && <Text style={corpStyles.headerContact}>{data.phone}</Text>}
             {data.location && <Text style={corpStyles.headerContact}>{data.location}</Text>}
-            {data.linkedin && <Text style={corpStyles.headerContact}>{data.linkedin}</Text>}
-            {data.github   && <Text style={corpStyles.headerContact}>{data.github}</Text>}
+            {data.linkedin && <Link src={toUrl(data.linkedin)} style={corpStyles.headerContact}>{data.linkedin}</Link>}
+            {data.github   && <Link src={toUrl(data.github)}   style={corpStyles.headerContact}>{data.github}</Link>}
           </View>
         </View>
 
@@ -663,8 +670,8 @@ function ElegantResume({ data }: { data: ResumeData }) {
             {data.email    && <Text style={eleStyles.contact}>{data.email}</Text>}
             {data.phone    && <Text style={eleStyles.contact}>{data.phone}</Text>}
             {data.location && <Text style={eleStyles.contact}>{data.location}</Text>}
-            {data.linkedin && <Text style={eleStyles.contact}>{data.linkedin}</Text>}
-            {data.github   && <Text style={eleStyles.contact}>{data.github}</Text>}
+            {data.linkedin && <Link src={toUrl(data.linkedin)} style={eleStyles.contact}>{data.linkedin}</Link>}
+            {data.github   && <Link src={toUrl(data.github)}   style={eleStyles.contact}>{data.github}</Link>}
           </View>
         </View>
 
@@ -791,8 +798,8 @@ function AcademicResume({ data }: { data: ResumeData }) {
             {data.email    && <Text style={acaStyles.sbItem}>{data.email}</Text>}
             {data.phone    && <Text style={acaStyles.sbItem}>{data.phone}</Text>}
             {data.location && <Text style={acaStyles.sbItem}>{data.location}</Text>}
-            {data.linkedin && <Text style={acaStyles.sbItem}>{data.linkedin}</Text>}
-            {data.github   && <Text style={acaStyles.sbItem}>{data.github}</Text>}
+            {data.linkedin && <Link src={toUrl(data.linkedin)} style={acaStyles.sbItem}>{data.linkedin}</Link>}
+            {data.github   && <Link src={toUrl(data.github)}   style={acaStyles.sbItem}>{data.github}</Link>}
 
             {data.skills.technical.length > 0 && (
               <>
@@ -922,8 +929,8 @@ function StartupResume({ data }: { data: ResumeData }) {
           {data.email    && <Text style={stpStyles.contact}>{data.email}</Text>}
           {data.phone    && <Text style={stpStyles.contact}>{data.phone}</Text>}
           {data.location && <Text style={stpStyles.contact}>{data.location}</Text>}
-          {data.linkedin && <Text style={stpStyles.contact}>{data.linkedin}</Text>}
-          {data.github   && <Text style={stpStyles.contact}>{data.github}</Text>}
+          {data.linkedin && <Link src={toUrl(data.linkedin)} style={stpStyles.contact}>{data.linkedin}</Link>}
+          {data.github   && <Link src={toUrl(data.github)}   style={stpStyles.contact}>{data.github}</Link>}
         </View>
 
         {data.summary ? (
