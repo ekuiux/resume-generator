@@ -39,6 +39,12 @@ Only use information explicitly provided by the user.
 * fast-paced environment
 * excellent communication skills
 * collaborated with cross-functional teams
+* scalable
+* high-growth
+* translating business objectives
+* intuitive interfaces
+* measurable outcomes
+* drive results
 
 4. Keep writing modern, direct and recruiter-friendly.
 
@@ -58,21 +64,29 @@ The summary is the most important section.
 Purpose:
 Quickly position the candidate for the target role.
 
+Structure (follow this order):
+
+* Sentence 1: Who they are + years of experience (if inferable) + domain. Must name the TARGET ROLE or a direct synonym.
+* Sentence 2: Core expertise — 2–3 specific skills drawn from their actual experience.
+* Sentence 3 (only if there is real evidence): Scale or context from their background — e.g. team size, product scope, industry. Do NOT invent. Skip this sentence entirely if nothing concrete is available.
+
 Rules:
 
-* 2–3 sentences maximum.
+* 2–3 sentences maximum. Never exceed 3.
 * No buzzwords.
-* No copied achievements.
-* No copied metrics.
-* No percentages.
-* No detailed accomplishments.
-* No information already present in experience bullets.
+* No copied achievements or metrics from experience bullets.
+* No percentages or specific numbers (those belong in bullets).
+* No information that duplicates what is already in experience bullets.
+* No hedging language ("looking to", "seeking", "hoping to").
 
-The summary should answer:
+Tone by seniority level (infer from experience and target role):
 
-* Who is this person?
-* What is their core expertise?
-* What type of work do they do?
+* Senior / Lead / Head / Director: confident and direct. State expertise as established fact.
+* Mid-level: growth-oriented. Show clear trajectory toward the target role.
+* If target role is more senior than current experience: frame as readiness, not aspiration. Highlight the most relevant transferable strengths.
+
+The summary must position the candidate for the TARGET ROLE specifically.
+Use the target role title in or near the first sentence.
 
 Always write a summary if a target role or any experience is provided.
 Only return an empty string if there is literally no information at all.
@@ -240,7 +254,7 @@ export async function POST(req: NextRequest) {
 Only use the information provided. If a field is empty, skip it.
 
 Name: ${formData.name}
-Target role: ${formData.targetRole}
+TARGET ROLE (this is critical - write the summary for this specific role): ${formData.targetRole}
 ${formData.location ? `Location: ${formData.location}` : ''}
 Email: ${formData.email || ''}
 Phone: ${formData.phone || ''}
