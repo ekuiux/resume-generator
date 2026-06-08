@@ -244,6 +244,13 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], style, show
     if (wrapRef.current) setDropRect(wrapRef.current.getBoundingClientRect())
   }
 
+  useEffect(() => {
+    if (!open) return
+    window.addEventListener('scroll', calcRect, true)
+    window.addEventListener('resize', calcRect)
+    return () => { window.removeEventListener('scroll', calcRect, true); window.removeEventListener('resize', calcRect) }
+  }, [open])
+
   function handleChange(e) {
     setIsTyping(true)
     onChange(e)
@@ -490,6 +497,14 @@ function MonthPicker({ value, onChange, placeholder, allowPresent = false }) {
     setViewYear(p?.year ?? new Date().getFullYear())
     setOpen(true)
   }
+
+  useEffect(() => {
+    if (!open) return
+    function update() { if (wrapRef.current) setDropRect(wrapRef.current.getBoundingClientRect()) }
+    window.addEventListener('scroll', update, true)
+    window.addEventListener('resize', update)
+    return () => { window.removeEventListener('scroll', update, true); window.removeEventListener('resize', update) }
+  }, [open])
 
   function pick(monthIdx) {
     onChange(`${MONTHS[monthIdx]} ${viewYear}`)
