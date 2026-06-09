@@ -2538,64 +2538,83 @@ function A4Frame({ children, maxPages = Infinity }) {
   )
 }
 
-const FS_PLANS = [
+const CREEM_PLANS = [
   {
-    id: 'one_time',
-    planId: 50965,
-    label: 'Resume PDF',
-    price: '$2.90',
+    id: 'single',
+    productId: 'prod_4uHUOnjg0iut37LzFdoMfs',
+    label: 'Single download',
+    price: '$4.90',
     period: null,
+    priceNote: 'one-time · no subscription',
     badge: null,
-    cta: 'Download Resume — $2.90',
-    features: ['Download your resume', 'ATS-friendly format', 'All templates included'],
+    cta: 'Download resume',
+    forWho: 'For one-time job applications',
+    features: [
+      '1 AI-generated resume',
+      'Download as PDF',
+      'Choose from 6 templates',
+      'Yours to keep forever',
+    ],
   },
   {
-    id: 'monthly',
-    planId: 50967,
-    label: 'Unlimited Access',
-    price: '$4.90',
-    period: '/mo',
-    badge: 'Best value',
-    cta: 'Start Unlimited Access — $4.90/mo',
-    features: ['Unlimited downloads', 'Unlimited updates', 'All templates included'],
+    id: 'pro',
+    productId: 'prod_64GMyqt8VGNgiaQkRbPpmE',
+    label: 'Pro',
+    price: '$9.90',
+    period: '/month',
+    priceNote: 'cancel anytime',
+    badge: 'Most popular',
+    cta: 'Start Pro',
+    forWho: 'For active job seekers',
+    features: [
+      'Unlimited resume downloads',
+      'All 6 templates, switch anytime',
+      'Edit & regenerate unlimited times',
+      'Tailored to any job description',
+    ],
   },
 ]
 
-function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) {
+function ResumeResult({ resume, template, onReset, downloadRef, initialPages, autoDownload = false, onDownloaded }) {
   const isMobile = useIsMobile()
-  const [selectedPlan, setSelectedPlan] = useState('monthly')
-  const [fsReady, setFsReady] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState('pro')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
 
+  // Auto-download after successful Creem payment redirect
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (window.FS?.Checkout) { setFsReady(true); return }
-    const existing = document.querySelector('script[src="https://checkout.freemius.com/js/v1/"]')
-    if (existing) { existing.addEventListener('load', () => setFsReady(true), { once: true }); return }
-    const script = document.createElement('script')
-    script.src = 'https://checkout.freemius.com/js/v1/'
-    script.async = true
-    script.onload = () => setFsReady(true)
-    document.head.appendChild(script)
-  }, [])
+    if (!autoDownload) return
+    const t = setTimeout(() => {
+      if (downloadRef.current) downloadRef.current.click()
+      if (onDownloaded) onDownloaded()
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [autoDownload])
 
-  function handleCheckout() {
-    if (!fsReady || !window.FS?.Checkout) return
-    const plan = FS_PLANS.find(p => p.id === selectedPlan)
-    const checkout = new window.FS.Checkout({
-      product_id: 31066,
-      plan_id: plan.planId,
-      public_key: 'pk_0c8f1a770c6e4345670337792dd5b',
-    })
-    checkout.open({
-      success: () => { posthog.capture('payment_success', { plan: selectedPlan }); if (downloadRef.current) downloadRef.current.click() },
-      cancel: () => {},
-    })
+  async function handleCheckout() {
+    if (checkoutLoading) return
+    setCheckoutLoading(true)
+    try {
+      const plan = CREEM_PLANS.find(p => p.id === selectedPlan)
+      // Save resume data to restore it after payment redirect
+      localStorage.setItem('creem_pending_resume', JSON.stringify(resume))
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: plan.productId, plan: plan.id }),
+      })
+      if (!res.ok) throw new Error('Checkout failed')
+      const data = await res.json()
+      window.location.href = data.checkoutUrl
+    } catch (err) {
+      console.error('Checkout error:', err)
+      setCheckoutLoading(false)
+    }
   }
 
-  const ctaLabel = fsReady
-    ? (FS_PLANS.find(p => p.id === selectedPlan)?.cta ?? 'Continue to payment →')
-    : 'Loading…'
+  const ctaLabel = checkoutLoading
+    ? 'Redirecting…'
+    : (CREEM_PLANS.find(p => p.id === selectedPlan)?.cta ?? 'Continue to payment →')
 
   const CheckIcon = () => (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
@@ -2605,7 +2624,7 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
 
   const PlanCards = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {FS_PLANS.map(plan => {
+      {CREEM_PLANS.map(plan => {
         const sel = selectedPlan === plan.id
         return (
           <button key={plan.id} onClick={() => setSelectedPlan(plan.id)} style={{
@@ -2618,13 +2637,13 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
           }}>
             {/* Radio */}
             <div style={{
-              width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 2,
+              width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 3,
               border: sel ? '5px solid #05070A' : '2px solid rgba(175,178,178,0.5)',
               background: '#fff', boxSizing: 'border-box',
             }} />
             {/* Info */}
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                 <span style={{ fontWeight: 600, fontSize: 16, color: '#05070A' }}>{plan.label}</span>
                 {plan.badge && (
                   <span style={{ fontSize: 11, fontWeight: 600, background: '#9DD162', color: '#05070A', padding: '2px 8px', borderRadius: 20 }}>
@@ -2632,9 +2651,10 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
                   </span>
                 )}
               </div>
+              <p style={{ margin: '0 0 8px', fontSize: 12, color: '#AFB2B2' }}>{plan.forWho}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {plan.features.map(f => (
-                  <span key={f} style={{ fontSize: 14, color: '#4A4A4D', display: 'flex', gap: 7, alignItems: 'center' }}>
+                  <span key={f} style={{ fontSize: 13, color: '#4A4A4D', display: 'flex', gap: 7, alignItems: 'center' }}>
                     <CheckIcon /> {f}
                   </span>
                 ))}
@@ -2644,6 +2664,7 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <span style={{ fontSize: 18, fontWeight: 700, color: '#05070A' }}>{plan.price}</span>
               {plan.period && <span style={{ fontSize: 12, color: '#AFB2B2', display: 'block' }}>{plan.period}</span>}
+              <span style={{ fontSize: 11, color: '#AFB2B2', display: 'block', marginTop: plan.period ? 0 : 2 }}>{plan.priceNote}</span>
             </div>
           </button>
         )
@@ -2692,13 +2713,13 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
               <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
               <PlanCards />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={!fsReady} style={{ width: '100%' }}>
+                <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
                   {ctaLabel}
                 </BtnPrimary>
                 <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
               </div>
               <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
-                Secure payment · Card, PayPal
+                Secure payment · Card, PayPal, Apple Pay
               </p>
             </div>
           )}
@@ -2753,11 +2774,11 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
               <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Choose how you'd like to access it.</p>
             </div>
             <PlanCards />
-            <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={!fsReady} style={{ width: '100%' }}>
+            <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
               {ctaLabel}
             </BtnPrimary>
             <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
-              Secure payment · Card, PayPal
+              Secure payment · Card, PayPal, Apple Pay
             </p>
           </div>
         </>
@@ -2779,6 +2800,7 @@ export default function ResumeBuilder() {
   const [prerenderedPages, setPrerenderedPages] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
+  const [autoDownload, setAutoDownload] = useState(false)
   const downloadRef = useRef(null)
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
@@ -2787,6 +2809,26 @@ export default function ResumeBuilder() {
   useEffect(() => {
     try { localStorage.setItem(LS_KEY, JSON.stringify(form)) } catch {}
   }, [form])
+
+  // Restore resume after Creem payment redirect
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('payment_success') !== '1') return
+    window.history.replaceState({}, '', window.location.pathname)
+    try {
+      const saved = localStorage.getItem('creem_pending_resume')
+      if (saved) {
+        const restoredResume = JSON.parse(saved)
+        localStorage.removeItem('creem_pending_resume')
+        posthog.capture('payment_success', { plan: params.get('plan') })
+        setResume(restoredResume)
+        setAutoDownload(true)
+      }
+    } catch (e) {
+      console.error('Failed to restore resume after payment:', e)
+    }
+  }, [])
 
   async function generate() {
     posthog.capture('generate_clicked')
@@ -2847,7 +2889,7 @@ export default function ResumeBuilder() {
   }
 
   const content = (() => {
-    if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setPrerenderedPages(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} initialPages={prerenderedPages ?? undefined} />
+    if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setPrerenderedPages(null); setAutoDownload(false); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} initialPages={prerenderedPages ?? undefined} autoDownload={autoDownload} onDownloaded={() => setAutoDownload(false)} />
     if (screen === -1) return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
     if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} /></PageShell>
     if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} /></PageShell>
