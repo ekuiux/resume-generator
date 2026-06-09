@@ -1367,6 +1367,9 @@ async function blobUrlToPageImages(url: string, scale: number): Promise<string[]
     const canvas = document.createElement('canvas')
     canvas.width  = vp.width
     canvas.height = vp.height
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
     await page.render({ canvas, viewport: vp }).promise
     imgs.push(canvas.toDataURL('image/jpeg', 0.93))
   }
@@ -1392,9 +1395,9 @@ export async function renderResumeToImages(
  * При смене шаблона — перерендеривает в фоне.
  */
 export function PDFLivePreview({
-  data, template, initialPages,
+  data, template, initialPages, pageGap = 20,
 }: {
-  data: ResumeData; template: TemplateId; initialPages?: string[]
+  data: ResumeData; template: TemplateId; initialPages?: string[]; pageGap?: number
 }) {
   const [pageImgs, setPageImgs] = useState<string[]>(initialPages ?? [])
   const [rendering, setRendering] = useState(false)
@@ -1425,7 +1428,7 @@ export function PDFLivePreview({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: pageGap, position: 'relative' }}>
       {/* Translucent overlay while re-rendering after template switch */}
       {rendering && (
         <div style={{

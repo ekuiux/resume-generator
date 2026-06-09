@@ -1175,8 +1175,8 @@ function PageShell({ step, form, children, rightPanel }) {
             }}>
               {/* Preview paper */}
               <div style={{
-                width: 311, height: 424,
-                background: isDark ? '#0f0f0f' : '#fff',
+                width: 311, height: 440,
+                background: '#fff',
                 borderRadius: 12,
                 overflow: 'hidden',
                 flexShrink: 0,
@@ -1268,10 +1268,11 @@ function TemplatePicker({ form, patch, onNext }) {
                 >
                   <div style={{
                     width: '100%', borderRadius: 12, overflow: 'hidden', position: 'relative',
+                    aspectRatio: '210 / 297',
                     boxShadow: isHov ? '0 16px 48px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.07)',
                     transition: 'box-shadow .2s ease',
                   }}>
-                    <A4Frame><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+                    <A4Frame maxPages={1}><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
                     <div style={{
                       position: 'absolute', inset: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1389,7 +1390,7 @@ function TemplatePicker({ form, patch, onNext }) {
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                     background: '#fff',
                   }}>
-                    <A4Frame><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+                    <A4Frame maxPages={1}><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
 
                     {/* Hover overlay — Continue-style button */}
                     <div style={{
@@ -2442,7 +2443,7 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
 
 // ─── Generated result ─────────────────────────────────────────────────────────
 
-function A4Frame({ children }) {
+function A4Frame({ children, maxPages = Infinity }) {
   const outerRef   = useRef(null)
   const measureRef = useRef(null)
   const [scale, setScale]     = useState(1)
@@ -2471,9 +2472,10 @@ function A4Frame({ children }) {
     return () => ro.disconnect()
   }, [])
 
-  const pageCount = contentH > EFFECTIVE_H
-    ? 1 + Math.ceil((contentH - EFFECTIVE_H) / STRIDE)
-    : 1
+  const pageCount = Math.min(
+    maxPages,
+    contentH > EFFECTIVE_H ? 1 + Math.ceil((contentH - EFFECTIVE_H) / STRIDE) : 1
+  )
 
   return (
     <div ref={outerRef} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -2492,9 +2494,9 @@ function A4Frame({ children }) {
 
         return (
           <div key={i} style={{
-            width: '100%', aspectRatio: '210 / 297', overflow: 'hidden',
-            position: 'relative', background: '#fff', borderRadius: 12,
-            userSelect: 'none', boxShadow: '0 6px 32px rgba(0,0,0,.14)', flexShrink: 0,
+            width: '100%', aspectRatio: `${DESIGN_W} / ${DESIGN_H}`, overflow: 'hidden',
+            position: 'relative', background: '#fff',
+            userSelect: 'none', flexShrink: 0,
           }}>
 
             {/* Scaled content */}
@@ -2659,7 +2661,7 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
 
       <div style={{
         flex: 1,
-        padding: isMobile ? '12px 16px 100px' : '16px 1.5rem 3rem',
+        padding: isMobile ? '12px 16px 120px' : '16px 1.5rem 3rem',
         display: 'flex', justifyContent: 'center',
         boxSizing: 'border-box',
       }}>
@@ -2670,7 +2672,7 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
         }}>
           {/* Preview — renders the actual PDF, pixel-perfect match with download */}
           <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%' }}>
-            <PDFLivePreview data={resume} template={template} initialPages={initialPages} />
+            <PDFLivePreview data={resume} template={template} initialPages={initialPages} pageGap={isMobile ? 8 : 20} />
           </div>
 
           {/* Controls column — desktop only */}
