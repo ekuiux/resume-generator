@@ -1249,7 +1249,9 @@ function TemplatePicker({ form, patch, onNext }) {
   if (isMobile) {
     return (
       <div style={{ minHeight: '100vh', background: '#F7F8FA' }}>
-        <AppHeader><LogoMark /><div /><div /></AppHeader>
+        <AppHeader>
+          <LogoMark />
+        </AppHeader>
         <div style={{ padding: '16px 16px 3rem' }}>
           <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 8, color: '#000', textAlign: 'center' }}>Choose a template</h1>
           <p style={{ fontSize: 14, color: '#4A4A4D', marginBottom: 24, lineHeight: 1.6, textAlign: 'center' }}>
@@ -1303,6 +1305,16 @@ function TemplatePicker({ form, patch, onNext }) {
             })}
           </div>
         </div>
+        {/* Mobile footer */}
+        <footer style={{ borderTop: '1px solid rgba(175,178,178,0.25)', padding: '20px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', fontSize: 12, color: '#AFB2B2' }}>
+          <a href="mailto:support@resumetion.com" style={{ color: '#AFB2B2', textDecoration: 'none' }}>support@resumetion.com</a>
+          <span>·</span>
+          <a href="/pricing" style={{ color: '#AFB2B2', textDecoration: 'none' }}>Pricing</a>
+          <span>·</span>
+          <a href="/terms" style={{ color: '#AFB2B2', textDecoration: 'none' }}>Terms</a>
+          <span>·</span>
+          <a href="/privacy" style={{ color: '#AFB2B2', textDecoration: 'none' }}>Privacy</a>
+        </footer>
       </div>
     )
   }
@@ -1321,7 +1333,6 @@ function TemplatePicker({ form, patch, onNext }) {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <LogoMark />
-          <div style={{ opacity: 0, pointerEvents: 'none', width: 154 }} />
         </div>
       </nav>
 
@@ -1437,6 +1448,19 @@ function TemplatePicker({ form, patch, onNext }) {
           </div>
         ))}
       </div>
+
+      {/* Desktop footer */}
+      <footer style={{ borderTop: '1px solid rgba(175,178,178,0.25)', padding: '24px 0', display: 'flex', gap: 20, justifyContent: 'center', fontSize: 13, color: '#AFB2B2' }}>
+        <span>© {new Date().getFullYear()} Resumetion</span>
+        <span>·</span>
+        <a href="mailto:support@resumetion.com" style={{ color: '#AFB2B2', textDecoration: 'none' }}>support@resumetion.com</a>
+        <span>·</span>
+        <a href="/pricing" style={{ color: '#AFB2B2', textDecoration: 'none' }}>Pricing</a>
+        <span>·</span>
+        <a href="/terms" style={{ color: '#AFB2B2', textDecoration: 'none' }}>Terms</a>
+        <span>·</span>
+        <a href="/privacy" style={{ color: '#AFB2B2', textDecoration: 'none' }}>Privacy</a>
+      </footer>
     </div>
   )
 }
