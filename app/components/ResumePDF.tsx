@@ -18,7 +18,7 @@ import {
   Document, Page, Text, View, StyleSheet, Font,
   Link, pdf,
 } from '@react-pdf/renderer'
-import { useState, forwardRef } from 'react'
+import { useState, useEffect, useRef, forwardRef } from 'react'
 
 Font.register({
   family: 'Georgia',
@@ -152,7 +152,7 @@ function MinimalResume({ data }: { data: ResumeData }) {
         <View style={minimalStyles.section}>
           <Text style={minimalStyles.sectionTitle}>Experience</Text>
           {data.experience.map((exp, i) => (
-            <View key={i} style={{ marginBottom: 14 }}>
+            <View key={i} wrap={false} style={{ marginBottom: 14 }}>
               <View style={minimalStyles.expRow}>
                 <Text style={minimalStyles.expCompany}>{exp.company}</Text>
                 <Text style={minimalStyles.expPeriod}>{exp.period}</Text>
@@ -316,7 +316,7 @@ function BusinessResume({ data }: { data: ResumeData }) {
           <View style={bizStyles.mSection}>
             <Text style={bizStyles.mSectionT}>Experience</Text>
             {data.experience.map((exp, i) => (
-              <View key={i} style={bizStyles.expBlock}>
+              <View key={i} wrap={false} style={bizStyles.expBlock}>
                 <View style={bizStyles.expHead}>
                   <Text style={bizStyles.expCompany}>{exp.company}</Text>
                   <Text style={bizStyles.expPeriod}>{exp.period}</Text>
@@ -324,7 +324,7 @@ function BusinessResume({ data }: { data: ResumeData }) {
                 <Text style={bizStyles.expRole}>{exp.role}</Text>
                 {exp.achievements.map((ach, j) => (
                   <View key={j} style={bizStyles.bullet}>
-                    <Text style={bizStyles.bulletDot}>▸</Text>
+                    <Text style={bizStyles.bulletDot}>•</Text>
                     <Text style={bizStyles.bulletText}>{ach}</Text>
                   </View>
                 ))}
@@ -347,15 +347,15 @@ const CRE_DARK  = '#064e3b'
 const CRE_LIGHT = '#ecfdf5'
 
 const creStyles = StyleSheet.create({
-  page:       { fontFamily: 'Roboto', backgroundColor: '#ffffff', padding: 0 },
-  topBand:    { backgroundColor: CRE_DARK, padding: '36 48 32 48' },
+  page:       { fontFamily: 'Roboto', backgroundColor: '#ffffff', paddingTop: 36, paddingLeft: 48, paddingRight: 48 },
+  topBand:    { backgroundColor: CRE_DARK, padding: '36 48 32 48', marginTop: -36, marginLeft: -48, marginRight: -48 },
   nameLine:   { flexDirection: 'row', alignItems: 'flex-end', gap: 0, marginBottom: 6 },
   nameFirst:  { fontSize: 34, fontWeight: 'bold', color: '#ffffff', letterSpacing: -0.5 },
   nameLast:   { fontSize: 34, fontWeight: 'bold', color: CRE_GREEN, letterSpacing: -0.5 },
   topTitle:   { fontSize: 12, color: '#6ee7b7', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 18 },
   topContacts:{ flexDirection: 'row', gap: 24 },
   topContact: { fontSize: 9, color: '#a7f3d0' },
-  body:       { padding: '32 48 40 48' },
+  body:       { paddingTop: 32, paddingBottom: 40 },
   twoCol:     { flexDirection: 'row', gap: 32 },
   colLeft:    { flex: 1.6 },
   colRight:   { flex: 1 },
@@ -426,7 +426,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
                 <Text style={creStyles.sectionT}>Experience</Text>
               </View>
               {data.experience.map((exp, i) => (
-                <View key={i} style={creStyles.expBlock}>
+                <View key={i} wrap={false} style={creStyles.expBlock}>
                   <View style={creStyles.expTop}>
                     <Text style={creStyles.expCo}>{exp.company}</Text>
                     <Text style={creStyles.expBadge}>{exp.period}</Text>
@@ -434,7 +434,7 @@ function CreativeResume({ data }: { data: ResumeData }) {
                   <Text style={creStyles.expRole}>{exp.role}</Text>
                   {exp.achievements.map((ach, j) => (
                     <View key={j} style={creStyles.bullet}>
-                      <Text style={creStyles.bulletDot}>◆</Text>
+                      <Text style={creStyles.bulletDot}>•</Text>
                       <Text style={creStyles.bulletText}>{ach}</Text>
                     </View>
                   ))}
@@ -508,13 +508,13 @@ const CORP_LIGHT = '#eff6ff'
 const CORP_GRAY  = '#64748b'
 
 const corpStyles = StyleSheet.create({
-  page:        { fontFamily: 'Roboto', backgroundColor: '#ffffff', padding: 0 },
-  header:      { backgroundColor: CORP_BLUE, padding: '36 48 28 48' },
+  page:        { fontFamily: 'Roboto', backgroundColor: '#ffffff', paddingTop: 36, paddingLeft: 48, paddingRight: 48 },
+  header:      { backgroundColor: CORP_BLUE, padding: '36 48 28 48', marginTop: -36, marginLeft: -48, marginRight: -48 },
   headerName:  { fontSize: 26, fontWeight: 'bold', color: '#ffffff', marginBottom: 4, letterSpacing: 0.3 },
   headerTitle: { fontSize: 10, color: '#93c5fd', letterSpacing: 1.8, textTransform: 'uppercase', marginBottom: 14 },
   headerContacts: { flexDirection: 'row', gap: 20, flexWrap: 'wrap' },
   headerContact:  { fontSize: 9, color: '#bfdbfe' },
-  body:        { padding: '32 48 40 48' },
+  body:        { paddingTop: 32, paddingBottom: 40 },
   section:     { marginBottom: 22 },
   sectionTitle:{ fontSize: 9, fontWeight: 'bold', letterSpacing: 2, textTransform: 'uppercase',
                  color: CORP_BLUE, marginBottom: 8, paddingBottom: 5,
@@ -565,7 +565,7 @@ function CorporateResume({ data }: { data: ResumeData }) {
           <View style={corpStyles.section}>
             <Text style={corpStyles.sectionTitle}>Experience</Text>
             {data.experience.map((exp, i) => (
-              <View key={i} style={corpStyles.expBlock}>
+              <View key={i} wrap={false} style={corpStyles.expBlock}>
                 <View style={corpStyles.expHead}>
                   <Text style={corpStyles.expCompany}>{exp.company}</Text>
                   <Text style={corpStyles.expPeriod}>{exp.period}</Text>
@@ -573,7 +573,7 @@ function CorporateResume({ data }: { data: ResumeData }) {
                 <Text style={corpStyles.expRole}>{exp.role}</Text>
                 {exp.achievements.map((ach, j) => (
                   <View key={j} style={corpStyles.bullet}>
-                    <Text style={corpStyles.bulletDot}>▸</Text>
+                    <Text style={corpStyles.bulletDot}>•</Text>
                     <Text style={corpStyles.bulletText}>{ach}</Text>
                   </View>
                 ))}
@@ -692,7 +692,7 @@ function ElegantResume({ data }: { data: ResumeData }) {
         <View style={eleStyles.section}>
           <Text style={eleStyles.sectionTitle}>Experience</Text>
           {data.experience.map((exp, i) => (
-            <View key={i} style={eleStyles.expBlock}>
+            <View key={i} wrap={false} style={eleStyles.expBlock}>
               <View style={eleStyles.expHead}>
                 <Text style={eleStyles.expCompany}>{exp.company}</Text>
                 <Text style={eleStyles.expPeriod}>{exp.period}</Text>
@@ -700,7 +700,7 @@ function ElegantResume({ data }: { data: ResumeData }) {
               <Text style={eleStyles.expRole}>{exp.role}</Text>
               {exp.achievements.map((ach, j) => (
                 <View key={j} style={eleStyles.bullet}>
-                  <Text style={eleStyles.bulletDot}>✦</Text>
+                  <Text style={eleStyles.bulletDot}>•</Text>
                   <Text style={eleStyles.bulletText}>{ach}</Text>
                 </View>
               ))}
@@ -840,7 +840,7 @@ function AcademicResume({ data }: { data: ResumeData }) {
 
             <Text style={acaStyles.secTitle}>Experience</Text>
             {data.experience.map((exp, i) => (
-              <View key={i} style={acaStyles.expBlock}>
+              <View key={i} wrap={false} style={acaStyles.expBlock}>
                 <View style={acaStyles.expHead}>
                   <Text style={acaStyles.expCompany}>{exp.company}</Text>
                   <Text style={acaStyles.expPeriod}>{exp.period}</Text>
@@ -946,7 +946,7 @@ function StartupResume({ data }: { data: ResumeData }) {
         <View style={stpStyles.section}>
           <Text style={stpStyles.sectionTitle}>Experience</Text>
           {data.experience.map((exp, i) => (
-            <View key={i} style={stpStyles.expBlock}>
+            <View key={i} wrap={false} style={stpStyles.expBlock}>
               <View style={stpStyles.expHead}>
                 <Text style={stpStyles.expCompany}>{exp.company}</Text>
                 <Text style={stpStyles.expPeriod}>{exp.period}</Text>
@@ -954,7 +954,7 @@ function StartupResume({ data }: { data: ResumeData }) {
               <Text style={stpStyles.expRole}>{exp.role}</Text>
               {exp.achievements.map((ach, j) => (
                 <View key={j} style={stpStyles.bullet}>
-                  <Text style={stpStyles.bulletDot}>▸</Text>
+                  <Text style={stpStyles.bulletDot}>•</Text>
                   <Text style={stpStyles.bulletText}>{ach}</Text>
                 </View>
               ))}
@@ -1351,9 +1351,111 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
   )
 }
 
+// ─── PDF canvas rendering helpers ────────────────────────────────────────────
+
+async function blobUrlToPageImages(url: string, scale: number): Promise<string[]> {
+  const pdfjs = await import('pdfjs-dist')
+  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc =
+      `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+  }
+  const doc = await pdfjs.getDocument({ url }).promise
+  const imgs: string[] = []
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p)
+    const vp = page.getViewport({ scale })
+    const canvas = document.createElement('canvas')
+    canvas.width  = vp.width
+    canvas.height = vp.height
+    await page.render({ canvas, viewport: vp }).promise
+    imgs.push(canvas.toDataURL('image/jpeg', 0.93))
+  }
+  return imgs
+}
+
+/** Pre-render PDF to images during the generation loading phase so the result shows instantly. */
+export async function renderResumeToImages(
+  data: ResumeData, template: TemplateId, scale = 3
+): Promise<string[]> {
+  const blob = await pdf(<ResumeDocument data={data} template={template} />).toBlob()
+  const url  = URL.createObjectURL(blob)
+  try {
+    return await blobUrlToPageImages(url, scale)
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
+/**
+ * PDF-точное превью — рендерит настоящий PDF через pdfjs-dist в canvas.
+ * initialPages: уже отрендеренные во время генерации страницы — отображаются мгновенно.
+ * При смене шаблона — перерендеривает в фоне.
+ */
+export function PDFLivePreview({
+  data, template, initialPages,
+}: {
+  data: ResumeData; template: TemplateId; initialPages?: string[]
+}) {
+  const [pageImgs, setPageImgs] = useState<string[]>(initialPages ?? [])
+  const [rendering, setRendering] = useState(false)
+  const mountTemplate = useRef(template) // template that was already pre-rendered
+
+  useEffect(() => {
+    // Skip re-render if this template was already pre-rendered as initialPages
+    if (template === mountTemplate.current && initialPages?.length) return
+
+    let active = true
+    setRendering(true)
+
+    renderResumeToImages(data, template, 3)
+      .then(imgs  => { if (active) { setPageImgs(imgs);  setRendering(false) } })
+      .catch(()   => { if (active) setRendering(false) })
+
+    return () => { active = false }
+  }, [template])
+
+  if (pageImgs.length === 0) {
+    // Only reached if no initialPages and still rendering — shows blank card
+    return (
+      <div style={{
+        width: '100%', aspectRatio: '210 / 297', borderRadius: 12,
+        boxShadow: '0 6px 32px rgba(0,0,0,.14)', background: '#f9fafb',
+      }} />
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative' }}>
+      {/* Translucent overlay while re-rendering after template switch */}
+      {rendering && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          background: 'rgba(255,255,255,0.55)', borderRadius: 12,
+          pointerEvents: 'none',
+        }} />
+      )}
+      {pageImgs.map((src, i) => (
+        <div key={i} style={{
+          width: '100%', borderRadius: 12, overflow: 'hidden',
+          boxShadow: '0 6px 32px rgba(0,0,0,.14)', userSelect: 'none',
+        }}>
+          <img
+            src={src}
+            alt={`Page ${i + 1}`}
+            draggable={false}
+            onDragStart={e => e.preventDefault()}
+            style={{ width: '100%', display: 'block', WebkitUserDrag: 'none' } as React.CSSProperties}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /**
  * Кнопка скачивания
  */
+
 export const ResumeDownloadButton = forwardRef<HTMLButtonElement, {
   data: ResumeData
   template: TemplateId

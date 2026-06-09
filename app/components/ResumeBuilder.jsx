@@ -12,6 +12,10 @@ const ResumeDownloadButton = dynamic(
   () => import('./ResumePDF').then(m => m.ResumeDownloadButton),
   { ssr: false }
 )
+const PDFLivePreview = dynamic(
+  () => import('./ResumePDF').then(m => m.PDFLivePreview),
+  { ssr: false, loading: () => <div style={{ width: '100%', aspectRatio: '210/297', borderRadius: 12, background: '#f9fafb', boxShadow: '0 6px 32px rgba(0,0,0,.14)' }} /> }
+)
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1928,7 +1932,7 @@ function useSortable(items, onReorder, group) {
 
 // ─── LangRow & EduRow ────────────────────────────────────────────────────────
 
-function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, isDragging, sortKey }) {
+function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, isDragging, sortKey, usedNames = [] }) {
   const [isHov, setIsHov]   = useState(false)
   const [hovLvl, setHovLvl] = useState(null)
   const isMobile = useIsMobile()
@@ -1961,7 +1965,7 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
           {/* Content: input + levels */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
-              placeholder="e.g. English" suggestions={LANG_SUGG} showOnFocus />
+              placeholder="e.g. English" suggestions={LANG_SUGG.filter(s => !usedNames.includes(s) || s === item.name)} showOnFocus />
             <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
               border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
               height: 47, padding: 4, overflow: 'hidden', boxSizing: 'border-box' }}>
@@ -2106,6 +2110,7 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
   )
 
   const langDragItem = langDrag ? form.languages.find(l => l.id === langDrag.id) : null
+  const usedLangNames = form.languages.map(l => l.name).filter(Boolean)
   const eduDragItem  = eduDrag  ? form.education.find(e => e.id === eduDrag.id)  : null
 
   return (
@@ -2130,9 +2135,13 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 sortKey={`lang-${l.id}`}
                 isDragging={langDrag?.id === l.id}
                 onHandleDown={e => startLangDrag(l.id, e)}
-                onNameChange={v => updLang(l.id, { name: v })}
+                onNameChange={v => {
+                  const dupe = usedLangNames.some(n => n !== l.name && n.toLowerCase() === v.toLowerCase())
+                  if (!dupe) updLang(l.id, { name: v })
+                }}
                 onLevelChange={v => updLang(l.id, { level: v })}
                 onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
+                usedNames={usedLangNames}
               />
             ))}
             <BtnTextAdd onClick={() => patch({ languages: [...form.languages, { id: uid(), name: '', level: 3 }] })} style={{ padding: isMobile ? '8px 24px' : '8px 16px' }}><PlusIcon /> Add language</BtnTextAdd>
@@ -2434,37 +2443,95 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
 // ─── Generated result ─────────────────────────────────────────────────────────
 
 function A4Frame({ children }) {
-  const outerRef = useRef(null)
-  const [scale, setScale] = useState(1)
-  const DESIGN_W = 680
-  const DESIGN_H = Math.round(DESIGN_W * 297 / 210)
+  const outerRef   = useRef(null)
+  const measureRef = useRef(null)
+  const [scale, setScale]     = useState(1)
+  const [contentH, setContentH] = useState(0)
+
+  const DESIGN_W   = 680
+  const DESIGN_H   = Math.round(DESIGN_W * 297 / 210)   // 961
+  const PAGE_PAD_T = 20   // top white margin on pages 2+  (design px)
+  const PAGE_PAD_B = 40   // bottom white margin (design px)
+  // Page 1 content window: 0..EFFECTIVE_H (no top margin — template provides its own)
+  const EFFECTIVE_H = DESIGN_H - PAGE_PAD_B              // 921
+  // Pages 2+ content stride: shorter by PAGE_PAD_T because top margin is taken
+  const STRIDE      = DESIGN_H - PAGE_PAD_T - PAGE_PAD_B // 901
 
   useEffect(() => {
     if (!outerRef.current) return
-    const ro = new ResizeObserver(([e]) => {
-      setScale(e.contentRect.width / DESIGN_W)
-    })
+    const ro = new ResizeObserver(([e]) => setScale(e.contentRect.width / DESIGN_W))
     ro.observe(outerRef.current)
     return () => ro.disconnect()
   }, [])
 
+  useEffect(() => {
+    if (!measureRef.current) return
+    const ro = new ResizeObserver(([e]) => setContentH(e.contentRect.height))
+    ro.observe(measureRef.current)
+    return () => ro.disconnect()
+  }, [])
+
+  const pageCount = contentH > EFFECTIVE_H
+    ? 1 + Math.ceil((contentH - EFFECTIVE_H) / STRIDE)
+    : 1
+
   return (
-    <div ref={outerRef} style={{
-      width: '100%',
-      maxHeight: Math.round(DESIGN_H * scale) || DESIGN_H,
-      overflow: 'auto',
-      background: '#fff',
-      borderRadius: 4,
-      userSelect: 'none',
-      boxShadow: '0 6px 32px rgba(0,0,0,.14)',
-    }}>
-      <div style={{
-        width: DESIGN_W,
-        minHeight: DESIGN_H,
-        zoom: scale || 1,
-      }}>
-        {children}
+    <div ref={outerRef} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* Off-screen height measurer at full DESIGN_W, no scaling */}
+      <div style={{ position: 'fixed', left: '-9999px', top: 0, width: DESIGN_W, visibility: 'hidden', pointerEvents: 'none', zIndex: -1 }}>
+        <div ref={measureRef}>{children}</div>
       </div>
+
+      {Array.from({ length: pageCount }, (_, i) => {
+        const isFirst = i === 0
+        const isLast  = i === pageCount - 1
+        // Shift content so page i starts at the right design-y position.
+        // Page 1: no shift. Pages 2+: each page shifts by i * STRIDE upward.
+        const translateY = isFirst ? 0 : -i * STRIDE
+
+        return (
+          <div key={i} style={{
+            width: '100%', aspectRatio: '210 / 297', overflow: 'hidden',
+            position: 'relative', background: '#fff', borderRadius: 12,
+            userSelect: 'none', boxShadow: '0 6px 32px rgba(0,0,0,.14)', flexShrink: 0,
+          }}>
+
+            {/* Scaled content */}
+            <div style={{
+              position: 'absolute', top: 0, left: 0,
+              width: DESIGN_W, minHeight: DESIGN_H,
+              transformOrigin: 'top left',
+              transform: `scale(${scale}) translateY(${translateY}px)`,
+            }}>
+              {children}
+            </div>
+
+            {/* ─ Top white margin (pages 2+) ─
+                Covers the thin "bleed" strip from the previous page bottom.
+                That bleed content is still fully visible at the bottom of the previous card. */}
+            {!isFirst && (
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0,
+                height: Math.round(PAGE_PAD_T * scale),
+                background: '#fff', zIndex: 1, pointerEvents: 'none',
+              }} />
+            )}
+
+            {/* ─ Bottom white margin (all but last page) ─
+                Covers the thin "bleed" strip that continues onto the next page.
+                That bleed content is still fully visible at the top of the next card. */}
+            {!isLast && (
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                height: Math.round(PAGE_PAD_B * scale),
+                background: '#fff', zIndex: 1, pointerEvents: 'none',
+              }} />
+            )}
+
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -2492,7 +2559,7 @@ const FS_PLANS = [
   },
 ]
 
-function ResumeResult({ resume, template, onReset, downloadRef }) {
+function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) {
   const isMobile = useIsMobile()
   const [selectedPlan, setSelectedPlan] = useState('monthly')
   const [fsReady, setFsReady] = useState(false)
@@ -2601,11 +2668,9 @@ function ResumeResult({ resume, template, onReset, downloadRef }) {
           display: isMobile ? 'block' : 'flex',
           gap: '2rem', alignItems: 'flex-start',
         }}>
-          {/* Preview */}
-          <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%', borderRadius: 12, overflow: 'hidden', boxShadow: '0 6px 32px rgba(0,0,0,.14)' }}>
-            <A4Frame>
-              <ResumePreview data={resume} template={template} bare />
-            </A4Frame>
+          {/* Preview — renders the actual PDF, pixel-perfect match with download */}
+          <div style={{ flex: '0 0 64%', maxWidth: isMobile ? '100%' : '64%' }}>
+            <PDFLivePreview data={resume} template={template} initialPages={initialPages} />
           </div>
 
           {/* Controls column — desktop only */}
@@ -2709,6 +2774,7 @@ export default function ResumeBuilder() {
   const [screen, setScreen] = useState(-1)
   const [form, setForm] = useState(loadSavedForm)
   const [resume, setResume] = useState(null)
+  const [prerenderedPages, setPrerenderedPages] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
   const downloadRef = useRef(null)
@@ -2752,7 +2818,7 @@ export default function ResumeBuilder() {
           : { degree: e.text, institution: '', year: '' }
       })
       const edu = raw.education?.length ? parseEdu(raw.education) : formEdu
-      setResume({
+      const resumeData = {
         ...raw,
         title:     raw.title || form.targetRole || undefined,
         email:     form.email    || undefined,
@@ -2762,7 +2828,14 @@ export default function ResumeBuilder() {
         github:    form.portfolio || undefined,
         languages: langs.length ? langs : undefined,
         education: edu,
-      })
+      }
+      const pdfTemplate = PDF_TEMPLATE_MAP[form.template] ?? 'minimal'
+      try {
+        const { renderResumeToImages } = await import('./ResumePDF')
+        const pages = await renderResumeToImages(resumeData, pdfTemplate, 3)
+        setPrerenderedPages(pages)
+      } catch {}
+      setResume(resumeData)
       posthog.capture('resume_generated')
     } catch (e) {
       setGenError(e.message || 'Something went wrong. Please try again.')
@@ -2772,7 +2845,7 @@ export default function ResumeBuilder() {
   }
 
   const content = (() => {
-    if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} />
+    if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setPrerenderedPages(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} initialPages={prerenderedPages ?? undefined} />
     if (screen === -1) return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
     if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} /></PageShell>
     if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} /></PageShell>
