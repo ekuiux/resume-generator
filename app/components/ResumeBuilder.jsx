@@ -281,7 +281,7 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], style, show
           overflowY: 'auto',
         }}>
           {hits.map((s, i) => (
-            <div key={s} onMouseDown={() => { onChange({ target: { value: s } }); setOpen(false); setIsTyping(false) }}
+            <div key={s} onPointerDown={() => { onChange({ target: { value: s } }); setOpen(false); setIsTyping(false) }}
               style={{
                 padding: '10px 14px', fontSize: T.f13, cursor: 'pointer', color: T.text1,
                 borderBottom: i < hits.length - 1 ? `0.5px solid ${T.border2}` : 'none',
