@@ -89,7 +89,7 @@ export default function TermsPage() {
 
           <section>
             <h2 style={{ fontSize: 18, fontWeight: 600, color: '#05070A', marginBottom: 10 }}>7. AI-Generated Content</h2>
-            <p style={{ margin: 0 }}>The Service uses AI to assist in generating resume content. While we strive for quality, AI-generated content may occasionally contain inaccuracies. You are responsible for reviewing and verifying all content in your resume before use. Resumetion is not liable for any consequences arising from the use of AI-generated content.</p>
+            <p style={{ margin: 0 }}>Resumetion uses <a href="https://anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: '#05070A' }}>Anthropic's Claude</a> to assist in generating resume content. While we strive for quality, AI-generated content may occasionally contain inaccuracies. You are responsible for reviewing and verifying all content in your resume before use. Resumetion is not liable for any consequences arising from the use of AI-generated content.</p>
           </section>
 
           <section>

@@ -71,7 +71,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 style={{ fontSize: 18, fontWeight: 600, color: '#05070A', marginBottom: 10 }}>4. AI Processing</h2>
-            <p style={{ margin: 0 }}>The resume content you provide is sent to Anthropic's Claude API to generate professional resume text. Anthropic processes this data according to their own privacy policy. We do not retain your resume data on our servers after generation is complete — your data is stored in your browser's localStorage only.</p>
+            <p style={{ margin: 0 }}>Resumetion is powered by <a href="https://anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: '#05070A' }}>Anthropic's Claude</a>. The resume content you provide is sent to Anthropic's Claude API to generate professional resume text. Anthropic processes this data according to their own privacy policy. We do not retain your resume data on our servers after generation is complete — your data is stored in your browser's localStorage only.</p>
           </section>
 
           <section>
