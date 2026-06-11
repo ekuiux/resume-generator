@@ -2605,6 +2605,9 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState(null)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [proUnlocked, setProUnlocked] = useState(() =>
+    typeof window !== 'undefined' && localStorage.getItem('pro_unlocked') === '1'
+  )
 
   // Load Creem embed.js once
   useEffect(() => {
@@ -2638,6 +2641,10 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
           posthog.capture('payment_success', { plan: selectedPlan })
           window.Creem.close()
           setSheetOpen(false)
+          if (selectedPlan === 'pro') {
+            localStorage.setItem('pro_unlocked', '1')
+            setProUnlocked(true)
+          }
           setTimeout(() => { if (downloadRef.current) downloadRef.current.click() }, 300)
         },
         onClose: () => {
@@ -2744,26 +2751,50 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
               padding: '40px',
               display: 'flex', flexDirection: 'column', gap: 24,
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Your resume is ready</h2>
-                <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0, lineHeight: 1.6 }}>
-                  Choose how you'd like to access it.
-                </p>
-              </div>
-              <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
-              <PlanCards />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
-                  {ctaLabel}
-                </BtnPrimary>
-                {checkoutError && (
-                  <p style={{ margin: 0, fontSize: 13, color: '#dc2626', textAlign: 'center' }}>{checkoutError}</p>
-                )}
-                <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
-              </div>
-              <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
-                Secure payment · Card, PayPal, Apple Pay
-              </p>
+              {proUnlocked ? (
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Your resume is ready</h2>
+                      <span style={{ fontSize: 11, fontWeight: 700, background: '#9DD162', color: '#05070A', padding: '2px 8px', borderRadius: 20 }}>Pro</span>
+                    </div>
+                    <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0, lineHeight: 1.6 }}>Unlimited downloads included.</p>
+                  </div>
+                  <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <BtnPrimary onClick={() => { posthog.capture('download_clicked'); downloadRef.current?.click() }} style={{ width: '100%' }}>
+                      Download PDF <DownloadIcon />
+                    </BtnPrimary>
+                    <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
+                  </div>
+                  <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
+                    <a href="mailto:support@resumetion.com" style={{ color: '#AFB2B2' }}>Manage subscription</a>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 700, color: '#05070A', margin: 0 }}>Your resume is ready</h2>
+                    <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0, lineHeight: 1.6 }}>
+                      Choose how you'd like to access it.
+                    </p>
+                  </div>
+                  <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
+                  <PlanCards />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
+                      {ctaLabel}
+                    </BtnPrimary>
+                    {checkoutError && (
+                      <p style={{ margin: 0, fontSize: 13, color: '#dc2626', textAlign: 'center' }}>{checkoutError}</p>
+                    )}
+                    <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
+                  </div>
+                  <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
+                    Secure payment · Card, PayPal, Apple Pay
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -2778,14 +2809,20 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
           display: 'flex', gap: 10,
         }}>
           <BtnSecondary onClick={onReset}><StartOverIcon /> Start over</BtnSecondary>
-          <BtnPrimary onClick={() => { posthog.capture('download_clicked'); setSheetOpen(true) }} style={{ flex: 1 }}>
+          <BtnPrimary
+            onClick={() => {
+              posthog.capture('download_clicked')
+              if (proUnlocked) { downloadRef.current?.click() } else { setSheetOpen(true) }
+            }}
+            style={{ flex: 1 }}
+          >
             Download <DownloadIcon />
           </BtnPrimary>
         </div>
       )}
 
-      {/* Bottom sheet — mobile plan selection */}
-      {isMobile && (
+      {/* Bottom sheet — mobile plan selection (only when not Pro) */}
+      {isMobile && !proUnlocked && (
         <>
           {/* Backdrop */}
           <div
