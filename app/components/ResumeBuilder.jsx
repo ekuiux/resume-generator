@@ -2608,6 +2608,10 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
   const [proUnlocked, setProUnlocked] = useState(() =>
     typeof window !== 'undefined' && localStorage.getItem('pro_unlocked') === '1'
   )
+  const [verifyMode, setVerifyMode] = useState(false)
+  const [verifyEmail, setVerifyEmail] = useState('')
+  const [verifying, setVerifying] = useState(false)
+  const [verifyError, setVerifyError] = useState(null)
 
   // Load Creem embed.js once
   useEffect(() => {
@@ -2659,6 +2663,32 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
     }
   }
 
+  async function handleVerify(e) {
+    e.preventDefault()
+    if (!verifyEmail.trim()) return
+    setVerifying(true)
+    setVerifyError(null)
+    try {
+      const res = await fetch('/api/verify-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verifyEmail.trim() }),
+      })
+      const data = await res.json()
+      if (data.active) {
+        localStorage.setItem('pro_unlocked', '1')
+        setProUnlocked(true)
+        setSheetOpen(false)
+      } else {
+        setVerifyError('No active Pro subscription found for this email.')
+      }
+    } catch {
+      setVerifyError('Something went wrong. Please try again.')
+    } finally {
+      setVerifying(false)
+    }
+  }
+
   const ctaLabel = checkoutLoading
     ? 'Redirecting…'
     : (CREEM_PLANS.find(p => p.id === selectedPlan)?.cta ?? 'Continue to payment →')
@@ -2667,6 +2697,40 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
       <path d="M2.5 6L5 8.5L9.5 4" stroke="#9DD162" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  )
+
+  const VerifyForm = () => (
+    <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <p style={{ margin: 0, fontSize: 14, color: '#4A4A4D', lineHeight: 1.5 }}>
+        Enter the email you used to purchase Pro.
+      </p>
+      <input
+        type="email"
+        value={verifyEmail}
+        onChange={e => setVerifyEmail(e.target.value)}
+        placeholder="your@email.com"
+        required
+        style={{
+          height: 44, borderRadius: 10, border: '1.5px solid rgba(175,178,178,0.5)',
+          padding: '0 14px', fontSize: 14, fontFamily: 'inherit',
+          outline: 'none', background: '#fff', color: '#05070A',
+          boxSizing: 'border-box', width: '100%',
+        }}
+      />
+      {verifyError && (
+        <p style={{ margin: 0, fontSize: 13, color: '#dc2626' }}>{verifyError}</p>
+      )}
+      <BtnPrimary disabled={verifying} style={{ width: '100%' }}>
+        {verifying ? 'Checking…' : 'Verify subscription'}
+      </BtnPrimary>
+      <button
+        type="button"
+        onClick={() => { setVerifyMode(false); setVerifyError(null) }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#AFB2B2', fontFamily: 'inherit' }}
+      >
+        ← Back to plans
+      </button>
+    </form>
   )
 
   const PlanCards = () => (
@@ -2780,19 +2844,28 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
                     </p>
                   </div>
                   <div style={{ height: 1, background: 'rgba(175,178,178,0.3)' }} />
-                  <PlanCards />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
-                      {ctaLabel}
-                    </BtnPrimary>
-                    {checkoutError && (
-                      <p style={{ margin: 0, fontSize: 13, color: '#dc2626', textAlign: 'center' }}>{checkoutError}</p>
-                    )}
-                    <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
-                  </div>
-                  <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
-                    Secure payment · Card, PayPal, Apple Pay
-                  </p>
+                  {verifyMode ? <VerifyForm /> : (
+                    <>
+                      <PlanCards />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
+                          {ctaLabel}
+                        </BtnPrimary>
+                        {checkoutError && (
+                          <p style={{ margin: 0, fontSize: 13, color: '#dc2626', textAlign: 'center' }}>{checkoutError}</p>
+                        )}
+                        <BtnSecondary onClick={onReset} style={{ width: '100%' }}><StartOverIcon /> Start over</BtnSecondary>
+                      </div>
+                      <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
+                        Secure payment · Card, PayPal, Apple Pay
+                      </p>
+                      <p style={{ margin: '-12px 0 0', textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
+                        <button onClick={() => setVerifyMode(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#AFB2B2', fontFamily: 'inherit', textDecoration: 'underline', padding: 0 }}>
+                          Already subscribed?
+                        </button>
+                      </p>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -2853,16 +2926,25 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
               <h2 style={{ fontSize: 18, fontWeight: 700, color: '#05070A', margin: '0 0 4px' }}>Your resume is ready</h2>
               <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Choose how you'd like to access it.</p>
             </div>
-            <PlanCards />
-            <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
-              {ctaLabel}
-            </BtnPrimary>
-            {checkoutError && (
-              <p style={{ margin: 0, fontSize: 13, color: '#dc2626', textAlign: 'center' }}>{checkoutError}</p>
+            {verifyMode ? <VerifyForm /> : (
+              <>
+                <PlanCards />
+                <BtnPrimary onClick={() => { posthog.capture('download_clicked'); handleCheckout() }} disabled={checkoutLoading} style={{ width: '100%' }}>
+                  {ctaLabel}
+                </BtnPrimary>
+                {checkoutError && (
+                  <p style={{ margin: 0, fontSize: 13, color: '#dc2626', textAlign: 'center' }}>{checkoutError}</p>
+                )}
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
+                  Secure payment · Card, PayPal, Apple Pay
+                </p>
+                <p style={{ margin: '-4px 0 0', textAlign: 'center' }}>
+                  <button onClick={() => setVerifyMode(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#AFB2B2', fontFamily: 'inherit', textDecoration: 'underline', padding: 0 }}>
+                    Already subscribed?
+                  </button>
+                </p>
+              </>
             )}
-            <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#AFB2B2' }}>
-              Secure payment · Card, PayPal, Apple Pay
-            </p>
           </div>
         </>
       )}
