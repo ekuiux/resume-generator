@@ -2569,7 +2569,7 @@ const CREEM_PLANS = [
     label: 'Single download',
     price: '$4.90',
     period: null,
-    priceNote: 'one-time · no subscription',
+    priceNote: 'one-time',
     badge: null,
     cta: 'Download resume',
     forWho: 'For one-time job applications',
@@ -2577,7 +2577,6 @@ const CREEM_PLANS = [
       '1 AI-generated resume',
       'Download as PDF',
       'Choose from 6 templates',
-      'Yours to keep forever',
     ],
   },
   {
@@ -2593,7 +2592,6 @@ const CREEM_PLANS = [
     features: [
       'Unlimited resume downloads',
       'All 6 templates, switch anytime',
-      'Edit & regenerate unlimited times',
       'Tailored to any job description',
     ],
   },
@@ -2739,22 +2737,21 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
         const sel = selectedPlan === plan.id
         return (
           <button key={plan.id} onClick={() => setSelectedPlan(plan.id)} style={{
-            display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px',
+            display: 'flex', flexDirection: 'column', gap: 8, padding: '14px 16px',
             borderRadius: 12,
             border: `2px solid ${sel ? '#05070A' : 'rgba(175,178,178,0.35)'}`,
             background: sel ? '#F7F8FA' : '#fff',
             cursor: 'pointer', textAlign: 'left', width: '100%',
             fontFamily: 'inherit', boxSizing: 'border-box',
           }}>
-            {/* Radio */}
-            <div style={{
-              width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 3,
-              border: sel ? '5px solid #05070A' : '2px solid rgba(175,178,178,0.5)',
-              background: '#fff', boxSizing: 'border-box',
-            }} />
-            {/* Info */}
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+            {/* Top row: radio + name + badge + price */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+                border: sel ? '5px solid #05070A' : '2px solid rgba(175,178,178,0.5)',
+                background: '#fff', boxSizing: 'border-box',
+              }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                 <span style={{ fontWeight: 600, fontSize: 16, color: '#05070A' }}>{plan.label}</span>
                 {plan.badge && (
                   <span style={{ fontSize: 11, fontWeight: 600, background: '#9DD162', color: '#05070A', padding: '2px 8px', borderRadius: 20 }}>
@@ -2762,20 +2759,22 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
                   </span>
                 )}
               </div>
-              <p style={{ margin: '0 0 8px', fontSize: 12, color: '#AFB2B2' }}>{plan.forWho}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {plan.features.map(f => (
-                  <span key={f} style={{ fontSize: 13, color: '#4A4A4D', display: 'flex', gap: 7, alignItems: 'center' }}>
-                    <CheckIcon /> {f}
-                  </span>
-                ))}
-              </div>
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#05070A', flexShrink: 0 }}>
+                {plan.price}{plan.period && <span style={{ fontSize: 12, fontWeight: 400, color: '#AFB2B2' }}>{plan.period}</span>}
+              </span>
             </div>
-            {/* Price */}
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <span style={{ fontSize: 18, fontWeight: 700, color: '#05070A' }}>{plan.price}</span>
-              {plan.period && <span style={{ fontSize: 12, color: '#AFB2B2', display: 'block' }}>{plan.period}</span>}
-              <span style={{ fontSize: 11, color: '#AFB2B2', display: 'block', marginTop: plan.period ? 0 : 2 }}>{plan.priceNote}</span>
+            {/* Sub info */}
+            <div style={{ paddingLeft: 28, display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 12, color: '#AFB2B2' }}>{plan.forWho}</span>
+              <span style={{ fontSize: 12, color: '#AFB2B2', textAlign: 'right', flexShrink: 0 }}>{plan.priceNote}</span>
+            </div>
+            {/* Features */}
+            <div style={{ paddingLeft: 28, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {plan.features.map(f => (
+                <span key={f} style={{ fontSize: 13, color: '#4A4A4D', display: 'flex', gap: 7, alignItems: 'center' }}>
+                  <CheckIcon /> {f}
+                </span>
+              ))}
             </div>
           </button>
         )
