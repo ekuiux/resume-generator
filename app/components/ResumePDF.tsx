@@ -21,6 +21,14 @@ import {
 import { useState, useEffect, useRef, forwardRef } from 'react'
 
 Font.register({
+  family: 'Onest',
+  fonts: [
+    { src: '/fonts/Onest-Regular.ttf', fontWeight: 400 },
+    { src: '/fonts/Onest-Bold.ttf',    fontWeight: 700 },
+  ]
+})
+
+Font.register({
   family: 'Georgia',
   fonts: [
     { src: 'https://fonts.gstatic.com/s/crimsontext/v19/wlp2gwHKFkZgtmSR3NB0oRJfbwhT.ttf', fontWeight: 400 },
@@ -91,125 +99,142 @@ function skillName(skill: string): string {
 }
 
 // ─── Шаблон 1: MINIMAL ───────────────────────────────────────────────────────
-// Чёрно-белый, тонкие линии, много воздуха. Работает для любой индустрии.
+// Два столбца: слева Summary/Experience/Education, справа контакты/Skills/Languages.
 
+// Figma Frame 170: name top=32 h=26 (110%), gap=6, role h=19 (120%), cols top=115 → gap=32 ✓
 const minimalStyles = StyleSheet.create({
-  page:        { fontFamily: 'Roboto', backgroundColor: '#ffffff', padding: '48 52 48 52' },
-  header:      { marginBottom: 28 },
-  name:        { fontSize: 26, fontWeight: 'bold', color: '#111111', letterSpacing: 0.5, marginBottom: 4 },
-  title:       { fontSize: 11, color: '#666666', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 14 },
-  contacts:    { flexDirection: 'row', gap: 18, flexWrap: 'wrap' },
-  contact:     { fontSize: 9, color: '#888888' },
-  divider:     { height: 0.75, backgroundColor: '#111111', marginBottom: 22, marginTop: 22 },
-  thinDivider: { height: 0.5, backgroundColor: '#e5e7eb', marginBottom: 14, marginTop: 14 },
-  section:     { marginBottom: 20 },
-  sectionTitle:{ fontSize: 9, fontWeight: 'bold', color: '#111111', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 },
-  summary:     { fontSize: 10.5, color: '#444444', lineHeight: 1.7 },
-  expRow:      { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  expCompany:  { fontSize: 11, fontWeight: 'bold', color: '#111111' },
-  expPeriod:   { fontSize: 9.5, color: '#888888' },
-  expRole:     { fontSize: 10, color: '#555555', marginBottom: 6, fontStyle: 'italic' },
-  bullet:      { flexDirection: 'row', marginBottom: 4, paddingLeft: 2 },
-  bulletDot:   { fontSize: 9.5, color: '#111111', width: 14, marginTop: 1 },
-  bulletText:  { fontSize: 9.5, color: '#444444', lineHeight: 1.6, flex: 1 },
-  skillsRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  skillTag:    { fontSize: 9, color: '#333333', paddingHorizontal: 8, paddingVertical: 3, border: '0.5 solid #cccccc' },
-  eduRow:      { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  eduName:     { fontSize: 10.5, fontWeight: 'bold', color: '#111111' },
-  eduDeg:      { fontSize: 9.5, color: '#666666' },
-  eduYear:     { fontSize: 9.5, color: '#888888' },
+  page:          { fontFamily: 'Onest', backgroundColor: '#ffffff', padding: '32 48 40 48' },
+  name:          { fontSize: 24, fontWeight: 'bold', color: '#212329', lineHeight: 1.1, marginBottom: 6 },
+  role:          { fontSize: 16, fontWeight: 400, color: '#212329', lineHeight: 1.2, marginBottom: 32 },
+  cols:          { flexDirection: 'row', gap: 24 },
+  left:          { width: 335, flexShrink: 0 },
+  right:         { width: 140, flexShrink: 0 },
+  leftContent:   { gap: 24 },
+  rightContent:  { gap: 24 },
+  sectionLabel:  { fontSize: 7, letterSpacing: 2, textTransform: 'uppercase', color: '#7A7E88', lineHeight: 1 },
+  summary:       { fontSize: 11, lineHeight: 1.5, color: '#212329' },
+  summarySection: { gap: 8 },
+  expRole:       { fontSize: 11, fontWeight: 'bold', color: '#212329', lineHeight: 1.5 },
+  expCo:         { fontSize: 11, fontWeight: 400, color: '#212329', lineHeight: 1.5 },
+  expDate:       { fontSize: 9, fontWeight: 400, color: '#7A7E88', lineHeight: 1.5 },
+  bullet:        { flexDirection: 'row' },
+  bulletDot:     { fontSize: 11, color: '#212329', lineHeight: 1.5, width: 10 },
+  bulletText:    { fontSize: 11, fontWeight: 400, color: '#212329', lineHeight: 1.5, flex: 1 },
+  eduInst:       { fontSize: 11, fontWeight: 'bold', color: '#212329', lineHeight: 1.5 },
+  eduDeg:        { fontSize: 11, fontWeight: 400, color: '#212329', lineHeight: 1.5 },
+  contactsGroup: { gap: 12 },
+  contactItem:   { gap: 8 },
+  rightLabel:    { fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', color: '#212329', lineHeight: 1 },
+  contactVal:    { fontSize: 11, fontWeight: 400, color: '#7A7E88', lineHeight: 1.5 },
+  skillSection:  { gap: 8 },
+  skillItem:     { fontSize: 11, fontWeight: 400, color: '#7A7E88', lineHeight: 1.5 },
 })
 
 function MinimalResume({ data }: { data: ResumeData }) {
+  const contacts = [
+    data.email    ? { label: 'Email',    val: data.email } : null,
+    data.phone    ? { label: 'Phone',    val: data.phone } : null,
+    data.location ? { label: 'Location', val: data.location } : null,
+    data.linkedin ? { label: 'LinkedIn', val: data.linkedin } : null,
+    data.github   ? { label: 'Portfolio', val: data.github } : null,
+  ].filter(Boolean) as { label: string; val: string }[]
+
+  const renderExp = (exp: ResumeData['experience'][0], key: number) => (
+    <View key={key} wrap={false} style={{ gap: 2 }}>
+      <View>
+        <Text style={minimalStyles.expRole}>{exp.role}</Text>
+        <Text style={minimalStyles.expCo}>{exp.company}</Text>
+      </View>
+      <Text style={minimalStyles.expDate}>{exp.period}</Text>
+      <View style={{ paddingLeft: 4 }}>
+        {exp.achievements.map((a, j) => (
+          <View key={j} style={minimalStyles.bullet}>
+            <Text style={minimalStyles.bulletDot}>•</Text>
+            <Text style={minimalStyles.bulletText}>{a}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  )
+
   return (
     <Document>
       <Page size="A4" style={minimalStyles.page}>
+        <Text style={minimalStyles.name}>{data.name}</Text>
+        <Text style={minimalStyles.role}>{data.title}</Text>
 
-        {/* Header */}
-        <View style={minimalStyles.header}>
-          <Text style={minimalStyles.name}>{data.name}</Text>
-          <Text style={minimalStyles.title}>{data.title}</Text>
-          <View style={minimalStyles.contacts}>
-            {data.email    && <Text style={minimalStyles.contact}>{data.email}</Text>}
-            {data.phone    && <Text style={minimalStyles.contact}>{data.phone}</Text>}
-            {data.location && <Text style={minimalStyles.contact}>{data.location}</Text>}
-            {data.linkedin && <Link src={toUrl(data.linkedin)} style={minimalStyles.contact}>{data.linkedin}</Link>}
-            {data.github   && <Link src={toUrl(data.github)}   style={minimalStyles.contact}>{data.github}</Link>}
-          </View>
-        </View>
-
-        <View style={minimalStyles.divider} />
-
-        {/* Summary */}
-        <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>Summary</Text>
-          <Text style={minimalStyles.summary}>{data.summary}</Text>
-        </View>
-
-        <View style={minimalStyles.thinDivider} />
-
-        {/* Experience */}
-        <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>Experience</Text>
-          {data.experience.map((exp, i) => (
-            <View key={i} wrap={false} style={{ marginBottom: 14 }}>
-              <View style={minimalStyles.expRow}>
-                <Text style={minimalStyles.expCompany}>{exp.company}</Text>
-                <Text style={minimalStyles.expPeriod}>{exp.period}</Text>
-              </View>
-              <Text style={minimalStyles.expRole}>{exp.role}</Text>
-              {exp.achievements.map((ach, j) => (
-                <View key={j} style={minimalStyles.bullet}>
-                  <Text style={minimalStyles.bulletDot}>—</Text>
-                  <Text style={minimalStyles.bulletText}>{ach}</Text>
+        <View style={minimalStyles.cols}>
+          <View style={minimalStyles.left}>
+            <View style={minimalStyles.leftContent}>
+              {data.summary ? (
+                <View style={minimalStyles.summarySection}>
+                  <Text style={minimalStyles.sectionLabel}>Summary</Text>
+                  <Text style={minimalStyles.summary}>{data.summary}</Text>
                 </View>
-              ))}
+              ) : null}
+
+              {data.experience.length > 0 && (
+                <View style={{ gap: 8 }}>
+                  <Text style={minimalStyles.sectionLabel}>Experience</Text>
+                  <View style={{ gap: 24 }}>
+                    {data.experience.map((exp, i) => renderExp(exp, i))}
+                  </View>
+                </View>
+              )}
+
+              {data.education.length > 0 && (
+                <View style={{ gap: 8 }}>
+                  <Text style={minimalStyles.sectionLabel}>Education</Text>
+                  <View style={{ gap: 24 }}>
+                    {data.education.map((ed, i) => (
+                      <View key={i}>
+                        <Text style={minimalStyles.eduInst}>{ed.institution}</Text>
+                        <Text style={minimalStyles.eduDeg}>{ed.degree}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
-          ))}
-        </View>
+          </View>
 
-        <View style={minimalStyles.thinDivider} />
+          <View style={minimalStyles.right}>
+            <View style={minimalStyles.rightContent}>
+              {contacts.length > 0 && (
+                <View style={minimalStyles.contactsGroup}>
+                  {contacts.map((c, i) => (
+                    <View key={i} style={minimalStyles.contactItem}>
+                      <Text style={minimalStyles.rightLabel}>{c.label}</Text>
+                      <Text style={minimalStyles.contactVal}>{c.val}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
 
-        {/* Skills */}
-        <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>Skills</Text>
-          <View style={minimalStyles.skillsRow}>
-            {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
-              <Text key={i} style={minimalStyles.skillTag}>{s}</Text>
-            ))}
+              {(data.skills.technical.length > 0 || data.skills.soft.length > 0) && (
+                <View style={minimalStyles.skillSection}>
+                  <Text style={minimalStyles.rightLabel}>Skills</Text>
+                  <View>
+                    {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+                      <Text key={i} style={minimalStyles.skillItem}>{skillName(s)}</Text>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {data.languages && data.languages.length > 0 && (
+                <View style={minimalStyles.skillSection}>
+                  <Text style={minimalStyles.rightLabel}>Languages</Text>
+                  <View>
+                    {data.languages.map((l, i) => (
+                      <Text key={i} style={minimalStyles.skillItem}>{l}</Text>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
           </View>
         </View>
-
-        <View style={minimalStyles.thinDivider} />
-
-        {/* Education */}
-        <View style={minimalStyles.section}>
-          <Text style={minimalStyles.sectionTitle}>Education</Text>
-          {data.education.map((ed, i) => (
-            <View key={i} style={minimalStyles.eduRow}>
-              <View>
-                <Text style={minimalStyles.eduName}>{ed.institution}</Text>
-                <Text style={minimalStyles.eduDeg}>{ed.degree}</Text>
-              </View>
-              <Text style={minimalStyles.eduYear}>{ed.year}</Text>
-            </View>
-          ))}
-        </View>
-
-        {data.languages && data.languages.length > 0 && (
-          <>
-            <View style={minimalStyles.thinDivider} />
-            <View style={minimalStyles.section}>
-              <Text style={minimalStyles.sectionTitle}>Languages</Text>
-              <View style={minimalStyles.skillsRow}>
-                {data.languages.map((l, i) => (
-                  <Text key={i} style={minimalStyles.skillTag}>{l}</Text>
-                ))}
-              </View>
-            </View>
-          </>
-        )}
-
       </Page>
     </Document>
   )
@@ -1044,40 +1069,112 @@ function PreviewExp({ exp, bulletColor, dotChar = '—' }: { exp: ResumeData['ex
 
 // ── 1. Minimal ────────────────────────────────────────────────────────────────
 function PreviewMinimal({ data }: { data: ResumeData }) {
-  const sec = { fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' as const, color: '#111', marginBottom: 10 }
-  const hr  = (thick?: boolean) => <div style={{ height: thick ? 1 : 0.5, background: thick ? '#111' : '#e5e7eb', margin: '18px 0' }} />
-  return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', color: '#111', padding: '40px 48px' }}>
-      <p style={{ fontSize: 26, fontWeight: 700, marginBottom: 3, letterSpacing: 0.3 }}>{data.name}</p>
-      <p style={{ fontSize: 11, color: '#666', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>{data.title}</p>
-      <PreviewContacts data={data} style={{ fontSize: 11, color: '#888', gap: '3px 16px' }} />
-      {hr(true)}
-      {data.summary && <><p style={sec}>Summary</p><p style={{ fontSize: 13, color: '#444', lineHeight: 1.7, marginBottom: 4 }}>{data.summary}</p>{hr()}</>}
-      <p style={sec}>Experience</p>
-      {data.experience?.map((exp, i) => (
-        <div key={i} style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 700, fontSize: 14 }}>{exp.company}</span>
-            <span style={{ fontSize: 11, color: '#888' }}>{exp.period}</span>
-          </div>
-          <p style={{ fontSize: 12, color: '#555', fontStyle: 'italic', margin: '2px 0 6px' }}>{exp.role}</p>
-          <PreviewExp exp={exp} bulletColor="#111" dotChar="—" />
+  const contacts = [
+    data.email    ? { label: 'Email',    val: data.email } : null,
+    data.phone    ? { label: 'Phone',    val: data.phone } : null,
+    data.location ? { label: 'Location', val: data.location } : null,
+    data.linkedin ? { label: 'LinkedIn', val: data.linkedin } : null,
+    data.github   ? { label: 'Portfolio', val: data.github } : null,
+  ].filter(Boolean) as { label: string; val: string }[]
+
+  // Left column: 7px regular gray letter-spaced
+  const lbl: React.CSSProperties = {
+    fontSize: 7, letterSpacing: 2, textTransform: 'uppercase',
+    color: '#7A7E88', display: 'block', fontWeight: 400, lineHeight: '17px',
+  }
+  // Right column: 7px bold dark no letter-spacing
+  const rLbl: React.CSSProperties = {
+    fontSize: 7, fontWeight: 700, textTransform: 'uppercase',
+    color: '#212329', display: 'block', lineHeight: '17px',
+  }
+  const body11: React.CSSProperties = { fontSize: 11, lineHeight: '17px', margin: 0 }
+
+  const renderExpBlock = (exp: ResumeData['experience'][0]) => (
+    <div>
+      <div style={{ ...body11, fontWeight: 700 }}>{exp.role}</div>
+      <div style={body11}>{exp.company}</div>
+      <div style={{ ...body11, color: '#7A7E88' }}>{exp.period}</div>
+      {exp.achievements?.map((a, j) => (
+        <div key={j} style={{ display: 'flex' }}>
+          <span style={{ ...body11, width: 10, flexShrink: 0 }}>•</span>
+          <span style={body11}>{a}</span>
         </div>
       ))}
-      {hr()}
-      <p style={sec}>Skills</p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
-          <span key={i} style={{ fontSize: 11, padding: '3px 9px', border: '0.5px solid #ccc', color: '#333' }}>{s}</span>
-        ))}
-      </div>
-      {data.education?.length > 0 && <>{hr()}<p style={sec}>Education</p>{data.education.map((ed, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div><p style={{ fontSize: 13, fontWeight: 600 }}>{ed.institution}</p><p style={{ fontSize: 12, color: '#666' }}>{ed.degree}</p></div>
-          <span style={{ fontSize: 11, color: '#888' }}>{ed.year}</span>
+    </div>
+  )
+
+  return (
+    <div style={{ fontFamily: 'var(--font-onest), system-ui, sans-serif', padding: '32px 48px 40px', color: '#212329' }}>
+      <div style={{ fontSize: 24, fontWeight: 700, lineHeight: '28px', marginBottom: 6 }}>{data.name}</div>
+      <div style={{ fontSize: 16, fontWeight: 400, lineHeight: '20px', marginBottom: 32 }}>{data.title}</div>
+
+      <div style={{ display: 'flex', gap: 24 }}>
+        {/* Left — gap:24 matches Figma Frame 160 */}
+        <div style={{ width: 335, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {data.summary && (
+            <div>
+              <span style={lbl}>Summary</span>
+              <div style={body11}>{data.summary}</div>
+            </div>
+          )}
+
+          {data.experience.length > 0 && (
+            <div>
+              <span style={lbl}>Experience</span>
+              {renderExpBlock(data.experience[0])}
+            </div>
+          )}
+
+          {data.experience.slice(1).map((exp, i) => (
+            <div key={i + 1}>{renderExpBlock(exp)}</div>
+          ))}
+
+          {data.education.length > 0 && (
+            <div>
+              <span style={lbl}>Education</span>
+              {data.education.map((ed, i) => (
+                <div key={i}>
+                  <div style={{ ...body11, fontWeight: 700 }}>{ed.institution}</div>
+                  <div style={body11}>{ed.degree}</div>
+                  {ed.year && <div style={{ ...body11, color: '#7A7E88' }}>{ed.year}</div>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ))}</>}
-      {data.languages?.length ? <>{hr()}<p style={sec}>Languages</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{data.languages.map((l, i) => <span key={i} style={{ fontSize: 11, padding: '3px 9px', border: '0.5px solid #ccc', color: '#333' }}>{l}</span>)}</div></> : null}
+
+        {/* Right — gap:24 matches Figma Frame 5 */}
+        <div style={{ width: 140, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {contacts.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {contacts.map((c, i) => (
+                <div key={i}>
+                  <span style={rLbl}>{c.label}</span>
+                  <div style={{ ...body11, color: '#7A7E88' }}>{c.val}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(data.skills.technical.length > 0 || data.skills.soft.length > 0) && (
+            <div>
+              <span style={rLbl}>Skills</span>
+              {[...data.skills.technical, ...data.skills.soft].map((s, i) => (
+                <div key={i} style={{ ...body11, color: '#7A7E88' }}>{skillName(s)}</div>
+              ))}
+            </div>
+          )}
+
+          {data.languages?.length ? (
+            <div>
+              <span style={rLbl}>Languages</span>
+              {data.languages.map((l, i) => (
+                <div key={i} style={{ ...body11, color: '#7A7E88' }}>{l}</div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   )
 }

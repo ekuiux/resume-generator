@@ -20,7 +20,7 @@ const PDFLivePreview = dynamic(
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TEMPLATES = [
-  { id: 'minimal',   name: 'Minimal',   swatch: '#f1efe8', accent: '#1a1a1a', badge: { text: 'Popular', bg: '#05070A', color: '#fff' } },
+  { id: 'minimal',   name: 'Minimal',   swatch: '#ffffff', accent: '#212329', badge: { text: 'Popular', bg: '#05070A', color: '#fff' }, image: '/templates/minimal.jpg' },
   { id: 'corporate', name: 'Corporate', swatch: '#B5D4F4', accent: '#1e3a5f', badge: null },
   { id: 'modern',    name: 'Modern',    swatch: '#c7d2fe', accent: '#6c63ff', badge: { text: 'New', bg: '#9DD162', color: '#05070A' } },
   { id: 'elegant',   name: 'Elegant',   swatch: '#e8e4dc', accent: '#2c2c2a', badge: null },
@@ -1274,7 +1274,10 @@ function TemplatePicker({ form, patch, onNext }) {
                     boxShadow: isHov ? '0 16px 48px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.07)',
                     transition: 'box-shadow .2s ease',
                   }}>
-                    <A4Frame maxPages={1}><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+                    {tpl.image
+                      ? <img src={tpl.image} alt={tpl.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      : <A4Frame maxPages={1}><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+                    }
                     <div style={{
                       position: 'absolute', inset: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1401,7 +1404,10 @@ function TemplatePicker({ form, patch, onNext }) {
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                     background: '#fff',
                   }}>
-                    <A4Frame maxPages={1}><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+                    {tpl.image
+                      ? <img src={tpl.image} alt={tpl.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      : <A4Frame maxPages={1}><ResumePreview data={DUMMY_RESUME} template={pdfTemplate} bare /></A4Frame>
+                    }
 
                     {/* Hover overlay — Continue-style button */}
                     <div style={{
