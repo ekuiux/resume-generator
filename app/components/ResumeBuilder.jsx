@@ -22,7 +22,7 @@ const PDFLivePreview = dynamic(
 const TEMPLATES = [
   { id: 'minimal',   name: 'Minimal',   swatch: '#ffffff', accent: '#212329', badge: { text: 'Popular', bg: '#05070A', color: '#fff' }, image: '/templates/minimal.jpg' },
   { id: 'corporate', name: 'Corporate', swatch: '#B5D4F4', accent: '#1e3a5f', badge: null },
-  { id: 'modern',    name: 'Modern',    swatch: '#c7d2fe', accent: '#6c63ff', badge: { text: 'New', bg: '#9DD162', color: '#05070A' } },
+  { id: 'aurora',    name: 'Aurora',    swatch: '#fbcfe8', accent: '#000000', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/aurora.jpg' },
   { id: 'elegant',   name: 'Elegant',   swatch: '#e8e4dc', accent: '#2c2c2a', badge: null },
   { id: 'startup',   name: 'Startup',   swatch: '#1a1a2e', accent: '#4f46e5', badge: null },
   { id: 'academic',  name: 'Academic',  swatch: '#dce6f0', accent: '#003366', badge: null },
@@ -132,7 +132,7 @@ const PDF_TEMPLATE_MAP = {
   corporate: 'corporate',
   startup:   'startup',
   academic:  'academic',
-  modern:    'creative',
+  aurora:    'aurora',
   elegant:   'elegant',
 }
 const ROW_H = 44

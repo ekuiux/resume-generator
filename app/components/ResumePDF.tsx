@@ -16,7 +16,7 @@
 
 import {
   Document, Page, Text, View, StyleSheet, Font,
-  Link, pdf,
+  Link, pdf, Svg, Path, Rect, Image,
 } from '@react-pdf/renderer'
 import { useState, useEffect, useRef, forwardRef } from 'react'
 
@@ -25,6 +25,23 @@ Font.register({
   fonts: [
     { src: '/fonts/Onest-Regular.ttf', fontWeight: 400 },
     { src: '/fonts/Onest-Bold.ttf',    fontWeight: 700 },
+  ]
+})
+
+// Aurora template fonts
+Font.register({
+  family: 'Aclonica',
+  fonts: [
+    { src: '/fonts/Aclonica-Regular.ttf', fontWeight: 400 },
+  ]
+})
+
+Font.register({
+  family: 'Archivo',
+  fonts: [
+    { src: '/fonts/Archivo-Regular.ttf',  fontWeight: 400 },
+    { src: '/fonts/Archivo-SemiBold.ttf', fontWeight: 600 },
+    { src: '/fonts/Archivo-Bold.ttf',     fontWeight: 700 },
   ]
 })
 
@@ -76,7 +93,7 @@ export interface ResumeData {
   languages?: string[]
 }
 
-export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup'
+export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -96,6 +113,11 @@ function skillLevelPct(skill: string): number {
 }
 function skillName(skill: string): string {
   return skill.replace(/\s*\(\w+\)$/, '').trim()
+}
+// "English (C2)" → { name: 'English', level: 'C2' }
+function langParts(l: string): { name: string; level: string } {
+  const m = l.match(/^(.*?)\s*\(([^)]+)\)\s*$/)
+  return m ? { name: m[1].trim(), level: m[2].trim() } : { name: l.trim(), level: '' }
 }
 
 // ─── Шаблон 1: MINIMAL ───────────────────────────────────────────────────────
@@ -233,6 +255,242 @@ function MinimalResume({ data }: { data: ResumeData }) {
                 </View>
               )}
             </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
+// ─── Шаблон AURORA ───────────────────────────────────────────────────────────
+// Aclonica-заголовки + Archivo-тело. Контент прижат вправо, низ — 3 колонки.
+// Декоративный фон (aurora-блобы) — прозрачный PNG слоем под текстом.
+// Figma 595×842, padding 32. Контент-колонка x219..491 (w272), заголовки x219.
+
+const auroraStyles = StyleSheet.create({
+  // paddingBottom gives a bottom margin on every page (incl. the page-1 break of a
+  // 2-page resume). Only bottom — top/left/right stay 0 so absolute blobs aren't offset.
+  page:        { fontFamily: 'Archivo', backgroundColor: '#ffffff', paddingBottom: 30 },
+  // Decorative aurora blobs (under text). PNGs pre-cropped to page bounds so all
+  // offsets are >= 0 (react-pdf/yoga hangs on negative absolute positions).
+  b1:          { position: 'absolute', left: 0,   top: 0,   width: 241, height: 272 },
+  b2:          { position: 'absolute', left: 524, top: 170, width: 71,  height: 174 },
+  // b3 (full, uncropped 522×655 → 174×218 @3x) anchored inside ruleWrap:
+  // bottom sits on the divider; left:-32 = root padding so the blob sits flush to the page's left edge
+  b3:          { position: 'absolute', left: -32, bottom: 0, width: 174, height: 218 },
+  // b4 is `fixed` so it can sit at the very bottom edge without counting toward content
+  // overflow (avoids a phantom page even with paddingBottom). Shown only on 1-page resumes.
+  b4:          { position: 'absolute', left: 180, top: 740, width: 241, height: 100 },
+  // Frame 184: column, align flex-end, gap 20 (→16 compensates lineHeight half-leading)
+  root:        { padding: '30 32 0 32', flexDirection: 'column', alignItems: 'flex-end', gap: 14 },
+  // Header (name + role), right-aligned, gap 8
+  header:      { alignItems: 'flex-end', gap: 8 },
+  name:        { fontFamily: 'Aclonica', fontSize: 28, lineHeight: 32/28, color: '#000', textAlign: 'right' },
+  role:        { fontFamily: 'Aclonica', fontSize: 20, lineHeight: 23/20, color: '#000', textAlign: 'right' },
+  // Dividers
+  topRule:     { width: 312, height: 1, backgroundColor: '#000' },
+  fullRule:    { width: '100%', height: 1, backgroundColor: '#000' },
+  ruleWrap:    { position: 'relative', width: '100%' },
+  // Section heading (Aclonica 20) — left edge at inner x219
+  heading:     { fontFamily: 'Aclonica', fontSize: 20, lineHeight: 23/20, color: '#000' },
+  // Summary / Education: whole section indented to the content column
+  sectionIndent: { width: '100%', paddingLeft: 219, paddingRight: 40, gap: 12 },
+  body:        { fontSize: 11, lineHeight: 1.5, color: '#000' },
+  // Experience: heading indented, rows span x49..491
+  expSection:  { width: '100%', gap: 12 },
+  expHeadWrap: { paddingLeft: 219 },
+  expRows:     { paddingLeft: 49, paddingRight: 40, gap: 12 },
+  expRow:      { flexDirection: 'row', gap: 16 },
+  expLeft:     { width: 154, alignItems: 'flex-end' },
+  expMeta:     { fontSize: 11, fontWeight: 700, lineHeight: 1.5, color: '#000', textAlign: 'right' },
+  expRight:    { width: 272, gap: 8 },
+  expCompany:  { fontSize: 11, fontWeight: 700, lineHeight: 1.5, color: '#000' },
+  bulletList:  { gap: 4 },
+  bullet:      { flexDirection: 'row' },
+  bulletDot:   { fontSize: 11, lineHeight: 1.5, color: '#000', width: 10 },
+  bulletText:  { fontSize: 11, lineHeight: 1.5, color: '#000', flex: 1 },
+  // Education
+  eduInst:     { fontSize: 11, fontWeight: 700, lineHeight: 1.5, color: '#000' },
+  eduDeg:      { fontSize: 11, fontWeight: 400, lineHeight: 1.5, color: '#000' },
+  // Footer: 3 columns, gap 24
+  footer:      { width: '100%', flexDirection: 'row', gap: 24 },
+  fCol:        { width: 161, gap: 12 },
+  fList:       { gap: 8 },
+  contactRow:  { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  contactText: { fontSize: 11, fontWeight: 600, lineHeight: 12/11, color: '#000', flex: 1 },
+  langRow:     { flexDirection: 'row' },
+  langName:    { width: 62, fontSize: 11, fontWeight: 700, lineHeight: 12/11, color: '#000' },
+  langLevel:   { fontSize: 11, fontWeight: 600, lineHeight: 12/11, color: '#000' },
+  skillsWrap:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  skill:       { fontSize: 11, fontWeight: 600, lineHeight: 12/11, color: '#000' },
+})
+
+function AuroraIcon({ type }: { type: 'pin' | 'phone' | 'mail' | 'link' }) {
+  const c = '#000000'
+  if (type === 'pin') return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Path d="M6 0.6 C3.4 0.6 1.4 2.6 1.4 5.2 C1.4 8.6 6 11.4 6 11.4 C6 11.4 10.6 8.6 10.6 5.2 C10.6 2.6 8.6 0.6 6 0.6 Z M6 6.9 C5.06 6.9 4.3 6.14 4.3 5.2 C4.3 4.26 5.06 3.5 6 3.5 C6.94 3.5 7.7 4.26 7.7 5.2 C7.7 6.14 6.94 6.9 6 6.9 Z" fill={c} fillRule="evenodd" />
+    </Svg>
+  )
+  if (type === 'phone') return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Path d="M2.4 1 C1.7 1 1.1 1.55 1.02 2.25 C0.6 6.4 5.6 11.4 9.75 10.98 C10.45 10.9 11 10.3 11 9.6 L11 8.05 C11 7.55 10.68 7.15 10.2 7.03 L8.35 6.65 C7.92 6.56 7.5 6.7 7.22 7.0 L6.62 7.6 C5.3 6.92 5.08 6.7 4.4 5.38 L5.0 4.78 C5.3 4.5 5.44 4.08 5.35 3.65 L4.97 1.8 C4.85 1.32 4.45 1 3.95 1 Z" fill={c} />
+    </Svg>
+  )
+  if (type === 'mail') return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Rect x={1} y={2.5} width={10} height={7} rx={1} fill="none" stroke={c} strokeWidth={1} />
+      <Path d="M1.4 3.2 L6 6.4 L10.6 3.2" fill="none" stroke={c} strokeWidth={1} />
+    </Svg>
+  )
+  return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Path d="M4.7 7.3 L7.3 4.7" fill="none" stroke={c} strokeWidth={1.1} strokeLinecap="round" />
+      <Path d="M5.2 3.5 L6.2 2.5 C7.2 1.5 8.7 1.5 9.5 2.5 C10.4 3.4 10.4 4.8 9.5 5.7 L8.5 6.7" fill="none" stroke={c} strokeWidth={1.1} strokeLinecap="round" />
+      <Path d="M6.8 8.5 L5.8 9.5 C4.8 10.5 3.3 10.5 2.5 9.5 C1.6 8.6 1.6 7.2 2.5 6.3 L3.5 5.3" fill="none" stroke={c} strokeWidth={1.1} strokeLinecap="round" />
+    </Svg>
+  )
+}
+
+function AuroraResume({ data }: { data: ResumeData }) {
+  const contacts = [
+    data.location ? { icon: 'pin'   as const, val: data.location } : null,
+    data.phone    ? { icon: 'phone' as const, val: data.phone }    : null,
+    data.email    ? { icon: 'mail'  as const, val: data.email }    : null,
+    data.linkedin ? { icon: 'link'  as const, val: data.linkedin } : null,
+    data.github   ? { icon: 'link'  as const, val: data.github }   : null,
+  ].filter(Boolean) as { icon: 'pin' | 'phone' | 'mail' | 'link'; val: string }[]
+
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  const renderExp = (exp: ResumeData['experience'][0], key: number) => (
+    <View key={key} style={auroraStyles.expRow} wrap={false}>
+      <View style={auroraStyles.expLeft}>
+        <Text style={auroraStyles.expMeta}>{exp.role}</Text>
+        <Text style={auroraStyles.expMeta}>{exp.period}</Text>
+      </View>
+      <View style={auroraStyles.expRight}>
+        <Text style={auroraStyles.expCompany}>{exp.company}</Text>
+        <View style={auroraStyles.bulletList}>
+          {exp.achievements.map((a, j) => (
+            <View key={j} style={auroraStyles.bullet}>
+              <Text style={auroraStyles.bulletDot}>•</Text>
+              <Text style={auroraStyles.bulletText}>{a}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  )
+
+  return (
+    <Document>
+      <Page size="A4" style={auroraStyles.page}>
+        {/* Декоративные aurora-блобы — слой под текстом (PNG обрезаны под границы) */}
+        <Image src="/templates/aurora-b1.png" style={auroraStyles.b1} />
+        <Image src="/templates/aurora-b2.png" style={auroraStyles.b2} />
+        {/* b3 — якорится к дивайдеру перед футером (см. ниже), не сюда */}
+        {/* b4 — низ страницы: прячем, если резюме на 2+ страниц */}
+        <View
+          fixed
+          style={auroraStyles.b4}
+          render={(p: any) =>
+            p.totalPages === 1
+              ? <Image src="/templates/aurora-b4.png" style={{ width: '100%', height: '100%' }} />
+              : null
+          }
+        />
+
+        <View style={auroraStyles.root}>
+          {/* Top spacer for continuation pages (react-pdf doesn't re-apply padding on wrap) */}
+          <View fixed render={({ pageNumber }) => (pageNumber > 1 ? <View style={{ height: 30 }} /> : null)} />
+          {/* Header */}
+          <View style={auroraStyles.header}>
+            <Text style={auroraStyles.name}>{data.name}</Text>
+            <Text style={auroraStyles.role}>{data.title}</Text>
+          </View>
+          <View style={auroraStyles.topRule} />
+
+          {/* Summary */}
+          {data.summary ? (
+            <View style={auroraStyles.sectionIndent}>
+              <Text style={auroraStyles.heading}>Summary</Text>
+              <Text style={auroraStyles.body}>{data.summary}</Text>
+            </View>
+          ) : null}
+
+          {/* Experience */}
+          {data.experience.length > 0 && (
+            <View style={auroraStyles.expSection}>
+              <View style={auroraStyles.expHeadWrap}>
+                <Text style={auroraStyles.heading}>Experience</Text>
+              </View>
+              <View style={auroraStyles.expRows}>
+                {data.experience.map((exp, i) => renderExp(exp, i))}
+              </View>
+            </View>
+          )}
+
+          {/* Education */}
+          {data.education.length > 0 && (
+            <View style={auroraStyles.sectionIndent}>
+              <Text style={auroraStyles.heading}>Education</Text>
+              {data.education.map((ed, i) => (
+                <View key={i} style={{ gap: 8 }}>
+                  <Text style={auroraStyles.eduInst}>{ed.institution}</Text>
+                  <Text style={auroraStyles.eduDeg}>{ed.degree}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* b3 (green) anchored so its bottom sits exactly on the divider, whatever the content height */}
+          <View style={auroraStyles.ruleWrap}>
+            <Image src="/templates/aurora-b3.png" style={auroraStyles.b3} />
+            <View style={auroraStyles.fullRule} />
+          </View>
+
+          {/* Footer: Contact / Languages / Skills */}
+          <View style={auroraStyles.footer}>
+            <View style={auroraStyles.fCol}>
+              <Text style={auroraStyles.heading}>Contact</Text>
+              <View style={auroraStyles.fList}>
+                {contacts.map((c, i) => (
+                  <View key={i} style={auroraStyles.contactRow}>
+                    <AuroraIcon type={c.icon} />
+                    <Text style={auroraStyles.contactText}>{c.val}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {data.languages && data.languages.length > 0 && (
+              <View style={auroraStyles.fCol}>
+                <Text style={auroraStyles.heading}>Languages</Text>
+                <View style={auroraStyles.fList}>
+                  {data.languages.map((l, i) => {
+                    const { name, level } = langParts(l)
+                    return (
+                      <View key={i} style={auroraStyles.langRow}>
+                        <Text style={auroraStyles.langName}>{name}</Text>
+                        {level ? <Text style={auroraStyles.langLevel}>{level}</Text> : null}
+                      </View>
+                    )
+                  })}
+                </View>
+              </View>
+            )}
+
+            {skills.length > 0 && (
+              <View style={auroraStyles.fCol}>
+                <Text style={auroraStyles.heading}>Skills</Text>
+                <View style={auroraStyles.skillsWrap}>
+                  {skills.map((s, i) => (
+                    <Text key={i} style={auroraStyles.skill}>{s}</Text>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         </View>
       </Page>
@@ -1039,6 +1297,7 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
   if (template === 'elegant')    return <ElegantResume   data={data} />
   if (template === 'academic')   return <AcademicResume  data={data} />
   if (template === 'startup')    return <StartupResume   data={data} />
+  if (template === 'aurora')     return <AuroraResume    data={data} />
   return <MinimalResume data={data} />
 }
 
@@ -1415,6 +1674,127 @@ function PreviewElegant({ data }: { data: ResumeData }) {
   )
 }
 
+// ── 7. Aurora ─────────────────────────────────────────────────────────────────
+function PreviewAurora({ data }: { data: ResumeData }) {
+  const acl: React.CSSProperties = { fontFamily: '"Aclonica", system-ui, sans-serif', color: '#000', fontWeight: 400 }
+  const heading: React.CSSProperties = { ...acl, fontSize: 20, lineHeight: '23px' }
+  const body: React.CSSProperties = { fontFamily: '"Archivo", system-ui, sans-serif', fontSize: 11, lineHeight: 1.5, color: '#000' }
+  const meta: React.CSSProperties = { ...body, fontWeight: 700, textAlign: 'right' }
+  const foot: React.CSSProperties = { fontFamily: '"Archivo", system-ui, sans-serif', fontSize: 11, lineHeight: '12px', color: '#000' }
+
+  const contacts = [
+    data.location && { t: '📍', v: data.location },
+    data.phone    && { t: '📞', v: data.phone },
+    data.email    && { t: '✉️', v: data.email },
+    data.linkedin && { t: '🔗', v: data.linkedin },
+    data.github   && { t: '🔗', v: data.github },
+  ].filter(Boolean) as { t: string; v: string }[]
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  return (
+    <div style={{ background: '#fff', padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 20 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+        <div style={{ ...acl, fontSize: 28, lineHeight: '32px', textAlign: 'right' }}>{data.name}</div>
+        <div style={{ ...acl, fontSize: 20, lineHeight: '23px', textAlign: 'right' }}>{data.title}</div>
+      </div>
+      <div style={{ width: 312, height: 1, background: '#000' }} />
+
+      {/* Summary */}
+      {data.summary && (
+        <div style={{ width: '100%', paddingLeft: 219, paddingRight: 40, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={heading}>Summary</div>
+          <div style={body}>{data.summary}</div>
+        </div>
+      )}
+
+      {/* Experience */}
+      {data.experience.length > 0 && (
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ paddingLeft: 219, boxSizing: 'border-box' }}><span style={heading}>Experience</span></div>
+          <div style={{ paddingLeft: 49, paddingRight: 40, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {data.experience.map((exp, i) => (
+              <div key={i} style={{ display: 'flex', gap: 16 }}>
+                <div style={{ width: 154, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <div style={meta}>{exp.role}</div>
+                  <div style={meta}>{exp.period}</div>
+                </div>
+                <div style={{ width: 272, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ ...body, fontWeight: 700 }}>{exp.company}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {exp.achievements?.map((a, j) => (
+                      <div key={j} style={{ display: 'flex' }}>
+                        <span style={{ ...body, width: 10, flexShrink: 0 }}>•</span>
+                        <span style={body}>{a}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Education */}
+      {data.education.length > 0 && (
+        <div style={{ width: '100%', paddingLeft: 219, paddingRight: 40, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={heading}>Education</div>
+          {data.education.map((ed, i) => (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ ...body, fontWeight: 700 }}>{ed.institution}</div>
+              <div style={body}>{ed.degree}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ width: '100%', height: 1, background: '#000' }} />
+
+      {/* Footer */}
+      <div style={{ width: '100%', display: 'flex', gap: 24 }}>
+        <div style={{ width: 161, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={heading}>Contact</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {contacts.map((c, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ fontSize: 10, width: 12, textAlign: 'center' }}>{c.t}</span>
+                <span style={{ ...foot, fontWeight: 600 }}>{c.v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {data.languages?.length ? (
+          <div style={{ width: 161, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={heading}>Languages</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {data.languages.map((l, i) => {
+                const { name, level } = langParts(l)
+                return (
+                  <div key={i} style={{ display: 'flex' }}>
+                    <span style={{ ...foot, fontWeight: 700, width: 62 }}>{name}</span>
+                    {level && <span style={{ ...foot, fontWeight: 600 }}>{level}</span>}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {skills.length > 0 && (
+          <div style={{ width: 161, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={heading}>Skills</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {skills.map((s, i) => <span key={i} style={{ ...foot, fontWeight: 600 }}>{s}</span>)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Public exports ───────────────────────────────────────────────────────────
 
 const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
@@ -1433,6 +1813,7 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
     if (template === 'academic')  return <PreviewAcademic  data={data} />
     if (template === 'creative')  return <PreviewModern    data={data} />
     if (template === 'elegant')   return <PreviewElegant   data={data} />
+    if (template === 'aurora')    return <PreviewAurora    data={data} />
     return <PreviewMinimal data={data} />
   })()
 
