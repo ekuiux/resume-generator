@@ -91,6 +91,16 @@ Font.register({
   ]
 })
 
+// Prime template font (Figtree — OFL; static weights instanced from the variable TTF)
+Font.register({
+  family: 'Figtree',
+  fonts: [
+    { src: '/fonts/Figtree-Medium.ttf',       fontWeight: 500 },
+    { src: '/fonts/Figtree-MediumItalic.ttf', fontWeight: 500, fontStyle: 'italic' },
+    { src: '/fonts/Figtree-Bold.ttf',         fontWeight: 700 },
+  ]
+})
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ResumeData {
@@ -121,7 +131,7 @@ export interface ResumeData {
   languages?: string[]
 }
 
-export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora' | 'volt' | 'atelier'
+export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora' | 'volt' | 'atelier' | 'prime'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1808,6 +1818,200 @@ function StartupResume({ data }: { data: ResumeData }) {
   )
 }
 
+// ─── Шаблон PRIME ─────────────────────────────────────────────────────────────
+// Светло-серый фон (#f3f3f5), жёлтый акцент (#f8c625), чернила #3b3b3b / тело #999.
+// Figtree (Medium/Bold). Хедер с именем (первое слово — жёлтое), жёлтый тэг в углу,
+// разделитель, затем 2 колонки: слева Summary/Experience/Education, справа
+// Contact/Languages/Skills. Figma node 47619-6140, A4 595×842, поля 48 / верх 56.
+
+const PRM_BG    = '#f3f3f5'
+const PRM_GOLD  = '#f8c625'
+const PRM_INK   = '#3b3b3b'   // заголовки и жирный текст
+const PRM_DIM   = '#999999'   // тело / второстепенный текст
+const PRM_LINE  = '#999999'
+
+const primeStyles = StyleSheet.create({
+  // Page padding = поля макета (48 по бокам, 56 сверху/снизу); повторяется на каждой странице (gotcha #4)
+  page:        { fontFamily: 'Figtree', backgroundColor: PRM_BG, padding: '56 48 56 48', color: PRM_INK },
+
+  // Хедер
+  header:      { gap: 4 },
+  name:        { fontFamily: 'Figtree', fontSize: 36, fontWeight: 700, lineHeight: 1, letterSpacing: 1.44, textTransform: 'uppercase' },
+  role:        { fontFamily: 'Figtree', fontSize: 14, fontWeight: 700, lineHeight: 1, letterSpacing: 4.2, textTransform: 'uppercase', color: PRM_INK },
+
+  // Жёлтый тэг в правом верхнем углу. ВАЖНО: absolute-дети Page позиционируются от
+  // КРАЯ страницы (не от padding-box), поэтому координаты — как в Figma (x501, y0).
+  goldTab:     { position: 'absolute', top: 0, left: 501, width: 46, height: 96, backgroundColor: PRM_GOLD },
+  // Разделитель под хедером — во всю ширину контента
+  rule:        { height: 1, backgroundColor: PRM_LINE, marginTop: 16 },
+
+  // Колонки
+  row:         { flexDirection: 'row', gap: 40, marginTop: 32 },
+  leftCol:     { flex: 1, flexDirection: 'column', gap: 40 },
+  rightCol:    { width: 150, flexDirection: 'column', gap: 40 },
+
+  // Секции
+  section:     { gap: 20 },
+  heading:     { fontFamily: 'Figtree', fontSize: 16, fontWeight: 700, lineHeight: 1, letterSpacing: 0.96, textTransform: 'uppercase', color: PRM_INK },
+
+  body:        { fontFamily: 'Figtree', fontSize: 10, fontWeight: 500, lineHeight: 1.5, color: PRM_DIM },
+
+  // Experience
+  expList:     { gap: 12 },
+  expItem:     { gap: 8 },
+  expMeta:     { gap: 4 },
+  expDateTitle:{ gap: 2 },
+  expDate:     { fontFamily: 'Figtree', fontSize: 10, fontWeight: 700, lineHeight: 1.5, textTransform: 'uppercase', color: PRM_INK },
+  expRole:     { fontFamily: 'Figtree', fontSize: 10, fontWeight: 700, lineHeight: 1.5, textTransform: 'uppercase', color: PRM_INK },
+  expCompany:  { fontFamily: 'Figtree', fontSize: 10, fontWeight: 500, fontStyle: 'italic', lineHeight: 1.5, color: PRM_DIM },
+  bulletList:  { gap: 4 },
+  bullet:      { flexDirection: 'row', gap: 6 },
+  bulletDot:   { fontFamily: 'Figtree', fontSize: 10, fontWeight: 500, lineHeight: 1.5, color: PRM_DIM, width: 9, textAlign: 'center' },
+  bulletText:  { fontFamily: 'Figtree', fontSize: 10, fontWeight: 500, lineHeight: 1.5, color: PRM_DIM, flex: 1 },
+
+  // Education
+  eduItem:     { gap: 4 },
+  eduInst:     { fontFamily: 'Figtree', fontSize: 10, fontWeight: 700, lineHeight: 1.5, textTransform: 'uppercase', color: PRM_INK },
+  eduDeg:      { fontFamily: 'Figtree', fontSize: 10, fontWeight: 500, fontStyle: 'italic', lineHeight: 1.5, color: PRM_DIM },
+
+  // Contact
+  contactList: { gap: 12 },
+  contactItem: { gap: 4 },
+  contactLabel:{ fontFamily: 'Figtree', fontSize: 10, fontWeight: 700, lineHeight: 1.5, textTransform: 'uppercase', color: PRM_INK },
+  contactVal:  { fontFamily: 'Figtree', fontSize: 10, fontWeight: 500, lineHeight: 1.3, color: PRM_DIM },
+
+  // Languages / Skills
+  itemList:    { gap: 4 },
+  item:        { fontFamily: 'Figtree', fontSize: 10, fontWeight: 500, lineHeight: 1.3, color: PRM_DIM },
+})
+
+function PrimeResume({ data }: { data: ResumeData }) {
+  // Имя: первое слово — жёлтое, остальное — чернила
+  const nameParts = (data.name || '').trim().split(/\s+/)
+  const firstName = nameParts[0] || ''
+  const restName  = nameParts.slice(1).join(' ')
+
+  const contacts = [
+    data.phone    ? { label: 'Phone',     val: data.phone }    : null,
+    data.email    ? { label: 'Email',     val: data.email }    : null,
+    data.location ? { label: 'Address',   val: data.location } : null,
+    data.linkedin ? { label: 'LinkedIn',  val: data.linkedin } : null,
+    data.github   ? { label: 'Portfolio', val: data.github }   : null,
+  ].filter(Boolean) as { label: string; val: string }[]
+
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  return (
+    <Document>
+      <Page size="A4" style={primeStyles.page}>
+        {/* Жёлтый тэг в правом верхнем углу (только 1-я страница) */}
+        <View style={primeStyles.goldTab} />
+
+        {/* Хедер */}
+        <View style={primeStyles.header}>
+          <Text style={primeStyles.name}>
+            <Text style={{ color: PRM_GOLD }}>{firstName}</Text>
+            {restName ? <Text style={{ color: PRM_INK }}>{` ${restName}`}</Text> : null}
+          </Text>
+          {data.title ? <Text style={primeStyles.role}>{data.title}</Text> : null}
+        </View>
+        <View style={primeStyles.rule} />
+
+        {/* Контент: 2 колонки */}
+        <View style={primeStyles.row}>
+          {/* ЛЕВАЯ */}
+          <View style={primeStyles.leftCol}>
+            {data.summary ? (
+              <View style={primeStyles.section}>
+                <Text style={primeStyles.heading}>Summary</Text>
+                <Text style={primeStyles.body}>{data.summary}</Text>
+              </View>
+            ) : null}
+
+            {data.experience.length > 0 ? (
+              <View style={primeStyles.section}>
+                <Text style={primeStyles.heading}>Experience</Text>
+                <View style={primeStyles.expList}>
+                  {data.experience.map((exp, i) => (
+                    <View key={i} style={primeStyles.expItem} wrap={false}>
+                      <View style={primeStyles.expMeta}>
+                        <View style={primeStyles.expDateTitle}>
+                          {exp.period ? <Text style={primeStyles.expDate}>{exp.period}</Text> : null}
+                          <Text style={primeStyles.expRole}>{exp.role}</Text>
+                        </View>
+                        {exp.company ? <Text style={primeStyles.expCompany}>{exp.company}</Text> : null}
+                      </View>
+                      {exp.achievements.length > 0 ? (
+                        <View style={primeStyles.bulletList}>
+                          {exp.achievements.map((a, j) => (
+                            <View key={j} style={primeStyles.bullet}>
+                              <Text style={primeStyles.bulletDot}>•</Text>
+                              <Text style={primeStyles.bulletText}>{a}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
+            {data.education.length > 0 ? (
+              <View style={primeStyles.section}>
+                <Text style={primeStyles.heading}>Education</Text>
+                <View style={{ gap: 12 }}>
+                  {data.education.map((ed, i) => (
+                    <View key={i} style={primeStyles.eduItem} wrap={false}>
+                      <Text style={primeStyles.eduInst}>{ed.institution}</Text>
+                      {ed.degree ? <Text style={primeStyles.eduDeg}>{ed.degree}</Text> : null}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+          </View>
+
+          {/* ПРАВАЯ */}
+          <View style={primeStyles.rightCol}>
+            {contacts.length > 0 ? (
+              <View style={primeStyles.section}>
+                <Text style={primeStyles.heading}>Contact</Text>
+                <View style={primeStyles.contactList}>
+                  {contacts.map((c, i) => (
+                    <View key={i} style={primeStyles.contactItem}>
+                      <Text style={primeStyles.contactLabel}>{c.label}</Text>
+                      <Text style={primeStyles.contactVal}>{c.val}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
+            {data.languages && data.languages.length > 0 ? (
+              <View style={primeStyles.section}>
+                <Text style={primeStyles.heading}>Languages</Text>
+                <View style={primeStyles.itemList}>
+                  {data.languages.map((l, i) => <Text key={i} style={primeStyles.item}>{l}</Text>)}
+                </View>
+              </View>
+            ) : null}
+
+            {skills.length > 0 ? (
+              <View style={primeStyles.section}>
+                <Text style={primeStyles.heading}>Skills</Text>
+                <View style={primeStyles.itemList}>
+                  {skills.map((s, i) => <Text key={i} style={primeStyles.item}>{s}</Text>)}
+                </View>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 function ResumeDocument({ data, template }: { data: ResumeData; template: TemplateId }) {
@@ -1820,6 +2024,7 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
   if (template === 'aurora')     return <AuroraResume    data={data} />
   if (template === 'volt')       return <VoltResume      data={data} />
   if (template === 'atelier')    return <AtelierResume   data={data} />
+  if (template === 'prime')      return <PrimeResume     data={data} />
   return <MinimalResume data={data} />
 }
 
@@ -2518,6 +2723,126 @@ function PreviewAtelier({ data }: { data: ResumeData }) {
   )
 }
 
+// ── 10. Prime ────────────────────────────────────────────────────────────────
+function PreviewPrime({ data }: { data: ResumeData }) {
+  const GOLD = '#f8c625', INK = '#3b3b3b', DIM = '#999999', LINE = '#999999'
+  const font = 'Figtree, system-ui, sans-serif'
+  const nameParts = (data.name || '').trim().split(/\s+/)
+  const first = nameParts[0] || '', rest = nameParts.slice(1).join(' ')
+
+  const contacts = [
+    data.phone    ? { label: 'Phone',     val: data.phone }    : null,
+    data.email    ? { label: 'Email',     val: data.email }    : null,
+    data.location ? { label: 'Address',   val: data.location } : null,
+    data.linkedin ? { label: 'LinkedIn',  val: data.linkedin } : null,
+    data.github   ? { label: 'Portfolio', val: data.github }   : null,
+  ].filter(Boolean) as { label: string; val: string }[]
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  const heading: React.CSSProperties = { fontSize: 17, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: INK, margin: 0 }
+  const body: React.CSSProperties = { fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: DIM, margin: 0 }
+  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <p style={heading}>{title}</p>
+      {children}
+    </div>
+  )
+
+  return (
+    <div style={{ fontFamily: font, background: '#f3f3f5', color: INK, padding: '52px 48px', position: 'relative' }}>
+      {/* Жёлтый тэг в углу */}
+      <div style={{ position: 'absolute', top: 0, right: 48, width: 46, height: 96, background: GOLD }} />
+
+      {/* Хедер */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <p style={{ fontSize: 38, fontWeight: 700, letterSpacing: 1.6, textTransform: 'uppercase', margin: 0, lineHeight: 1 }}>
+          <span style={{ color: GOLD }}>{first}</span>{rest ? <span style={{ color: INK }}>{` ${rest}`}</span> : null}
+        </p>
+        {data.title ? <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: 4.4, textTransform: 'uppercase', color: INK, margin: 0, lineHeight: 1 }}>{data.title}</p> : null}
+      </div>
+      <div style={{ height: 1, background: LINE, marginTop: 16 }} />
+
+      <div style={{ display: 'flex', gap: 40, marginTop: 32 }}>
+        {/* ЛЕВАЯ */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 36 }}>
+          {data.summary && <Section title="Summary"><p style={body}>{data.summary}</p></Section>}
+
+          {data.experience.length > 0 && (
+            <Section title="Experience">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {data.experience.map((exp, i) => (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <div>
+                        {exp.period && <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: INK, margin: 0, lineHeight: 1.5 }}>{exp.period}</p>}
+                        <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: INK, margin: 0, lineHeight: 1.5 }}>{exp.role}</p>
+                      </div>
+                      {exp.company && <p style={{ fontSize: 11, fontWeight: 500, fontStyle: 'italic', color: DIM, margin: 0, lineHeight: 1.5 }}>{exp.company}</p>}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {exp.achievements?.map((a, j) => (
+                        <div key={j} style={{ display: 'flex', gap: 6 }}>
+                          <span style={{ ...body, width: 9, textAlign: 'center', flexShrink: 0 }}>•</span>
+                          <span style={body}>{a}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {data.education.length > 0 && (
+            <Section title="Education">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {data.education.map((ed, i) => (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: INK, margin: 0, lineHeight: 1.5 }}>{ed.institution}</p>
+                    {ed.degree && <p style={{ fontSize: 11, fontWeight: 500, fontStyle: 'italic', color: DIM, margin: 0, lineHeight: 1.5 }}>{ed.degree}</p>}
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+        </div>
+
+        {/* ПРАВАЯ */}
+        <div style={{ width: 165, display: 'flex', flexDirection: 'column', gap: 36 }}>
+          {contacts.length > 0 && (
+            <Section title="Contact">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {contacts.map((c, i) => (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: INK, margin: 0, lineHeight: 1.5 }}>{c.label}</p>
+                    <p style={{ fontSize: 11, fontWeight: 500, color: DIM, margin: 0, lineHeight: 1.3 }}>{c.val}</p>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {data.languages && data.languages.length > 0 && (
+            <Section title="Languages">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {data.languages.map((l, i) => <p key={i} style={{ fontSize: 11, fontWeight: 500, color: DIM, margin: 0, lineHeight: 1.3 }}>{l}</p>)}
+              </div>
+            </Section>
+          )}
+
+          {skills.length > 0 && (
+            <Section title="Skills">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {skills.map((s, i) => <p key={i} style={{ fontSize: 11, fontWeight: 500, color: DIM, margin: 0, lineHeight: 1.3 }}>{s}</p>)}
+              </div>
+            </Section>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Public exports ───────────────────────────────────────────────────────────
 
 const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
@@ -2525,6 +2850,7 @@ const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
   elegant: '#fdfaf5',
   volt:    '#E6FF00',
   atelier: 'linear-gradient(35deg, #ffffff 0%, #d7deff 46%, #ffffff 100%)',
+  prime:   '#f3f3f5',
 }
 // A4 height in px at design width 680
 const A4_H = Math.round(680 * 297 / 210)
@@ -2541,6 +2867,7 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
     if (template === 'aurora')    return <PreviewAurora    data={data} />
     if (template === 'volt')      return <PreviewVolt      data={data} />
     if (template === 'atelier')   return <PreviewAtelier   data={data} />
+    if (template === 'prime')     return <PreviewPrime     data={data} />
     return <PreviewMinimal data={data} />
   })()
 

@@ -24,7 +24,7 @@ const TEMPLATES = [
   { id: 'atelier',   name: 'Atelier',   swatch: '#d7deff', accent: '#505889', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/atelier.jpg' },
   { id: 'aurora',    name: 'Aurora',    swatch: '#fbcfe8', accent: '#000000', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/aurora.jpg' },
   { id: 'volt',      name: 'Volt',      swatch: '#E6FF00', accent: '#111111', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/volt.jpg' },
-  { id: 'startup',   name: 'Startup',   swatch: '#1a1a2e', accent: '#4f46e5', badge: null },
+  { id: 'prime',     name: 'Prime',     swatch: '#f8c625', accent: '#3b3b3b', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/prime.jpg' },
   { id: 'academic',  name: 'Academic',  swatch: '#dce6f0', accent: '#003366', badge: null },
 ]
 
@@ -130,7 +130,7 @@ function getSkillSuggestions(targetRole) {
 const PDF_TEMPLATE_MAP = {
   minimal:   'minimal',
   atelier:   'atelier',
-  startup:   'startup',
+  prime:     'prime',
   academic:  'academic',
   aurora:    'aurora',
   volt:      'volt',
@@ -1116,7 +1116,7 @@ function ResumeDocPreview({ step }) {
 
 // Card layout: gray page bg, white rounded card centered, progress in top header
 function PageShell({ step, form, children, rightPanel }) {
-  const isDark = form.template === 'startup'
+  const isDark = false
   const badge = STEP_BADGE[step]
   const isMobile = useIsMobile()
 
