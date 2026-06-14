@@ -16,7 +16,7 @@
 
 import {
   Document, Page, Text, View, StyleSheet, Font,
-  Link, pdf, Svg, Path, Rect, Image, G,
+  Link, pdf, Svg, Path, Rect, Image, G, Defs, LinearGradient, Stop,
 } from '@react-pdf/renderer'
 import { useState, useEffect, useRef, forwardRef } from 'react'
 
@@ -53,6 +53,23 @@ Font.register({
     { src: '/fonts/Poppins-Italic.ttf',   fontWeight: 400, fontStyle: 'italic' },
     { src: '/fonts/Poppins-SemiBold.ttf', fontWeight: 600 },
     { src: '/fonts/Poppins-Bold.ttf',     fontWeight: 700 },
+  ]
+})
+
+// Atelier template fonts
+Font.register({
+  family: 'Collingar',
+  fonts: [
+    { src: '/fonts/Collingar-Regular.ttf', fontWeight: 400 },
+  ]
+})
+
+Font.register({
+  family: 'Montserrat',
+  fonts: [
+    { src: '/fonts/Montserrat-Regular.ttf',  fontWeight: 400 },
+    { src: '/fonts/Montserrat-Medium.ttf',   fontWeight: 500 },
+    { src: '/fonts/Montserrat-SemiBold.ttf', fontWeight: 600 },
   ]
 })
 
@@ -104,7 +121,7 @@ export interface ResumeData {
   languages?: string[]
 }
 
-export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora' | 'volt'
+export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora' | 'volt' | 'atelier'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -719,6 +736,283 @@ function VoltResume({ data }: { data: ResumeData }) {
 
         {/* Звезда — поверх контента */}
         <VoltStar />
+      </Page>
+    </Document>
+  )
+}
+
+// ─── Шаблон ATELIER ──────────────────────────────────────────────────────────
+// Диагональный сине-фиолетовый градиент (#fff→#d7deff→#fff), единые чернила
+// #505889. Слева — колонка в рамке (Имя/Summary/Experience/Education), справа —
+// Contact/Languages/Skills. Шрифты: Collingar (заголовки/имя) + Montserrat (body).
+// Figma 595×842, внешний отступ 28, левая колонка 345 (padding 24), правая 170.
+
+const ATE_INK   = '#505889'
+const ATE_LINE  = '#9aa1c4'   // единый цвет рамки и разделителей (≈ ink на градиенте)
+const ATE_LW    = 1           // единая толщина рамки и разделителей
+
+// геометрия бокса на странице (fixed-координаты, не зависят от Page padding)
+const ATE_PAD = 28            // Page padding / внешний отступ
+const ATE_BOXW = 345          // ширина левой колонки
+const ATE_X1 = ATE_PAD                // левый край бокса
+const ATE_X2 = ATE_PAD + ATE_BOXW     // правый край бокса (373)
+const ATE_PAGEH = 841.89      // высота A4 в pt
+const ATE_YTOP = ATE_PAD              // верх бокса (28)
+const ATE_YBOT = ATE_PAGEH - ATE_PAD  // низ бокса (813.89)
+
+// 4-лучевая «искра» (✦) — перед заголовками секций и элементами Contact/Languages.
+// dy — вертикальный сдвиг для оптического центрирования с текстом.
+function AtelierSpark({ w = 16, h = 18, dy = 0 }: { w?: number; h?: number; dy?: number }) {
+  return (
+    <Svg width={w} height={h} viewBox="0 0 16 18" style={{ marginTop: dy }}>
+      <Path
+        d="M8 0 Q8.7 8.4 16 9 Q8.7 9.6 8 18 Q7.3 9.6 0 9 Q7.3 8.4 8 0 Z"
+        fill={ATE_INK}
+      />
+    </Svg>
+  )
+}
+
+// Диагональный градиентный фон на всю страницу (fixed → повторяется на каждой)
+function AtelierBg() {
+  return (
+    <Svg width={595} height={841} viewBox="0 0 595 842" style={atelierStyles.bg} fixed>
+      <Defs>
+        <LinearGradient id="ateGrad" x1="0" y1="842" x2="595" y2="0" gradientUnits="userSpaceOnUse">
+          <Stop offset="0"    stopColor="#ffffff" />
+          <Stop offset="0.46" stopColor="#d7deff" />
+          <Stop offset="1"    stopColor="#ffffff" />
+        </LinearGradient>
+      </Defs>
+      <Rect x="0" y="0" width="595" height="842" fill="url(#ateGrad)" />
+    </Svg>
+  )
+}
+
+// Рамка левой колонки как fixed-слой. На разрыве страницы вертикальные линии уходят
+// в край страницы (нет горизонтальной крышки): верх рисуется только на 1-й странице,
+// низ — только на последней; на одностраничном — полный короб (totalPages надёжнее, чем
+// pageNumber===1 для fixed-слоя, gotcha #3).
+function AtelierFrame() {
+  const lw = ATE_LW
+  // Линии — абсолютно спозиционированные View внутри fixed-слоя (Svg в render обрезался
+  // по высоте контента, а View — нет). На разрыве вертикали уходят в край страницы (нет
+  // горизонтальной крышки): верх рисуется только на 1-й странице, низ — только на последней.
+  return (
+    <View
+      fixed
+      style={{ position: 'absolute', top: 0, left: 0, width: 595, height: 841 }}
+      render={({ pageNumber, totalPages }: any) => {
+        const isFirst = totalPages === 1 || pageNumber === 1
+        const isLast  = totalPages === 1 || pageNumber === totalPages
+        const yTop = isFirst ? ATE_YTOP : 0
+        const yBot = isLast ? ATE_YBOT : 841   // на разрыве — до края страницы
+        const h = yBot - yTop
+        const line = { position: 'absolute' as const, backgroundColor: ATE_LINE }
+        return (
+          <>
+            <View style={{ ...line, left: ATE_X1,      top: yTop, width: lw, height: h }} />
+            <View style={{ ...line, left: ATE_X2 - lw, top: yTop, width: lw, height: h }} />
+            {isFirst && <View style={{ ...line, left: ATE_X1, top: ATE_YTOP,      width: ATE_BOXW, height: lw }} />}
+            {isLast  && <View style={{ ...line, left: ATE_X1, top: ATE_YBOT - lw, width: ATE_BOXW, height: lw }} />}
+          </>
+        )
+      }}
+    />
+  )
+}
+
+const atelierStyles = StyleSheet.create({
+  // Page padding 28 = внешний отступ макета; повторяется на каждой странице (gotcha #4)
+  page:        { fontFamily: 'Montserrat', padding: ATE_PAD, color: ATE_INK },
+  bg:          { position: 'absolute', top: 0, left: 0 },
+  root:        { flexDirection: 'row', gap: 24 },
+
+  // ЛЕВАЯ колонка (рамка рисуется отдельным fixed-слоем AtelierFrame)
+  leftCol:     { width: ATE_BOXW, padding: 24, flexDirection: 'column' },
+  leftInner:   { flexDirection: 'column', gap: 24 },
+  // ПРАВАЯ колонка
+  rightCol:    { width: 170, paddingVertical: 24, flexDirection: 'column' },
+  rightInner:  { flexDirection: 'column', gap: 40 },
+
+  // Хедер (имя/роль)
+  header:      { gap: 8 },
+  name:        { fontFamily: 'Collingar', fontSize: 48, lineHeight: 0.9, color: ATE_INK },
+  role:        { fontFamily: 'Montserrat', fontSize: 14, fontWeight: 600, color: ATE_INK },
+
+  // Разделители (тот же цвет/толщина, что у рамки)
+  divLeft:     { height: ATE_LW, backgroundColor: ATE_LINE, marginHorizontal: -24 }, // во всю ширину бокса
+  divRight:    { height: ATE_LW, backgroundColor: ATE_LINE },
+
+  // Ячейка под искру (16pt) — центрирует маленькую искру под центром большой
+  iconCell:    { width: 16, alignItems: 'center', justifyContent: 'center' },
+  // Заголовок секции (искра + Collingar 24)
+  secHead:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heading:     { fontFamily: 'Collingar', fontSize: 24, lineHeight: 1, color: ATE_INK },
+  section:     { gap: 12 },
+
+  body:        { fontFamily: 'Montserrat', fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: ATE_INK },
+
+  // Experience
+  expList:     { gap: 12 },
+  expItem:     { gap: 4 },
+  expTitle:    { fontFamily: 'Montserrat', fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: ATE_INK },
+  expPeriod:   { fontFamily: 'Montserrat', fontSize: 11, fontWeight: 600, lineHeight: 1.5, color: ATE_INK },
+  bullet:      { flexDirection: 'row', gap: 6 },
+  bulletDot:   { fontFamily: 'Montserrat', fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: ATE_INK },
+  bulletText:  { fontFamily: 'Montserrat', fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: ATE_INK, flex: 1 },
+
+  // Education
+  eduItem:     { gap: 5 },
+  eduInst:     { fontFamily: 'Montserrat', fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: ATE_INK },
+  eduDeg:      { fontFamily: 'Montserrat', fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: ATE_INK },
+
+  // Contact / Languages
+  itemList:    { gap: 8 },
+  item:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  itemText:    { fontFamily: 'Montserrat', fontSize: 12, fontWeight: 500, lineHeight: 1.3, color: ATE_INK, flex: 1 },
+
+  // Skills
+  skillsList:  { gap: 4 },
+  skill:       { fontFamily: 'Montserrat', fontSize: 11, fontWeight: 500, lineHeight: 1.3, color: ATE_INK },
+})
+
+function AtelierResume({ data }: { data: ResumeData }) {
+  const contacts = [
+    data.phone    ? data.phone    : null,
+    data.email    ? data.email    : null,
+    data.location ? data.location : null,
+    data.linkedin ? data.linkedin : null,
+    data.github   ? data.github   : null,
+  ].filter(Boolean) as string[]
+
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  const SecHead = ({ children }: { children: React.ReactNode }) => (
+    <View style={atelierStyles.secHead}>
+      <View style={atelierStyles.iconCell}><AtelierSpark dy={-4.5} /></View>
+      <Text style={atelierStyles.heading}>{children}</Text>
+    </View>
+  )
+
+  const ItemRow = ({ children }: { children: React.ReactNode }) => (
+    <View style={atelierStyles.item}>
+      <View style={atelierStyles.iconCell}><AtelierSpark w={9} h={10} dy={0.5} /></View>
+      <Text style={atelierStyles.itemText}>{children}</Text>
+    </View>
+  )
+
+  return (
+    <Document>
+      <Page size="A4" style={atelierStyles.page}>
+        <AtelierBg />
+        <AtelierFrame />
+
+        <View style={atelierStyles.root}>
+          {/* ЛЕВАЯ колонка */}
+          <View style={atelierStyles.leftCol}>
+            {/* re-pad верх рамки на страницах продолжения (gotcha #4) */}
+            <View fixed render={({ pageNumber }) => (pageNumber > 1 ? <View style={{ height: 24 }} /> : null)} />
+
+            <View style={atelierStyles.leftInner}>
+            {/* Хедер */}
+            <View style={atelierStyles.header}>
+              <Text style={atelierStyles.name}>{data.name}</Text>
+              {data.title ? <Text style={atelierStyles.role}>{data.title}</Text> : null}
+            </View>
+
+            {data.summary ? (
+              <>
+                <View style={atelierStyles.divLeft} />
+                <View style={atelierStyles.section}>
+                  <SecHead>Summary</SecHead>
+                  <Text style={atelierStyles.body}>{data.summary}</Text>
+                </View>
+              </>
+            ) : null}
+
+            {data.experience.length > 0 ? (
+              <>
+                <View style={atelierStyles.divLeft} />
+                <View style={atelierStyles.section}>
+                  <SecHead>Experience</SecHead>
+                  <View style={atelierStyles.expList}>
+                    {data.experience.map((exp, i) => (
+                      <View key={i} style={atelierStyles.expItem} wrap={false}>
+                        <Text style={atelierStyles.expTitle}>{exp.role}{exp.company ? ` · ${exp.company}` : ''}</Text>
+                        {exp.period ? <Text style={atelierStyles.expPeriod}>{exp.period}</Text> : null}
+                        {exp.achievements.map((a, j) => (
+                          <View key={j} style={atelierStyles.bullet}>
+                            <Text style={atelierStyles.bulletDot}>•</Text>
+                            <Text style={atelierStyles.bulletText}>{a}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
+            ) : null}
+
+            {data.education.length > 0 ? (
+              <>
+                <View style={atelierStyles.divLeft} />
+                <View style={atelierStyles.section}>
+                  <SecHead>Education</SecHead>
+                  <View style={{ gap: 12 }}>
+                    {data.education.map((ed, i) => (
+                      <View key={i} style={atelierStyles.eduItem}>
+                        <Text style={atelierStyles.eduInst}>{ed.institution}</Text>
+                        {ed.degree ? <Text style={atelierStyles.eduDeg}>{ed.degree}</Text> : null}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
+            ) : null}
+            </View>
+          </View>
+
+          {/* ПРАВАЯ колонка */}
+          <View style={atelierStyles.rightCol}>
+            <View fixed render={({ pageNumber }) => (pageNumber > 1 ? <View style={{ height: 24 }} /> : null)} />
+
+            <View style={atelierStyles.rightInner}>
+            {contacts.length > 0 && (
+              <View style={atelierStyles.section}>
+                <SecHead>Contact</SecHead>
+                <View style={atelierStyles.itemList}>
+                  {contacts.map((c, i) => <ItemRow key={i}>{c}</ItemRow>)}
+                </View>
+              </View>
+            )}
+
+            {data.languages && data.languages.length > 0 && (
+              <>
+                <View style={atelierStyles.divRight} />
+                <View style={atelierStyles.section}>
+                  <SecHead>Languages</SecHead>
+                  <View style={atelierStyles.itemList}>
+                    {data.languages.map((l, i) => <ItemRow key={i}>{l}</ItemRow>)}
+                  </View>
+                </View>
+              </>
+            )}
+
+            {skills.length > 0 && (
+              <>
+                <View style={atelierStyles.divRight} />
+                <View style={atelierStyles.section}>
+                  <SecHead>Skills</SecHead>
+                  <View style={atelierStyles.skillsList}>
+                    {skills.map((s, i) => <Text key={i} style={atelierStyles.skill}>{s}</Text>)}
+                  </View>
+                </View>
+              </>
+            )}
+            </View>
+          </View>
+        </View>
       </Page>
     </Document>
   )
@@ -1525,6 +1819,7 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
   if (template === 'startup')    return <StartupResume   data={data} />
   if (template === 'aurora')     return <AuroraResume    data={data} />
   if (template === 'volt')       return <VoltResume      data={data} />
+  if (template === 'atelier')    return <AtelierResume   data={data} />
   return <MinimalResume data={data} />
 }
 
@@ -2109,12 +2404,127 @@ function PreviewVolt({ data }: { data: ResumeData }) {
   )
 }
 
+// ── 9. Atelier ──────────────────────────────────────────────────────────────
+function PreviewAtelier({ data }: { data: ResumeData }) {
+  const INK = '#505889'
+  const DIV = '#9aa1c4'
+  const serif: React.CSSProperties = { fontFamily: '"Collingar", "Playfair Display", Georgia, serif', color: INK }
+  const sans = '"Montserrat", system-ui, sans-serif'
+  const heading: React.CSSProperties = { ...serif, fontSize: 24, lineHeight: 1 }
+  const body: React.CSSProperties = { fontFamily: sans, fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: INK }
+  const itemText: React.CSSProperties = { fontFamily: sans, fontSize: 12, fontWeight: 500, lineHeight: 1.3, color: INK }
+
+  // искра в 16px-ячейке → маленькая центрируется под центром большой
+  const Spark = ({ s = 16, dy = 0 }: { s?: number; dy?: number }) => (
+    <span style={{ width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <svg width={s} height={s * 18 / 16} viewBox="0 0 16 18" style={{ marginTop: dy }}>
+        <path d="M8 0 Q8.7 8.4 16 9 Q8.7 9.6 8 18 Q7.3 9.6 0 9 Q7.3 8.4 8 0 Z" fill={INK} />
+      </svg>
+    </span>
+  )
+  const SecHead = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Spark dy={-1.7} /><span style={heading}>{children}</span></div>
+  )
+  const ItemRow = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Spark s={9} dy={0.5} /><span style={itemText}>{children}</span></div>
+  )
+
+  const contacts = [data.phone, data.email, data.location, data.linkedin, data.github].filter(Boolean) as string[]
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  return (
+    <div style={{ padding: 32, display: 'flex', gap: 27, alignItems: 'stretch' }}>
+      {/* Левая колонка */}
+      <div style={{ width: 394, border: `0.75px solid ${DIV}`, padding: 27, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 27 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          <div style={{ ...serif, fontSize: 48, lineHeight: 0.9 }}>{data.name}</div>
+          {data.title && <div style={{ fontFamily: sans, fontSize: 14, fontWeight: 600, color: INK }}>{data.title}</div>}
+        </div>
+
+        {data.summary && (<>
+          <div style={{ height: 1, background: DIV, margin: '0 -27px' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <SecHead>Summary</SecHead>
+            <div style={body}>{data.summary}</div>
+          </div>
+        </>)}
+
+        {data.experience.length > 0 && (<>
+          <div style={{ height: 1, background: DIV, margin: '0 -27px' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <SecHead>Experience</SecHead>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {data.experience.map((exp, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: INK }}>{exp.role}{exp.company ? ` · ${exp.company}` : ''}</div>
+                  {exp.period && <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 600, lineHeight: 1.5, color: INK }}>{exp.period}</div>}
+                  {exp.achievements?.map((a, j) => (
+                    <div key={j} style={{ display: 'flex', gap: 6 }}>
+                      <span style={body}>•</span><span style={{ ...body, flex: 1 }}>{a}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>)}
+
+        {data.education.length > 0 && (<>
+          <div style={{ height: 1, background: DIV, margin: '0 -27px' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <SecHead>Education</SecHead>
+            {data.education.map((ed, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ fontFamily: sans, fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: INK }}>{ed.institution}</div>
+                {ed.degree && <div style={body}>{ed.degree}</div>}
+              </div>
+            ))}
+          </div>
+        </>)}
+      </div>
+
+      {/* Правая колонка */}
+      <div style={{ width: 194, padding: '27px 0', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 40 }}>
+        {contacts.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <SecHead>Contact</SecHead>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {contacts.map((c, i) => <ItemRow key={i}>{c}</ItemRow>)}
+            </div>
+          </div>
+        )}
+
+        {data.languages?.length ? (<>
+          <div style={{ height: 1, background: DIV }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <SecHead>Languages</SecHead>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {data.languages.map((l, i) => <ItemRow key={i}>{l}</ItemRow>)}
+            </div>
+          </div>
+        </>) : null}
+
+        {skills.length > 0 && (<>
+          <div style={{ height: 1, background: DIV }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <SecHead>Skills</SecHead>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {skills.map((s, i) => <span key={i} style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, lineHeight: 1.3, color: INK }}>{s}</span>)}
+            </div>
+          </div>
+        </>)}
+      </div>
+    </div>
+  )
+}
+
 // ─── Public exports ───────────────────────────────────────────────────────────
 
 const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
   startup: '#0f0f1a',
   elegant: '#fdfaf5',
   volt:    '#E6FF00',
+  atelier: 'linear-gradient(35deg, #ffffff 0%, #d7deff 46%, #ffffff 100%)',
 }
 // A4 height in px at design width 680
 const A4_H = Math.round(680 * 297 / 210)
@@ -2130,6 +2540,7 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
     if (template === 'elegant')   return <PreviewElegant   data={data} />
     if (template === 'aurora')    return <PreviewAurora    data={data} />
     if (template === 'volt')      return <PreviewVolt      data={data} />
+    if (template === 'atelier')   return <PreviewAtelier   data={data} />
     return <PreviewMinimal data={data} />
   })()
 
