@@ -16,7 +16,7 @@
 
 import {
   Document, Page, Text, View, StyleSheet, Font,
-  Link, pdf, Svg, Path, Rect, Image,
+  Link, pdf, Svg, Path, Rect, Image, G,
 } from '@react-pdf/renderer'
 import { useState, useEffect, useRef, forwardRef } from 'react'
 
@@ -42,6 +42,17 @@ Font.register({
     { src: '/fonts/Archivo-Regular.ttf',  fontWeight: 400 },
     { src: '/fonts/Archivo-SemiBold.ttf', fontWeight: 600 },
     { src: '/fonts/Archivo-Bold.ttf',     fontWeight: 700 },
+  ]
+})
+
+// Volt template font
+Font.register({
+  family: 'Poppins',
+  fonts: [
+    { src: '/fonts/Poppins-Regular.ttf',  fontWeight: 400 },
+    { src: '/fonts/Poppins-Italic.ttf',   fontWeight: 400, fontStyle: 'italic' },
+    { src: '/fonts/Poppins-SemiBold.ttf', fontWeight: 600 },
+    { src: '/fonts/Poppins-Bold.ttf',     fontWeight: 700 },
   ]
 })
 
@@ -93,7 +104,7 @@ export interface ResumeData {
   languages?: string[]
 }
 
-export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora'
+export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora' | 'volt'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -493,6 +504,221 @@ function AuroraResume({ data }: { data: ResumeData }) {
             )}
           </View>
         </View>
+      </Page>
+    </Document>
+  )
+}
+
+// ─── Шаблон VOLT ─────────────────────────────────────────────────────────────
+// Volt-жёлтый фон (#E6FF00) + чёрные декоративные фигуры, белые карточки с
+// зазорами 2px. Шрифт Poppins. Figma 595×842, контент left:46 top:56 w:501.
+// Декорации — прозрачный PNG слоем под карточками (добавляется отдельно).
+
+const VOLT_BG = '#E6FF00'
+const VOLT_INK = '#111111'
+
+const voltStyles = StyleSheet.create({
+  // padding on Page = same content box (501×730) with 56/46 margins on EVERY page
+  page:        { fontFamily: 'Poppins', backgroundColor: VOLT_BG, padding: '56 48 56 46' },
+  deco:        { position: 'absolute', top: 0, left: 0 },
+  // Frame 207: fills the page content box (730 per page via Page padding); cards stretch to bottom
+  root:        { flexDirection: 'column', gap: 2, flexGrow: 1 },
+  // Cards
+  headerCard:  { backgroundColor: '#fff', padding: 20 },
+  card:        { backgroundColor: '#fff', padding: 20, gap: 6 },
+  sidebar:     { backgroundColor: '#fff', width: 172, padding: 20 },
+  bodyRow:     { flexDirection: 'row', gap: 2, alignItems: 'stretch', flexGrow: 1 },
+  // right column is one white surface (fills to content height); 2px yellow dividers between cards
+  rightCol:    { width: 327, flexDirection: 'column', backgroundColor: '#fff' },
+  cardPlain:   { padding: 20, gap: 6 },
+  vDiv:        { height: 2, backgroundColor: VOLT_BG },
+  sideInner:   { gap: 16, flex: 1 },
+  // Type
+  name:        { fontFamily: 'Poppins', fontSize: 32, fontWeight: 700, lineHeight: 1.5, color: VOLT_INK },
+  role:        { fontFamily: 'Poppins', fontSize: 26, fontWeight: 400, fontStyle: 'italic', lineHeight: 1.5, color: VOLT_INK },
+  h:           { fontFamily: 'Poppins', fontSize: 16, fontWeight: 700, lineHeight: 1.5, color: VOLT_INK },
+  label:       { fontSize: 10, fontWeight: 600, lineHeight: 1.5, color: VOLT_INK },
+  val:         { fontSize: 10, fontWeight: 400, lineHeight: 1.5, color: VOLT_INK },
+  body:        { fontSize: 10, fontWeight: 400, lineHeight: 1.5, color: VOLT_INK },
+  skill:       { fontSize: 10, fontWeight: 600, lineHeight: 1.5, color: VOLT_INK },
+  expTitle:    { fontSize: 10, fontWeight: 600, lineHeight: 1.5, color: VOLT_INK },
+  // Sections / groups
+  section:     { gap: 6 },
+  contactList: { gap: 12 },
+  contactItem: { gap: 1 },
+  skillsWrap:  { flexDirection: 'row', flexWrap: 'wrap', rowGap: 3, columnGap: 10 },
+  langList:    { gap: 3 },
+  expList:     { gap: 16 },
+  expItem:     { gap: 6 },
+  expHead:     { gap: 1 },
+  bulletList:  { gap: 3 },
+  bullet:      { flexDirection: 'row', gap: 5 },
+  bulletDot:   { fontSize: 10, lineHeight: 1.5, color: VOLT_INK },
+  bulletText:  { fontSize: 10, fontWeight: 400, lineHeight: 1.5, color: VOLT_INK, flex: 1 },
+  eduList:     { gap: 3 },
+})
+
+// Exact decoration layer from Figma (bg.svg) + asterisk (star.svg), fixed on every page
+function VoltDeco() {
+  const c = VOLT_INK
+  return (
+    <Svg width={595} height={841} viewBox="0 0 595 842" style={voltStyles.deco} fixed>
+      {/* right waves */}
+      <Path d="M643.828 322.425V337.242C640.021 337.242 638.541 338.199 635.858 339.925C632.553 342.056 628.035 344.966 619.857 344.966C611.679 344.966 607.161 342.046 603.856 339.925C601.173 338.199 599.693 337.242 595.886 337.242C592.078 337.242 590.598 338.199 587.915 339.925C584.61 342.056 580.092 344.966 571.914 344.966C563.736 344.966 559.218 342.046 555.913 339.925C553.23 338.199 551.751 337.242 547.943 337.242C544.135 337.242 542.655 338.199 539.972 339.925C536.667 342.056 532.149 344.966 523.971 344.966C515.793 344.966 511.275 342.046 507.971 339.925C505.288 338.199 503.808 337.242 500 337.242V322.425C508.178 322.425 512.696 325.345 516.001 327.466C518.684 329.192 520.164 330.149 523.971 330.149C527.779 330.149 529.259 329.192 531.942 327.466C535.247 325.335 539.765 322.425 547.943 322.425C556.121 322.425 560.639 325.345 563.943 327.466C566.627 329.192 568.106 330.149 571.914 330.149C575.722 330.149 577.202 329.192 579.885 327.466C583.19 325.335 587.708 322.425 595.886 322.425C604.063 322.425 608.581 325.345 611.886 327.466C614.569 329.192 616.049 330.149 619.857 330.149C623.665 330.149 625.144 329.192 627.828 327.466C631.132 325.335 635.65 322.425 643.828 322.425Z" fill={c} />
+      <Path d="M643.828 291.212V306.029C640.021 306.029 638.541 306.986 635.858 308.712C632.553 310.843 628.035 313.753 619.857 313.753C611.679 313.753 607.161 310.833 603.856 308.712C601.173 306.986 599.693 306.029 595.886 306.029C592.078 306.029 590.598 306.986 587.915 308.712C584.61 310.843 580.092 313.753 571.914 313.753C563.736 313.753 559.218 310.833 555.913 308.712C553.23 306.986 551.751 306.029 547.943 306.029C544.135 306.029 542.655 306.986 539.972 308.712C536.667 310.843 532.149 313.753 523.971 313.753C515.793 313.753 511.275 310.833 507.971 308.712C505.288 306.986 503.808 306.029 500 306.029V291.212C508.178 291.212 512.696 294.132 516.001 296.253C518.684 297.979 520.164 298.936 523.971 298.936C527.779 298.936 529.259 297.979 531.942 296.253C535.247 294.122 539.765 291.212 547.943 291.212C556.121 291.212 560.639 294.132 563.943 296.253C566.627 297.979 568.106 298.936 571.914 298.936C575.722 298.936 577.202 297.979 579.885 296.253C583.19 294.122 587.708 291.212 595.886 291.212C604.063 291.212 608.581 294.132 611.886 296.253C614.569 297.979 616.049 298.936 619.857 298.936C623.665 298.936 625.144 297.979 627.828 296.253C631.132 294.122 635.65 291.212 643.828 291.212Z" fill={c} />
+      <Path d="M643.828 260V274.817C640.021 274.817 638.541 275.774 635.858 277.5C632.553 279.631 628.035 282.541 619.857 282.541C611.679 282.541 607.161 279.621 603.856 277.5C601.173 275.774 599.693 274.817 595.886 274.817C592.078 274.817 590.598 275.774 587.915 277.5C584.61 279.631 580.092 282.541 571.914 282.541C563.736 282.541 559.218 279.621 555.913 277.5C553.23 275.774 551.751 274.817 547.943 274.817C544.135 274.817 542.655 275.774 539.972 277.5C536.667 279.631 532.149 282.541 523.971 282.541C515.793 282.541 511.275 279.621 507.971 277.5C505.288 275.774 503.808 274.817 500 274.817V260C508.178 260 512.696 262.92 516.001 265.041C518.684 266.767 520.164 267.724 523.971 267.724C527.779 267.724 529.259 266.767 531.942 265.041C535.247 262.91 539.765 260 547.943 260C556.121 260 560.639 262.92 563.943 265.041C566.627 266.767 568.106 267.724 571.914 267.724C575.722 267.724 577.202 266.767 579.885 265.041C583.19 262.91 587.708 260 595.886 260C604.063 260 608.581 262.92 611.886 265.041C614.569 266.767 616.049 267.724 619.857 267.724C623.665 267.724 625.144 266.767 627.828 265.041C631.132 262.91 635.65 260 643.828 260Z" fill={c} />
+      {/* left waves */}
+      <Path d="M66.8283 586.424V601.241C63.0205 601.241 61.5408 602.198 58.8576 603.924C55.5529 606.055 51.0348 608.965 42.8569 608.965C34.679 608.965 30.161 606.045 26.8563 603.924C24.1731 602.198 22.6933 601.241 18.8855 601.241C15.0777 601.241 13.598 602.198 10.9148 603.924C7.61012 606.055 3.09206 608.965 -5.08584 608.965C-13.2637 608.965 -17.7818 606.045 -21.0865 603.924C-23.7697 602.198 -25.2494 601.241 -29.0572 601.241C-32.865 601.241 -34.3447 602.198 -37.028 603.924C-40.3327 606.055 -44.8507 608.965 -53.0286 608.965C-61.2065 608.965 -65.7246 606.045 -69.0293 603.924C-71.7125 602.198 -73.1922 601.241 -77 601.241V586.424C-68.8221 586.424 -64.304 589.344 -60.9993 591.465C-58.3161 593.191 -56.8364 594.148 -53.0286 594.148C-49.2208 594.148 -47.7411 593.191 -45.0579 591.465C-41.7532 589.334 -37.2351 586.424 -29.0572 586.424C-20.8793 586.424 -16.3613 589.344 -13.0566 591.465C-10.3734 593.191 -8.89364 594.148 -5.08584 594.148C-1.27804 594.148 0.201681 593.191 2.8849 591.465C6.1896 589.334 10.7077 586.424 18.8855 586.424C27.0634 586.424 31.5815 589.344 34.8862 591.465C37.5694 593.191 39.0491 594.148 42.8569 594.148C46.6647 594.148 48.1445 593.191 50.8277 591.465C54.1324 589.334 58.6504 586.424 66.8283 586.424Z" fill={c} />
+      <Path d="M66.8283 555.212V570.029C63.0205 570.029 61.5408 570.986 58.8576 572.712C55.5529 574.843 51.0348 577.753 42.8569 577.753C34.679 577.753 30.161 574.833 26.8563 572.712C24.1731 570.986 22.6933 570.029 18.8855 570.029C15.0777 570.029 13.598 570.986 10.9148 572.712C7.61012 574.843 3.09206 577.753 -5.08584 577.753C-13.2637 577.753 -17.7818 574.833 -21.0865 572.712C-23.7697 570.986 -25.2494 570.029 -29.0572 570.029C-32.865 570.029 -34.3447 570.986 -37.028 572.712C-40.3327 574.843 -44.8507 577.753 -53.0286 577.753C-61.2065 577.753 -65.7246 574.833 -69.0293 572.712C-71.7125 570.986 -73.1922 570.029 -77 570.029V555.212C-68.8221 555.212 -64.304 558.132 -60.9993 560.253C-58.3161 561.979 -56.8364 562.936 -53.0286 562.936C-49.2208 562.936 -47.7411 561.979 -45.0579 560.253C-41.7532 558.122 -37.2351 555.212 -29.0572 555.212C-20.8793 555.212 -16.3613 558.132 -13.0566 560.253C-10.3734 561.979 -8.89364 562.936 -5.08584 562.936C-1.27804 562.936 0.201681 561.979 2.8849 560.253C6.1896 558.122 10.7077 555.212 18.8855 555.212C27.0634 555.212 31.5815 558.132 34.8862 560.253C37.5694 561.979 39.0491 562.936 42.8569 562.936C46.6647 562.936 48.1445 561.979 50.8277 560.253C54.1324 558.122 58.6504 555.212 66.8283 555.212Z" fill={c} />
+      <Path d="M66.8283 524V538.817C63.0205 538.817 61.5408 539.774 58.8576 541.5C55.5529 543.631 51.0348 546.541 42.8569 546.541C34.679 546.541 30.161 543.621 26.8563 541.5C24.1731 539.774 22.6933 538.817 18.8855 538.817C15.0777 538.817 13.598 539.774 10.9148 541.5C7.61012 543.631 3.09206 546.541 -5.08584 546.541C-13.2637 546.541 -17.7818 543.621 -21.0865 541.5C-23.7697 539.774 -25.2494 538.817 -29.0572 538.817C-32.865 538.817 -34.3447 539.774 -37.028 541.5C-40.3327 543.631 -44.8507 546.541 -53.0286 546.541C-61.2065 546.541 -65.7246 543.621 -69.0293 541.5C-71.7125 539.774 -73.1922 538.817 -77 538.817V524C-68.8221 524 -64.304 526.92 -60.9993 529.041C-58.3161 530.767 -56.8364 531.724 -53.0286 531.724C-49.2208 531.724 -47.7411 530.767 -45.0579 529.041C-41.7532 526.91 -37.2351 524 -29.0572 524C-20.8793 524 -16.3613 526.92 -13.0566 529.041C-10.3734 530.767 -8.89364 531.724 -5.08584 531.724C-1.27804 531.724 0.201681 530.767 2.8849 529.041C6.1896 526.91 10.7077 524 18.8855 524C27.0634 524 31.5815 526.92 34.8862 529.041C37.5694 530.767 39.0491 531.724 42.8569 531.724C46.6647 531.724 48.1445 530.767 50.8277 529.041C54.1324 526.91 58.6504 524 66.8283 524Z" fill={c} />
+      {/* bottom-right diagonal stripes */}
+      <Path d="M439.187 842.566V684.187H597.566V665H420V842.566H439.187Z" fill={c} />
+      <Path d="M469.738 842.565V714.738H597.566V695.551H450.551V842.565H469.738Z" fill={c} />
+      <Path d="M500.289 842.566V745.29H597.566V726.093H481.102V842.566H500.289Z" fill={c} />
+      {/* top-left vertical bars */}
+      <Path d="M132.369 0V158.369H-26V177.566H151.566V0H132.369Z" fill={c} />
+      <Path d="M101.828 0V127.828H-26V147.015H121.015V0H101.828Z" fill={c} />
+      <Path d="M71.2765 0V97.2765H-26V116.463H90.4635V0H71.2765Z" fill={c} />
+      {/* bottom-left plus signs */}
+      <Path d="M83.5986 799.118H64.4807V780H58.1179V799.118H39V805.481H58.1179V824.599H64.4807V805.481H83.5986V799.118Z" fill={c} />
+      <Path d="M143.882 799.118H124.764V780H118.402V799.118H99.2837V805.481H118.402V824.599H124.764V805.481H143.882V799.118Z" fill={c} />
+      <Path d="M204.166 799.118H185.048V780H178.685V799.118H159.567V805.481H178.685V824.599H185.048V805.481H204.166V799.118Z" fill={c} />
+    </Svg>
+  )
+}
+
+// Asterisk (star.svg) — rendered ON TOP of the content, top-right (512,24)
+function VoltStar() {
+  return (
+    <Svg width={595} height={841} viewBox="0 0 595 842" style={voltStyles.deco} fixed>
+      <G transform="translate(512, 24)">
+        <Path d="M66 28.2957H44.36L59.66 12.998L53 6.33904L37.7 21.6367V0H28.29V21.6367L12.99 6.33904L6.32996 12.998L21.6299 28.2957H0V37.7043H21.6299L6.32996 53.002L12.99 59.661L28.29 44.3633V66H37.7V44.3633L53 59.661L59.66 53.002L44.36 37.7043H66V28.2957Z" fill={VOLT_INK} />
+      </G>
+    </Svg>
+  )
+}
+
+function VoltResume({ data }: { data: ResumeData }) {
+  const contacts = [
+    data.email    ? { label: 'Email',     val: data.email }    : null,
+    data.location ? { label: 'Address',   val: data.location } : null,
+    data.phone    ? { label: 'Phone',     val: data.phone }    : null,
+    data.linkedin ? { label: 'Linkedin',  val: data.linkedin } : null,
+    data.github   ? { label: 'Portfolio', val: data.github }   : null,
+  ].filter(Boolean) as { label: string; val: string }[]
+
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  return (
+    <Document>
+      <Page size="A4" style={voltStyles.page}>
+        {/* Декоративные чёрные фигуры (SVG, точно из Figma) — fixed, на каждой странице */}
+        <VoltDeco />
+
+        <View style={voltStyles.root}>
+          {/* Header card */}
+          <View style={voltStyles.headerCard}>
+            <Text style={voltStyles.name}>{data.name}</Text>
+            <Text style={voltStyles.role}>{data.title}</Text>
+          </View>
+
+          {/* Body: sidebar + right column */}
+          <View style={voltStyles.bodyRow}>
+            {/* Sidebar */}
+            <View style={voltStyles.sidebar}>
+              <View style={voltStyles.sideInner}>
+                {contacts.length > 0 && (
+                  <View style={voltStyles.section}>
+                    <Text style={voltStyles.h}>Personal info</Text>
+                    <View style={voltStyles.contactList}>
+                      {contacts.map((c, i) => (
+                        <View key={i} style={voltStyles.contactItem}>
+                          <Text style={voltStyles.label}>{c.label}</Text>
+                          <Text style={voltStyles.val}>{c.val}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {skills.length > 0 && (
+                  <View style={voltStyles.section}>
+                    <Text style={voltStyles.h}>Skills</Text>
+                    <View style={voltStyles.skillsWrap}>
+                      {skills.map((s, i) => <Text key={i} style={voltStyles.skill}>{s}</Text>)}
+                    </View>
+                  </View>
+                )}
+
+                {data.languages && data.languages.length > 0 && (
+                  <View style={voltStyles.section}>
+                    <Text style={voltStyles.h}>Languages</Text>
+                    <View style={voltStyles.langList}>
+                      {data.languages.map((l, i) => <Text key={i} style={voltStyles.skill}>{l}</Text>)}
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Right column */}
+            <View style={voltStyles.rightCol}>
+              {/* re-apply top padding on continuation pages (white block spans pages) */}
+              <View fixed render={({ pageNumber }) => (pageNumber > 1 ? <View style={{ height: 20 }} /> : null)} />
+              {data.summary ? (
+                <View style={voltStyles.cardPlain}>
+                  <Text style={voltStyles.h}>Summary</Text>
+                  <Text style={voltStyles.body}>{data.summary}</Text>
+                </View>
+              ) : null}
+
+              {data.summary && data.experience.length > 0 ? <View style={voltStyles.vDiv} /> : null}
+
+              {data.experience.length > 0 && (
+                <View style={voltStyles.cardPlain}>
+                  <Text style={voltStyles.h}>Work Experience</Text>
+                  <View style={voltStyles.expList}>
+                    {data.experience.map((exp, i) => (
+                      <View key={i} style={voltStyles.expItem} wrap={false}>
+                        <View style={voltStyles.expHead}>
+                          <Text style={voltStyles.expTitle}>{exp.role} · {exp.company}</Text>
+                          <Text style={voltStyles.expTitle}>{exp.period}</Text>
+                        </View>
+                        <View style={voltStyles.bulletList}>
+                          {exp.achievements.map((a, j) => (
+                            <View key={j} style={voltStyles.bullet}>
+                              <Text style={voltStyles.bulletDot}>•</Text>
+                              <Text style={voltStyles.bulletText}>{a}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {data.experience.length > 0 && data.education.length > 0 ? <View style={voltStyles.vDiv} /> : null}
+
+              {data.education.length > 0 && (
+                <View style={voltStyles.cardPlain}>
+                  <Text style={voltStyles.h}>Education</Text>
+                  <View style={voltStyles.eduList}>
+                    {data.education.map((ed, i) => (
+                      <View key={i} style={{ gap: 3 }}>
+                        <Text style={voltStyles.expTitle}>{ed.degree}</Text>
+                        <Text style={voltStyles.expTitle}>{ed.institution}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Звезда — поверх контента */}
+        <VoltStar />
       </Page>
     </Document>
   )
@@ -1298,6 +1524,7 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
   if (template === 'academic')   return <AcademicResume  data={data} />
   if (template === 'startup')    return <StartupResume   data={data} />
   if (template === 'aurora')     return <AuroraResume    data={data} />
+  if (template === 'volt')       return <VoltResume      data={data} />
   return <MinimalResume data={data} />
 }
 
@@ -1795,11 +2022,99 @@ function PreviewAurora({ data }: { data: ResumeData }) {
   )
 }
 
+// ── 8. Volt ───────────────────────────────────────────────────────────────────
+function PreviewVolt({ data }: { data: ResumeData }) {
+  const ink = '#111111'
+  const F = '"Poppins", system-ui, sans-serif'
+  const h: React.CSSProperties = { fontFamily: F, fontSize: 16, fontWeight: 700, lineHeight: 1.5, color: ink, margin: 0 }
+  const label: React.CSSProperties = { fontFamily: F, fontSize: 10, fontWeight: 600, lineHeight: 1.5, color: ink }
+  const val: React.CSSProperties = { fontFamily: F, fontSize: 10, fontWeight: 400, lineHeight: 1.5, color: ink }
+  const card: React.CSSProperties = { background: '#fff', padding: 20 }
+  const contacts = [
+    data.email && { label: 'Email', val: data.email },
+    data.location && { label: 'Address', val: data.location },
+    data.phone && { label: 'Phone', val: data.phone },
+    data.linkedin && { label: 'Linkedin', val: data.linkedin },
+    data.github && { label: 'Portfolio', val: data.github },
+  ].filter(Boolean) as { label: string; val: string }[]
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  return (
+    <div style={{ background: '#E6FF00', padding: '56px 48px', fontFamily: F }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={card}>
+          <div style={{ fontFamily: F, fontSize: 32, fontWeight: 700, lineHeight: 1.5, color: ink }}>{data.name}</div>
+          <div style={{ fontFamily: F, fontSize: 26, fontStyle: 'italic', lineHeight: 1.5, color: ink }}>{data.title}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 2 }}>
+          <div style={{ ...card, width: 172, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {contacts.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={h}>Personal info</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {contacts.map((c, i) => <div key={i}><div style={label}>{c.label}</div><div style={val}>{c.val}</div></div>)}
+                </div>
+              </div>
+            )}
+            {skills.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={h}>Skills</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: 3, columnGap: 10 }}>
+                  {skills.map((s, i) => <span key={i} style={label}>{s}</span>)}
+                </div>
+              </div>
+            )}
+            {data.languages?.length ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={h}>Languages</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {data.languages.map((l, i) => <span key={i} style={label}>{l}</span>)}
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {data.summary && (
+              <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={h}>Summary</p><div style={val}>{data.summary}</div>
+              </div>
+            )}
+            <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <p style={h}>Work Experience</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {data.experience?.map((exp, i) => (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div><div style={label}>{exp.role} · {exp.company}</div><div style={label}>{exp.period}</div></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {exp.achievements?.map((a, j) => (
+                        <div key={j} style={{ display: 'flex', gap: 5 }}><span style={val}>•</span><span style={{ ...val, flex: 1 }}>{a}</span></div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {data.education?.length > 0 && (
+              <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={h}>Education</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {data.education.map((ed, i) => <div key={i}><div style={label}>{ed.degree}</div><div style={label}>{ed.institution}</div></div>)}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Public exports ───────────────────────────────────────────────────────────
 
 const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
   startup: '#0f0f1a',
   elegant: '#fdfaf5',
+  volt:    '#E6FF00',
 }
 // A4 height in px at design width 680
 const A4_H = Math.round(680 * 297 / 210)
@@ -1814,6 +2129,7 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
     if (template === 'creative')  return <PreviewModern    data={data} />
     if (template === 'elegant')   return <PreviewElegant   data={data} />
     if (template === 'aurora')    return <PreviewAurora    data={data} />
+    if (template === 'volt')      return <PreviewVolt      data={data} />
     return <PreviewMinimal data={data} />
   })()
 
