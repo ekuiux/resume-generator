@@ -84,6 +84,18 @@ const LANG_LEVELS  = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 const STEP_NAMES   = ['Profile', 'Experience', 'Skills', 'Contact']
 const LANG_SUGG    = ['English','Spanish','French','German','Portuguese','Italian','Russian','Chinese','Japanese','Korean','Arabic','Hindi','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Turkish','Ukrainian','Hebrew','Persian','Thai','Vietnamese','Indonesian','Malay','Romanian','Hungarian','Greek','Czech']
 
+// Keep letters/spaces/hyphens/parens/apostrophes only, collapse runs of spaces, cap length,
+// and capitalize the first character. Prevents garbage like "Pussy" being padded, "DddD",
+// "asdfg123!@#" from reaching the PDF.
+function sanitizeLanguageName(v) {
+  const cleaned = (v || '')
+    .replace(/[^\p{L}\s\-()'.]/gu, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^\s+/, '')
+    .slice(0, 30)
+  return cleaned.replace(/^(\p{L})/u, (_, c) => c.toUpperCase())
+}
+
 const ROLE_SUGG = [
   // Design
   'Product Designer','Senior Product Designer','Lead Product Designer','UX Designer','UI Designer','UX/UI Designer','Graphic Designer','Brand Designer','Motion Designer','Visual Designer',
@@ -2187,7 +2199,8 @@ function EduRow({ text, onChange, onRemove, onHandleDown, isDragging, sortKey })
             <DragIcon />
           </div>
           <div style={{ flex: 1 }}>
-            <Input value={text} onChange={e => onChange(e.target.value)}
+            <Input value={text} onChange={e => onChange(e.target.value.slice(0, 120))}
+              maxLength={120}
               placeholder="Bachelor of Computer Science — MIT" />
           </div>
           <div style={{ width: 20, height: 47, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: 1 }}>
@@ -2244,8 +2257,9 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
                 isDragging={langDrag?.id === l.id}
                 onHandleDown={e => startLangDrag(l.id, e)}
                 onNameChange={v => {
-                  const dupe = usedLangNames.some(n => n !== l.name && n.toLowerCase() === v.toLowerCase())
-                  if (!dupe) updLang(l.id, { name: v })
+                  const clean = sanitizeLanguageName(v)
+                  const dupe = usedLangNames.some(n => n !== l.name && n.toLowerCase() === clean.toLowerCase())
+                  if (!dupe) updLang(l.id, { name: clean })
                 }}
                 onLevelChange={v => updLang(l.id, { level: v })}
                 onRemove={() => patch({ languages: form.languages.filter(x => x.id !== l.id) })}
@@ -3069,10 +3083,11 @@ export default function ResumeBuilder() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Server error')
       const raw = data.resume.resume ?? data.resume.ru ?? data.resume
-      // Languages: new schema returns string[], old schema built from form
-      const langs = raw.languages?.length
-        ? raw.languages
-        : form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`)
+      // Skills + languages bypass the AI entirely — pass-through from the form, preserving
+      // user order. Templates expect skills.{technical,soft}; we drop everything into
+      // technical (templates concatenate the two anyway).
+      const langs = form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`)
+      const skills = { technical: form.skills.filter(Boolean), soft: [] }
       // Education: new schema returns [{text}], convert to {institution,degree,year}
       const parseEdu = (list) => (list || []).map(e => {
         const str = e.text ?? e.degree ?? ''
@@ -3097,6 +3112,7 @@ export default function ResumeBuilder() {
         linkedin:  form.linkedin || undefined,
         github:    form.portfolio || undefined,
         languages: langs.length ? langs : undefined,
+        skills,
         education: edu,
       }
       const pdfTemplate = PDF_TEMPLATE_MAP[form.template] ?? 'minimal'

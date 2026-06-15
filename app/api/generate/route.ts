@@ -67,7 +67,7 @@ Quickly position the candidate for the target role.
 Structure (follow this order):
 
 * Sentence 1: Who they are + years of experience (if inferable) + domain. Must name the TARGET ROLE or a direct synonym.
-* Sentence 2: Core expertise — 2–3 specific skills drawn from their actual experience.
+* Sentence 2: Core expertise — 2–3 specific skills drawn from their actual experience or from the Skills list provided by the user, prioritizing those most relevant to the target role.
 * Sentence 3 (only if there is real evidence): Scale or context from their background — e.g. team size, product scope, industry. Do NOT invent. Skip this sentence entirely if nothing concrete is available.
 
 Rules:
@@ -138,19 +138,11 @@ Each bullet:
 * Action-oriented.
 * ATS-friendly.
 
-SKILLS RULES
+SKILLS & LANGUAGES
 
-* Use ONLY skills provided by the user.
-* Never generate additional skills.
-* Reorder skills based on relevance to target role and job description.
-
-Split into:
-
-technical
-soft
-
-If classification is unclear:
-Place the skill in technical.
+The user's skills and languages lists are provided as context only — they help you write
+a relevant summary. Do NOT return skills or languages in the output. They are added to the
+final resume separately by the application.
 
 EDUCATION RULES
 
@@ -159,10 +151,6 @@ EDUCATION RULES
 * Do not infer institution.
 * Do not infer year.
 * Do not infer GPA.
-
-LANGUAGE RULES
-
-* Preserve exactly as provided.
 
 ATS RULES
 
@@ -207,11 +195,6 @@ Schema:
         "achievements": ["string"]
       }
     ],
-    "skills": {
-      "technical": ["string"],
-      "soft": ["string"]
-    },
-    "languages": ["string"],
     "education": [
       {
         "text": "string"
@@ -264,10 +247,10 @@ ${formData.jobDescription ? `\n=== JOB DESCRIPTION ===\n${formData.jobDescriptio
 Work experience:
 ${expList || 'Not provided'}
 
-Skills:
+Skills (context only — do NOT include in output, but you MAY reference them in the summary):
 ${skillsList || 'Not provided'}
 
-Languages:
+Languages (context only — do NOT include in output):
 ${langsList || 'Not provided'}
 
 Education:

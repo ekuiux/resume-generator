@@ -601,7 +601,7 @@ const voltStyles = StyleSheet.create({
   bullet:      { flexDirection: 'row', gap: 5 },
   bulletDot:   { fontSize: 10, lineHeight: 1.5, color: VOLT_INK },
   bulletText:  { fontSize: 10, fontWeight: 400, lineHeight: 1.5, color: VOLT_INK, flex: 1 },
-  eduList:     { gap: 3 },
+  eduList:     { gap: 16 },
 })
 
 // Exact decoration layer from Figma (bg.svg) + asterisk (star.svg), fixed on every page
