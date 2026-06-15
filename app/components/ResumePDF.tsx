@@ -3401,7 +3401,8 @@ export const ResumeDownloadButton = forwardRef<HTMLButtonElement, {
   data: ResumeData
   template: TemplateId
   filename?: string
-}>(function ResumeDownloadButton({ data, template, filename = 'resume.pdf' }, ref) {
+  onDownloaded?: () => void
+}>(function ResumeDownloadButton({ data, template, filename = 'resume.pdf', onDownloaded }, ref) {
   const [loading, setLoading] = useState(false)
 
   const handleDownload = async () => {
@@ -3414,6 +3415,7 @@ export const ResumeDownloadButton = forwardRef<HTMLButtonElement, {
       a.download = filename
       a.click()
       URL.revokeObjectURL(url)
+      onDownloaded?.()
     } finally {
       setLoading(false)
     }

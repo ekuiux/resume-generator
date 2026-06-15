@@ -239,12 +239,16 @@ function Input({ style, error, ...props }) {
   )
 }
 
-function AutoInput({ value, onChange, placeholder, suggestions = [], style, showOnFocus = false, ...rest }) {
+function AutoInput({ value, onChange, placeholder, suggestions = [], selectedValues = [], style, showOnFocus = false, ...rest }) {
   const [open, setOpen]       = useState(false)
   const [dropRect, setDropRect] = useState(null)
   const [isTyping, setIsTyping] = useState(false)
   const wrapRef = useRef(null)
+  const dropRef = useRef(null)
   const q = (value || '').toLowerCase()
+
+  // Set of already-chosen values (lowercased) — shown disabled with a checkmark.
+  const selectedSet = new Set(selectedValues.map(s => s.toLowerCase()))
 
   // showOnFocus: full list on focus, filter only when actively typing
   const filterQ = showOnFocus ? (isTyping ? q : '') : q
@@ -262,9 +266,22 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], style, show
 
   useEffect(() => {
     if (!open) return
+    calcRect()
+    // Close when the user interacts outside the input + dropdown. Using pointerdown
+    // (not input blur) keeps the list open while scrolling it on touch devices —
+    // the dropdown is rendered in a portal-like fixed layer, so check both refs.
+    const onDocDown = (e) => {
+      if (wrapRef.current?.contains(e.target) || dropRef.current?.contains(e.target)) return
+      setOpen(false)
+    }
     window.addEventListener('scroll', calcRect, true)
     window.addEventListener('resize', calcRect)
-    return () => { window.removeEventListener('scroll', calcRect, true); window.removeEventListener('resize', calcRect) }
+    document.addEventListener('pointerdown', onDocDown)
+    return () => {
+      window.removeEventListener('scroll', calcRect, true)
+      window.removeEventListener('resize', calcRect)
+      document.removeEventListener('pointerdown', onDocDown)
+    }
   }, [open])
 
   function handleChange(e) {
@@ -272,15 +289,20 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], style, show
     onChange(e)
   }
 
+  function pick(s) {
+    onChange({ target: { value: s } })
+    setOpen(false)
+    setIsTyping(false)
+  }
+
   return (
     <div ref={wrapRef}>
       <Input value={value} onChange={handleChange} placeholder={placeholder} style={style}
         onFocus={() => { calcRect(); setOpen(true); setIsTyping(false) }}
-        onBlur={() => setTimeout(() => setOpen(false), 120)}
         {...rest}
       />
       {open && hits.length > 0 && dropRect && (
-        <div style={{
+        <div ref={dropRef} style={{
           position: 'fixed',
           top: dropRect.bottom + 4,
           left: dropRect.left,
@@ -291,18 +313,30 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], style, show
           boxShadow: '0 8px 24px rgba(0,0,0,.12)',
           maxHeight: 240,
           overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
         }}>
-          {hits.map((s, i) => (
-            <div key={s} onPointerDown={() => { onChange({ target: { value: s } }); setOpen(false); setIsTyping(false) }}
-              style={{
-                padding: '10px 14px', fontSize: T.f13, cursor: 'pointer', color: T.text1,
-                borderBottom: i < hits.length - 1 ? `0.5px solid ${T.border2}` : 'none',
-                background: T.bg1, transition: 'background .1s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = T.bg2}
-              onMouseLeave={e => e.currentTarget.style.background = T.bg1}
-            >{s}</div>
-          ))}
+          {hits.map((s, i) => {
+            const isSelected = selectedSet.has(s.toLowerCase())
+            return (
+              <div key={s}
+                onPointerDown={isSelected ? undefined : (e) => { e.preventDefault(); pick(s) }}
+                style={{
+                  padding: '10px 14px', fontSize: T.f13,
+                  cursor: isSelected ? 'default' : 'pointer',
+                  color: isSelected ? T.text3 : T.text1,
+                  borderBottom: i < hits.length - 1 ? `0.5px solid ${T.border2}` : 'none',
+                  background: T.bg1, transition: 'background .1s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = T.bg2 }}
+                onMouseLeave={e => e.currentTarget.style.background = T.bg1}
+              >
+                <span>{s}</span>
+                {isSelected && <span style={{ color: '#9DD162', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>✓</span>}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
@@ -662,10 +696,56 @@ function Lbl({ children }) {
   )
 }
 
-function Field({ label, hint, children, style }) {
+// Small "ⓘ" affordance next to a label. Hover (desktop) or tap (mobile) reveals a tooltip.
+function InfoTip({ text }) {
+  const [open, setOpen] = useState(false)
+  const isMobile = useIsMobile()
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle' }}
+      onMouseEnter={() => { if (!isMobile) setOpen(true) }}
+      onMouseLeave={() => { if (!isMobile) setOpen(false) }}
+    >
+      <button type="button"
+        aria-label="More info"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: 15, height: 15, borderRadius: '50%', padding: 0, flexShrink: 0,
+          border: '1px solid #C7C9CC', background: 'none', color: '#AFB2B2',
+          fontSize: 10, fontWeight: 700, lineHeight: 1, cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'Georgia, serif', fontStyle: 'italic',
+        }}
+      >i</button>
+      {open && (
+        <span style={{
+          position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+          width: 240, zIndex: 9999,
+          background: '#05070A', color: '#fff', fontSize: 12, fontWeight: 400,
+          letterSpacing: 0, textTransform: 'none', lineHeight: 1.5,
+          padding: '10px 12px', borderRadius: 10,
+          boxShadow: '0 8px 24px rgba(0,0,0,.18)', textAlign: 'left',
+          pointerEvents: 'none',
+        }}>
+          {text}
+          <span style={{
+            position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+            width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent',
+            borderTop: '5px solid #05070A',
+          }} />
+        </span>
+      )}
+    </span>
+  )
+}
+
+function Field({ label, hint, info, children, style }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
-      {label && <Lbl>{label}</Lbl>}
+      {label && (
+        info
+          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Lbl>{label}</Lbl><InfoTip text={info} /></span>
+          : <Lbl>{label}</Lbl>
+      )}
       {children}
       {hint && <p style={{ fontSize: 12, color: '#AFB2B2', margin: 0, lineHeight: 1.5 }}>{hint}</p>}
     </div>
@@ -1201,7 +1281,7 @@ function TemplatePreviewWithIndicator({ template, step }) {
 // ─── Page shell ───────────────────────────────────────────────────────────────
 
 // Card layout: gray page bg, white rounded card centered, progress in top header
-function PageShell({ step, form, children, rightPanel }) {
+function PageShell({ step, form, children, rightPanel, onBackToReview }) {
   const isDark = false
   const badge = STEP_BADGE[step]
   const isMobile = useIsMobile()
@@ -1246,6 +1326,17 @@ function PageShell({ step, form, children, rightPanel }) {
             background: '#fff',
             display: 'flex', flexDirection: 'column', gap: 24,
           }}>
+            {onBackToReview && (
+              <button onClick={onBackToReview} style={{
+                alignSelf: 'flex-start',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: '#F7F8FA', border: '1px solid rgba(175,178,178,0.4)',
+                borderRadius: 20, padding: '6px 14px', cursor: 'pointer',
+                fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: '#05070A',
+              }}>
+                <ArrowLeft /> Back to review
+              </button>
+            )}
             {children}
           </div>
 
@@ -1607,7 +1698,8 @@ function StepBasic({ form, patch, onBack, onNext }) {
           </Field>
         </Grid2>
 
-        <Field label="Job description (recommended)">
+        <Field label="Job description (recommended)"
+          info="Paste the full job posting. The AI tailors your summary, reorders bullet points, and mirrors the role's keywords — the more detail you give, the more personalized the result.">
           <Textarea value={form.jobDescription} onChange={e => patch({ jobDescription: e.target.value.slice(0, 3000) })}
             placeholder="Paste here…" style={{ minHeight: 120 }} />
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: 4 }}>
@@ -1668,7 +1760,8 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
               <Field label="Start date"><MonthPicker value={exp.start} onChange={v => onUpdate({ start: v })} placeholder="Jan 2022" disableFuture maxDate={exp.end && exp.end !== 'Present' ? exp.end : undefined} /></Field>
               <Field label="End date"><MonthPicker value={exp.end} onChange={v => onUpdate({ end: v })} placeholder="Present" allowPresent disableFuture minDate={exp.start || undefined} /></Field>
             </Grid2>
-            <Field label="What you did & achieved" hint="Use bullet points or simple notes.">
+            <Field label="What you did & achieved" hint="Use bullet points or simple notes."
+              info="Write everything you did — tasks, results, numbers, tools. The AI only polishes and structures what you provide; it never invents facts, so more detail means richer bullet points.">
               <Textarea value={exp.desc} onChange={e => onUpdate({ desc: e.target.value })}
                 placeholder={'Led redesign of onboarding flow\nIncreased conversion by 15%\nBuilt design system used by 4 teams'} />
             </Field>
@@ -2085,7 +2178,8 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
           {/* Content: input + levels */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
-              placeholder="e.g. English" suggestions={LANG_SUGG.filter(s => !usedNames.includes(s) || s === item.name)} showOnFocus />
+              placeholder="e.g. English" suggestions={LANG_SUGG}
+              selectedValues={usedNames.filter(n => n !== item.name)} showOnFocus />
             <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
               border: '1px solid rgba(175,178,178,0.5)', borderRadius: 12,
               height: 47, padding: 4, overflow: 'hidden', boxSizing: 'border-box' }}>
@@ -2122,7 +2216,8 @@ function LangRow({ item, onNameChange, onLevelChange, onRemove, onHandleDown, is
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <div style={{ flex: 1 }}>
           <AutoInput value={item.name} onChange={e => onNameChange(e.target.value)}
-            placeholder="e.g. English" suggestions={LANG_SUGG} showOnFocus />
+            placeholder="e.g. English" suggestions={LANG_SUGG}
+            selectedValues={usedNames.filter(n => n !== item.name)} showOnFocus />
         </div>
         <div style={{ flex: 1,
           position: 'relative',
@@ -2707,6 +2802,7 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
   const [verifyEmail, setVerifyEmail] = useState('')
   const [verifying, setVerifying] = useState(false)
   const [verifyError, setVerifyError] = useState(null)
+  const [downloaded, setDownloaded] = useState(false)
 
   // Load Creem embed.js once
   useEffect(() => {
@@ -2879,7 +2975,7 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
     </div>
   )
 
-  return (
+  const mainView = (
     <div style={{ minHeight: '100vh', background: '#F7F8FA', display: 'flex', flexDirection: 'column' }}>
       <AppHeader>
         <LogoMark />
@@ -3046,8 +3142,82 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
       )}
 
       <div style={{ display: 'none' }}>
-        <ResumeDownloadButton ref={downloadRef} data={resume} template={template} filename="resume.pdf" />
+        <ResumeDownloadButton ref={downloadRef} data={resume} template={template} filename="resume.pdf"
+          onDownloaded={() => { posthog.capture('resume_downloaded'); setDownloaded(true) }} />
       </div>
+    </div>
+  )
+
+  if (downloaded) {
+    return (
+      <FinishScreen
+        onDownloadAgain={() => downloadRef.current?.click()}
+        onReset={onReset}
+        downloadSlot={
+          <div style={{ display: 'none' }}>
+            <ResumeDownloadButton ref={downloadRef} data={resume} template={template} filename="resume.pdf"
+              onDownloaded={() => {}} />
+          </div>
+        }
+      />
+    )
+  }
+
+  return mainView
+}
+
+// Post-download thank-you screen, styled to match the builder.
+function FinishScreen({ onDownloadAgain, onReset, downloadSlot }) {
+  const isMobile = useIsMobile()
+  return (
+    <div style={{ minHeight: '100vh', background: '#F7F8FA', display: 'flex', flexDirection: 'column' }}>
+      <AppHeader>
+        <LogoMark />
+        <div />
+        <LogoMark style={{ opacity: 0, pointerEvents: 'none' }} />
+      </AppHeader>
+
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: isMobile ? '24px 16px' : '16px 1.5rem 3rem', boxSizing: 'border-box',
+      }}>
+        <div style={{
+          width: '100%', maxWidth: 520, background: '#fff',
+          borderRadius: isMobile ? 24 : 32, padding: isMobile ? '40px 24px' : '56px 48px',
+          textAlign: 'center', boxShadow: '0px 30px 100px rgba(0,0,0,0.06)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+        }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: '50%', background: '#9DD162',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12.5L10 17.5L19 6.5" stroke="#05070A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: '#05070A', margin: 0 }}>
+              Your resume is downloaded
+            </h1>
+            <p style={{ fontSize: 15, color: '#4A4A4D', margin: 0, lineHeight: 1.6 }}>
+              Thanks for using Resumetion. We hope it helps you land the job of your dreams —
+              good luck out there! 🚀
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
+            <BtnPrimary onClick={onDownloadAgain} style={{ width: '100%' }}>
+              Download again <DownloadIcon />
+            </BtnPrimary>
+            <BtnSecondary onClick={onReset} style={{ width: '100%' }}>
+              <StartOverIcon /> Create another resume
+            </BtnSecondary>
+          </div>
+        </div>
+      </div>
+
+      {downloadSlot}
     </div>
   )
 }
@@ -3061,10 +3231,16 @@ export default function ResumeBuilder() {
   const [prerenderedPages, setPrerenderedPages] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
+  // True while the user is editing a step reached via "Edit" on the review screen —
+  // surfaces a "Back to review" shortcut so they don't have to step forward again.
+  const [fromReview, setFromReview] = useState(false)
   const downloadRef = useRef(null)
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
   const goTo = s => { setScreen(s); window.scrollTo(0, 0) }
+  // Edits launched from the review screen flag fromReview (steps 1–4 only).
+  const goToFromReview = s => { if (s >= 1 && s <= 4) setFromReview(true); goTo(s) }
+  const backToReview = () => { setFromReview(false); goTo(0) }
 
   useEffect(() => {
     try { localStorage.setItem(LS_KEY, JSON.stringify(form)) } catch {}
@@ -3131,13 +3307,13 @@ export default function ResumeBuilder() {
   }
 
   const content = (() => {
-    if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setPrerenderedPages(null); setForm(INITIAL_FORM); setScreen(-1); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} initialPages={prerenderedPages ?? undefined} />
+    if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setPrerenderedPages(null); setForm(INITIAL_FORM); setScreen(-1); setFromReview(false); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} initialPages={prerenderedPages ?? undefined} />
     if (screen === -1) return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
-    if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} /></PageShell>
-    if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} /></PageShell>
-    if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); goTo(4) }} /></PageShell>
-    if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); goTo(0) }} /></PageShell>
-    if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goTo} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
+    if (screen === 1) return <PageShell step={1} form={form} onBackToReview={fromReview ? backToReview : null}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} /></PageShell>
+    if (screen === 2) return <PageShell step={2} form={form} onBackToReview={fromReview ? backToReview : null}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} /></PageShell>
+    if (screen === 3) return <PageShell step={3} form={form} onBackToReview={fromReview ? backToReview : null}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); goTo(4) }} /></PageShell>
+    if (screen === 4) return <PageShell step={4} form={form} onBackToReview={fromReview ? backToReview : null}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); goTo(0) }} /></PageShell>
+    if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goToFromReview} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
   })()
 
   return (
