@@ -22,10 +22,10 @@ const PDFLivePreview = dynamic(
 const TEMPLATES = [
   { id: 'minimal',   name: 'Minimal',   swatch: '#ffffff', accent: '#212329', badge: { text: 'Popular', bg: '#05070A', color: '#fff' }, image: '/templates/minimal.jpg' },
   { id: 'atelier',   name: 'Atelier',   swatch: '#d7deff', accent: '#505889', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/atelier.jpg' },
-  { id: 'aurora',    name: 'Aurora',    swatch: '#fbcfe8', accent: '#000000', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/aurora.jpg' },
-  { id: 'volt',      name: 'Volt',      swatch: '#E6FF00', accent: '#111111', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/volt.jpg' },
-  { id: 'prime',     name: 'Prime',     swatch: '#f8c625', accent: '#3b3b3b', badge: { text: 'New', bg: '#9DD162', color: '#05070A' }, image: '/templates/prime.jpg' },
-  { id: 'academic',  name: 'Academic',  swatch: '#dce6f0', accent: '#003366', badge: null },
+  { id: 'aurora',    name: 'Aurora',    swatch: '#fbcfe8', accent: '#000000', badge: null, image: '/templates/aurora.jpg' },
+  { id: 'volt',      name: 'Volt',      swatch: '#E6FF00', accent: '#111111', badge: null, image: '/templates/volt.jpg' },
+  { id: 'prime',     name: 'Prime',     swatch: '#f8c625', accent: '#3b3b3b', badge: null, image: '/templates/prime.jpg' },
+  { id: 'nordic',    name: 'Nordic',    swatch: '#dff5e3', accent: '#537872', badge: null, image: '/templates/nordic.jpg' },
 ]
 
 const INDUSTRIES = [
@@ -131,7 +131,7 @@ const PDF_TEMPLATE_MAP = {
   minimal:   'minimal',
   atelier:   'atelier',
   prime:     'prime',
-  academic:  'academic',
+  nordic:    'nordic',
   aurora:    'aurora',
   volt:      'volt',
 }

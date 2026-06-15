@@ -101,6 +101,25 @@ Font.register({
   ]
 })
 
+// Nordic template font (Gabarito — OFL; SemiBold instanced from the variable TTF)
+Font.register({
+  family: 'Gabarito',
+  fonts: [
+    { src: '/fonts/Gabarito-Regular.ttf',  fontWeight: 400 },
+    { src: '/fonts/Gabarito-SemiBold.ttf', fontWeight: 600 },
+    { src: '/fonts/Gabarito-Bold.ttf',     fontWeight: 700 },
+  ]
+})
+
+// Nordic template font (Gabarito — OFL; static weights instanced from the variable TTF)
+Font.register({
+  family: 'Gabarito',
+  fonts: [
+    { src: '/fonts/Gabarito-Regular.ttf', fontWeight: 400 },
+    { src: '/fonts/Gabarito-Bold.ttf',    fontWeight: 700 },
+  ]
+})
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ResumeData {
@@ -131,7 +150,7 @@ export interface ResumeData {
   languages?: string[]
 }
 
-export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora' | 'volt' | 'atelier' | 'prime'
+export type TemplateId = 'minimal' | 'business' | 'creative' | 'corporate' | 'elegant' | 'academic' | 'startup' | 'aurora' | 'volt' | 'atelier' | 'prime' | 'nordic' | 'nordic'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -163,7 +182,7 @@ function langParts(l: string): { name: string; level: string } {
 
 // Figma Frame 170: name top=32 h=26 (110%), gap=6, role h=19 (120%), cols top=115 → gap=32 ✓
 const minimalStyles = StyleSheet.create({
-  page:          { fontFamily: 'Onest', backgroundColor: '#ffffff', padding: '32 48 40 48' },
+  page:          { fontFamily: 'Onest', backgroundColor: '#ffffff', padding: '40 48 40 48' },
   name:          { fontSize: 24, fontWeight: 'bold', color: '#212329', lineHeight: 1.1, marginBottom: 6 },
   role:          { fontSize: 16, fontWeight: 400, color: '#212329', lineHeight: 1.2, marginBottom: 32 },
   cols:          { flexDirection: 'row', gap: 24 },
@@ -1824,7 +1843,7 @@ function StartupResume({ data }: { data: ResumeData }) {
 // разделитель, затем 2 колонки: слева Summary/Experience/Education, справа
 // Contact/Languages/Skills. Figma node 47619-6140, A4 595×842, поля 48 / верх 56.
 
-const PRM_BG    = '#f3f3f5'
+const PRM_BG    = '#ffffff'
 const PRM_GOLD  = '#f8c625'
 const PRM_INK   = '#3b3b3b'   // заголовки и жирный текст
 const PRM_DIM   = '#999999'   // тело / второстепенный текст
@@ -2012,6 +2031,255 @@ function PrimeResume({ data }: { data: ResumeData }) {
   )
 }
 
+// ─── Шаблон NORDIC ────────────────────────────────────────────────────────────
+// Мятный диагональный градиент (#e1ffe8 → #f3ffe1), единые чернила #537872 (заголовки)
+// и #1c2221 (тело). Шрифт Gabarito (Regular/SemiBold/Bold). Сетка контактов 3×2 сверху,
+// крупное имя в 2 строки + орбитальная графика в углу, вертикальный лейбл "Experience"
+// у обведённого блока опыта, низ — Language/Education + Skills с линиями-подчёркиваниями.
+// Figma node 47620-6351, A4 595×842, поля 48 / верх 40.
+
+const NRD_INK  = '#537872'   // заголовки, лейблы, линии, графика
+const NRD_BODY = '#1c2221'   // тело
+
+// Мятный градиентный фон на всю страницу (fixed → повторяется на каждой; gotcha #1/#2)
+function NordicBg() {
+  return (
+    <Svg width={595} height={842} viewBox="0 0 595 842" style={{ position: 'absolute', top: 0, left: 0 }} fixed>
+      <Defs>
+        <LinearGradient id="nrdGrad" x1="0" y1="0" x2="595" y2="842" gradientUnits="userSpaceOnUse">
+          <Stop offset="0" stopColor="#e1ffe8" />
+          <Stop offset="1" stopColor="#f3ffe1" />
+        </LinearGradient>
+      </Defs>
+      <Rect x="0" y="0" width="595" height="842" fill="url(#nrdGrad)" />
+    </Svg>
+  )
+}
+
+// Орбитальная графика (точные векторные пути из Figma). Absolute-ребёнок Page →
+// координаты от КРАЯ страницы (gotcha #9); не fixed → только на 1-й странице.
+function NordicOrbit() {
+  return (
+    <Svg width={162.373} height={148} viewBox="0 0 162.373 148"
+      style={{ position: 'absolute', top: 97, left: 365 }}>
+      <Path d="M132.896 138.776C121.864 138.778 106.165 132.568 89.6002 121.236C65.9868 105.082 45.4823 84.061 31.8632 62.0466C19.3856 41.8766 14.846 24.0622 19.7221 14.3931C22.6132 8.65772 30.0897 3.21765 49.2627 9.87131L48.8345 11.1034C34.363 6.08077 24.6963 7.42256 20.8865 14.9807C11.1548 34.2819 41.2905 86.6065 90.3367 120.159C112.332 135.207 132.611 141.145 141.991 135.293C146.936 132.209 148.767 125.994 147.431 116.819L148.723 116.632C150.139 126.366 148.107 133.017 142.681 136.4C140.115 138 136.796 138.776 132.896 138.776Z" fill={NRD_INK} />
+      <Path d="M148.385 30.8775L147.106 30.6227C148.759 22.3001 147.553 15.9352 143.616 12.2161C139.328 8.16563 131.789 7.27384 122.385 9.70477L122.059 8.44219C131.91 5.89337 139.886 6.89743 144.511 11.2676C148.792 15.311 150.132 22.0919 148.385 30.8775Z" fill={NRD_INK} />
+      <Path d="M124.608 75.1078C120.293 81.356 120.471 81.7507 133.08 92.5748C120.168 82.1583 119.716 82.0261 114.372 87.4209C118.958 81.3445 118.776 80.9458 106.138 70.1517C119.026 80.6025 119.483 80.7366 124.608 75.1078Z" fill={NRD_INK} />
+      <Path d="M77.0208 121.235L76.2818 120.16C106.211 99.4454 140.149 62.0341 147.108 30.6091L148.382 30.8906C141.35 62.6446 107.16 100.376 77.0208 121.235Z" fill={NRD_INK} />
+      <Path d="M33.8572 138.712C29.4168 138.712 25.7078 137.719 22.9546 135.672C18.5997 132.436 14.534 125.034 19.8955 108.153L21.1391 108.548C17.0797 121.329 17.9767 130.347 23.732 134.625C32.8764 141.421 53.502 135.743 76.2821 120.16L77.0211 121.235C60.4442 132.575 44.8949 138.712 33.8572 138.712Z" fill={NRD_INK} />
+      <Path d="M86.0633 148C75.0369 148 64.184 145.583 54.1286 140.77C35.1684 131.697 20.5718 115.14 14.0803 95.3458L15.3213 94.9394C21.7007 114.397 36.0513 130.672 54.6918 139.594C67.5988 145.771 88.2955 151.129 113.606 141.569C145.26 129.612 163.766 100.53 160.747 67.4789C157.702 34.1141 134.005 8.62185 100.378 2.53537C63.3365 -4.17102 27.656 16.4054 15.5339 51.4573L14.3006 51.0305C20.1527 34.1115 31.9905 19.7399 47.6355 10.5636C63.5162 1.2503 82.33 -2.0586 100.61 1.251C134.83 7.44576 158.947 33.3948 162.047 67.3603C165.119 101.012 146.286 130.619 114.067 142.789C104.859 146.267 95.3987 148 86.0633 148Z" fill={NRD_INK} />
+      <Path d="M22.3657 72.9308C13.9786 74.4749 12.727 75.7265 11.1827 84.1138C9.63865 75.7267 8.38711 74.4749 1.50651e-05 72.9308C8.38711 71.3868 9.63865 70.1352 11.1827 61.7481C12.7268 70.1352 13.9786 71.387 22.3657 72.9308Z" fill={NRD_INK} />
+      <Path d="M26.9519 84.1127C23.5122 84.7459 22.999 85.2592 22.3657 88.6989C21.7324 85.2592 21.2191 84.7459 17.7794 84.1127C21.2191 83.4794 21.7324 82.9661 22.3657 79.5264C22.9988 82.9661 23.5122 83.4794 26.9519 84.1127Z" fill={NRD_INK} />
+      <Path d="M122.222 67.5401C118.782 68.1733 118.269 68.6866 117.636 72.1263C117.002 68.6866 116.489 68.1733 113.049 67.5401C116.489 66.9068 117.002 66.3935 117.636 62.9538C118.269 66.3935 118.782 66.9068 122.222 67.5401Z" fill={NRD_INK} />
+    </Svg>
+  )
+}
+
+// Вертикальный лейбл "EXPERIENCE" как SVG-текст. Через обычный <Text transform> react-pdf
+// обрезает повёрнутый текст по ширине flex-колонки (выходит обрубок) — SVG этого лишён.
+function NordicVLabel() {
+  return (
+    <Svg width={16} height={96} viewBox="0 0 16 96">
+      <Text x={8} y={48} fill={NRD_INK} textAnchor="middle" dominantBaseline="central"
+        transform="rotate(-90, 8, 48)"
+        style={{ fontFamily: 'Gabarito', fontWeight: 700, fontSize: 14 } as any}>EXPERIENCE</Text>
+    </Svg>
+  )
+}
+
+const nordicStyles = StyleSheet.create({
+  // Верт. поля = 0, чтобы рамка опыта на разрыве доходила до края (стр.1 — в низ).
+  // Отступы дают спейсеры: fixed-сверху (повторяется на каждой странице → перепадит
+  // и контент продолжения на стр.2) + обычный снизу (поле на последней странице).
+  page:        { fontFamily: 'Gabarito', backgroundColor: '#e9ffe6', padding: '0 48 0 48', color: NRD_BODY },
+  root:        { flexDirection: 'column', gap: 32 },
+
+  // Контакты — сетка 3 кол. × 2 ряда
+  contactGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 16, columnGap: 12 },
+  contactCell: { width: 158.33, gap: 4 },
+  contactLabel:{ fontFamily: 'Gabarito', fontSize: 10, fontWeight: 700, lineHeight: 1, letterSpacing: 0.6, textTransform: 'uppercase', color: NRD_INK },
+  contactVal:  { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1, color: NRD_BODY },
+
+  // Имя + summary
+  intro:       { paddingRight: 80, gap: 24 },
+  nameWrap:    { gap: 8 },
+  nameLines:   { flexDirection: 'column' },
+  name:        { fontFamily: 'Gabarito', fontSize: 48, fontWeight: 700, lineHeight: 0.9, textTransform: 'uppercase', color: NRD_INK },
+  role:        { fontFamily: 'Gabarito', fontSize: 14, fontWeight: 600, lineHeight: 1, letterSpacing: 1.12, textTransform: 'uppercase', color: NRD_INK },
+  summary:     { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1.4, color: NRD_BODY },
+
+  // Опыт — вертикальный лейбл (SVG, absolute-оверлей) + обведённый блок.
+  // Лейбл вынесен из потока (absolute) и боксу задан фиксированный marginLeft, чтобы при
+  // переносе на 2-ю страницу левый край рамки не «прыгал» (лейбл есть только на стр.1).
+  expRow:      { position: 'relative' },
+  vLabelAbs:   { position: 'absolute', left: 0, top: 0 },
+  expBox:      { marginLeft: 32, borderWidth: 1, borderStyle: 'solid', borderColor: NRD_INK, padding: 24 },
+  expInner:    { gap: 24 },
+  expItem:     { flexDirection: 'row', gap: 16 },
+  expLeft:     { width: 111, gap: 8 },
+  expDate:     { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 700, lineHeight: 1, textTransform: 'uppercase', color: NRD_INK },
+  expCompany:  { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1.4, color: NRD_BODY },
+  expRight:    { flex: 1, gap: 8 },
+  expRole:     { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 700, lineHeight: 1, textTransform: 'uppercase', color: NRD_INK },
+  bulletList:  { gap: 4 },
+  bullet:      { flexDirection: 'row', gap: 6 },
+  bulletDot:   { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1.4, color: NRD_BODY, width: 8, textAlign: 'center' },
+  bulletText:  { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1.4, color: NRD_BODY, flex: 1 },
+
+  // Низ
+  bottom:      { gap: 32 },
+  twoCol:      { flexDirection: 'row', gap: 24 },
+  col:         { flex: 1, gap: 12 },
+  secHead:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  secLabel:    { fontFamily: 'Gabarito', fontSize: 14, fontWeight: 700, letterSpacing: 0.84, textTransform: 'uppercase', color: NRD_INK },
+  secRule:     { flex: 1, height: 1, backgroundColor: NRD_INK },
+  langList:    { gap: 8 },
+  langItem:    { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1, color: NRD_BODY },
+  eduItem:     { gap: 8 },
+  eduInst:     { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 700, lineHeight: 1, textTransform: 'uppercase', color: NRD_INK },
+  eduDeg:      { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1.4, color: NRD_BODY },
+  skillsWrap:  { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8, columnGap: 8 },
+  skill:       { fontFamily: 'Gabarito', fontSize: 10, fontWeight: 400, lineHeight: 1, color: NRD_BODY },
+})
+
+function NordicResume({ data }: { data: ResumeData }) {
+  const nameWords = (data.name || '').trim().split(/\s+/).filter(Boolean)
+
+  const contacts = [
+    data.phone    ? { label: 'Phone.',     val: data.phone }    : null,
+    data.email    ? { label: 'Email.',     val: data.email }    : null,
+    data.location ? { label: 'Address.',   val: data.location } : null,
+    data.linkedin ? { label: 'LinkedIn.',  val: data.linkedin } : null,
+    data.github   ? { label: 'Portfolio.', val: data.github }   : null,
+  ].filter(Boolean) as { label: string; val: string }[]
+
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  const SecHead = ({ children }: { children: React.ReactNode }) => (
+    <View style={nordicStyles.secHead}>
+      <Text style={nordicStyles.secLabel}>{children}</Text>
+      <View style={nordicStyles.secRule} />
+    </View>
+  )
+
+  return (
+    <Document>
+      <Page size="A4" style={nordicStyles.page}>
+        <NordicBg />
+        <NordicOrbit />
+
+        {/* Верхнее поле стр.1 (обычный спейсер — только на 1-й странице) */}
+        <View style={{ height: 40 }} />
+
+        <View style={nordicStyles.root}>
+          {/* Контакты */}
+          {contacts.length > 0 && (
+            <View style={nordicStyles.contactGrid}>
+              {contacts.map((c, i) => (
+                <View key={i} style={nordicStyles.contactCell}>
+                  <Text style={nordicStyles.contactLabel}>{c.label}</Text>
+                  <Text style={nordicStyles.contactVal}>{c.val}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Имя + summary */}
+          <View style={nordicStyles.intro}>
+            <View style={nordicStyles.nameWrap}>
+              <View style={nordicStyles.nameLines}>
+                {nameWords.map((w, i) => <Text key={i} style={nordicStyles.name}>{w}</Text>)}
+              </View>
+              {data.title ? <Text style={nordicStyles.role}>{data.title}</Text> : null}
+            </View>
+            {data.summary ? <Text style={nordicStyles.summary}>{data.summary}</Text> : null}
+          </View>
+
+          {/* Опыт */}
+          {data.experience.length > 0 && (
+            <View style={nordicStyles.expRow}>
+              <View style={nordicStyles.vLabelAbs}><NordicVLabel /></View>
+              <View style={nordicStyles.expBox}>
+                {/* перепадинг ТОЛЬКО контента на стр. продолжения (бордюр короба при этом
+                    остаётся у края страницы); на стр.1 пусто (gotcha #4) */}
+                <View fixed render={({ pageNumber }: any) => (pageNumber > 1 ? <View style={{ height: 28 }} /> : null)} />
+                <View style={nordicStyles.expInner}>
+                {data.experience.map((exp, i) => (
+                  <View key={i} style={nordicStyles.expItem} wrap={false}>
+                    <View style={nordicStyles.expLeft}>
+                      {exp.period ? <Text style={nordicStyles.expDate}>{exp.period}</Text> : null}
+                      {exp.company ? <Text style={nordicStyles.expCompany}>{exp.company}</Text> : null}
+                    </View>
+                    <View style={nordicStyles.expRight}>
+                      <Text style={nordicStyles.expRole}>{exp.role}</Text>
+                      {exp.achievements.length > 0 && (
+                        <View style={nordicStyles.bulletList}>
+                          {exp.achievements.map((a, j) => (
+                            <View key={j} style={nordicStyles.bullet}>
+                              <Text style={nordicStyles.bulletDot}>•</Text>
+                              <Text style={nordicStyles.bulletText}>{a}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                ))}
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Низ: Language / Education + Skills */}
+          <View style={nordicStyles.bottom}>
+            {(data.languages?.length || data.education.length > 0) ? (
+              <View style={nordicStyles.twoCol}>
+                <View style={nordicStyles.col}>
+                  {data.languages && data.languages.length > 0 ? (
+                    <>
+                      <SecHead>Language</SecHead>
+                      <View style={nordicStyles.langList}>
+                        {data.languages.map((l, i) => <Text key={i} style={nordicStyles.langItem}>{l}</Text>)}
+                      </View>
+                    </>
+                  ) : null}
+                </View>
+                <View style={nordicStyles.col}>
+                  {data.education.length > 0 ? (
+                    <>
+                      <SecHead>Education</SecHead>
+                      <View style={{ gap: 8 }}>
+                        {data.education.map((ed, i) => (
+                          <View key={i} style={nordicStyles.eduItem} wrap={false}>
+                            <Text style={nordicStyles.eduInst}>{ed.institution}</Text>
+                            {ed.degree ? <Text style={nordicStyles.eduDeg}>{ed.degree}</Text> : null}
+                          </View>
+                        ))}
+                      </View>
+                    </>
+                  ) : null}
+                </View>
+              </View>
+            ) : null}
+
+            {skills.length > 0 && (
+              <View style={nordicStyles.col}>
+                <SecHead>Skills</SecHead>
+                <View style={nordicStyles.skillsWrap}>
+                  {skills.map((s, i) => <Text key={i} style={nordicStyles.skill}>{s}</Text>)}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Нижнее поле последней страницы */}
+        <View style={{ height: 40 }} />
+      </Page>
+    </Document>
+  )
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 function ResumeDocument({ data, template }: { data: ResumeData; template: TemplateId }) {
@@ -2025,6 +2293,7 @@ function ResumeDocument({ data, template }: { data: ResumeData; template: Templa
   if (template === 'volt')       return <VoltResume      data={data} />
   if (template === 'atelier')    return <AtelierResume   data={data} />
   if (template === 'prime')      return <PrimeResume     data={data} />
+  if (template === 'nordic')     return <NordicResume    data={data} />
   return <MinimalResume data={data} />
 }
 
@@ -2090,7 +2359,7 @@ function PreviewMinimal({ data }: { data: ResumeData }) {
   )
 
   return (
-    <div style={{ fontFamily: 'var(--font-onest), system-ui, sans-serif', padding: '32px 48px 40px', color: '#212329' }}>
+    <div style={{ fontFamily: 'var(--font-onest), system-ui, sans-serif', padding: '40px 48px 40px', color: '#212329' }}>
       <div style={{ fontSize: 24, fontWeight: 700, lineHeight: '28px', marginBottom: 6 }}>{data.name}</div>
       <div style={{ fontSize: 16, fontWeight: 400, lineHeight: '20px', marginBottom: 32 }}>{data.title}</div>
 
@@ -2749,7 +3018,7 @@ function PreviewPrime({ data }: { data: ResumeData }) {
   )
 
   return (
-    <div style={{ fontFamily: font, background: '#f3f3f5', color: INK, padding: '52px 48px', position: 'relative' }}>
+    <div style={{ fontFamily: font, background: '#ffffff', color: INK, padding: '52px 48px', position: 'relative' }}>
       {/* Жёлтый тэг в углу */}
       <div style={{ position: 'absolute', top: 0, right: 48, width: 46, height: 96, background: GOLD }} />
 
@@ -2843,6 +3112,141 @@ function PreviewPrime({ data }: { data: ResumeData }) {
   )
 }
 
+// ── 11. Nordic ───────────────────────────────────────────────────────────────
+function PreviewNordic({ data }: { data: ResumeData }) {
+  const INK = '#537872', BODY = '#1c2221'
+  const font = 'Gabarito, system-ui, sans-serif'
+  const nameWords = (data.name || '').trim().split(/\s+/).filter(Boolean)
+
+  const contacts = [
+    data.phone    ? { label: 'Phone.',     val: data.phone }    : null,
+    data.email    ? { label: 'Email.',     val: data.email }    : null,
+    data.location ? { label: 'Address.',   val: data.location } : null,
+    data.linkedin ? { label: 'LinkedIn.',  val: data.linkedin } : null,
+    data.github   ? { label: 'Portfolio.', val: data.github }   : null,
+  ].filter(Boolean) as { label: string; val: string }[]
+  const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
+
+  const SecHead = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: 0.9, textTransform: 'uppercase', color: INK, whiteSpace: 'nowrap' }}>{children}</span>
+      <span style={{ flex: 1, height: 1, background: INK }} />
+    </div>
+  )
+  const label: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', color: INK, margin: 0 }
+  const val: React.CSSProperties = { fontSize: 11, fontWeight: 400, color: BODY, margin: 0 }
+
+  return (
+    <div style={{ fontFamily: font, background: 'linear-gradient(145deg, #e1ffe8 0%, #f3ffe1 100%)', padding: '40px 48px 50px', position: 'relative', color: BODY }}>
+      {/* орбитальная графика */}
+      <svg viewBox="0 0 162.373 148" width={150} height={137} style={{ position: 'absolute', top: 97, right: 60 }}>
+        <g fill={INK}>
+          <path d="M132.896 138.776C121.864 138.778 106.165 132.568 89.6002 121.236C65.9868 105.082 45.4823 84.061 31.8632 62.0466C19.3856 41.8766 14.846 24.0622 19.7221 14.3931C22.6132 8.65772 30.0897 3.21765 49.2627 9.87131L48.8345 11.1034C34.363 6.08077 24.6963 7.42256 20.8865 14.9807C11.1548 34.2819 41.2905 86.6065 90.3367 120.159C112.332 135.207 132.611 141.145 141.991 135.293C146.936 132.209 148.767 125.994 147.431 116.819L148.723 116.632C150.139 126.366 148.107 133.017 142.681 136.4C140.115 138 136.796 138.776 132.896 138.776Z" />
+          <path d="M148.385 30.8775L147.106 30.6227C148.759 22.3001 147.553 15.9352 143.616 12.2161C139.328 8.16563 131.789 7.27384 122.385 9.70477L122.059 8.44219C131.91 5.89337 139.886 6.89743 144.511 11.2676C148.792 15.311 150.132 22.0919 148.385 30.8775Z" />
+          <path d="M124.608 75.1078C120.293 81.356 120.471 81.7507 133.08 92.5748C120.168 82.1583 119.716 82.0261 114.372 87.4209C118.958 81.3445 118.776 80.9458 106.138 70.1517C119.026 80.6025 119.483 80.7366 124.608 75.1078Z" />
+          <path d="M77.0208 121.235L76.2818 120.16C106.211 99.4454 140.149 62.0341 147.108 30.6091L148.382 30.8906C141.35 62.6446 107.16 100.376 77.0208 121.235Z" />
+          <path d="M33.8572 138.712C29.4168 138.712 25.7078 137.719 22.9546 135.672C18.5997 132.436 14.534 125.034 19.8955 108.153L21.1391 108.548C17.0797 121.329 17.9767 130.347 23.732 134.625C32.8764 141.421 53.502 135.743 76.2821 120.16L77.0211 121.235C60.4442 132.575 44.8949 138.712 33.8572 138.712Z" />
+          <path d="M86.0633 148C75.0369 148 64.184 145.583 54.1286 140.77C35.1684 131.697 20.5718 115.14 14.0803 95.3458L15.3213 94.9394C21.7007 114.397 36.0513 130.672 54.6918 139.594C67.5988 145.771 88.2955 151.129 113.606 141.569C145.26 129.612 163.766 100.53 160.747 67.4789C157.702 34.1141 134.005 8.62185 100.378 2.53537C63.3365 -4.17102 27.656 16.4054 15.5339 51.4573L14.3006 51.0305C20.1527 34.1115 31.9905 19.7399 47.6355 10.5636C63.5162 1.2503 82.33 -2.0586 100.61 1.251C134.83 7.44576 158.947 33.3948 162.047 67.3603C165.119 101.012 146.286 130.619 114.067 142.789C104.859 146.267 95.3987 148 86.0633 148Z" />
+          <path d="M22.3657 72.9308C13.9786 74.4749 12.727 75.7265 11.1827 84.1138C9.63865 75.7267 8.38711 74.4749 1.50651e-05 72.9308C8.38711 71.3868 9.63865 70.1352 11.1827 61.7481C12.7268 70.1352 13.9786 71.387 22.3657 72.9308Z" />
+          <path d="M26.9519 84.1127C23.5122 84.7459 22.999 85.2592 22.3657 88.6989C21.7324 85.2592 21.2191 84.7459 17.7794 84.1127C21.2191 83.4794 21.7324 82.9661 22.3657 79.5264C22.9988 82.9661 23.5122 83.4794 26.9519 84.1127Z" />
+          <path d="M122.222 67.5401C118.782 68.1733 118.269 68.6866 117.636 72.1263C117.002 68.6866 116.489 68.1733 113.049 67.5401C116.489 66.9068 117.002 66.3935 117.636 62.9538C118.269 66.3935 118.782 66.9068 122.222 67.5401Z" />
+        </g>
+      </svg>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        {/* Контакты */}
+        {contacts.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: 16, columnGap: 12 }}>
+            {contacts.map((c, i) => (
+              <div key={i} style={{ width: 'calc((100% - 24px) / 3)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <p style={label}>{c.label}</p>
+                <p style={val}>{c.val}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Имя + summary */}
+        <div style={{ paddingRight: 80, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div>
+              {nameWords.map((w, i) => <p key={i} style={{ fontSize: 52, fontWeight: 700, lineHeight: 0.9, textTransform: 'uppercase', color: INK, margin: 0 }}>{w}</p>)}
+            </div>
+            {data.title && <p style={{ fontSize: 15, fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', color: INK, margin: 0 }}>{data.title}</p>}
+          </div>
+          {data.summary && <p style={{ fontSize: 11, fontWeight: 400, lineHeight: 1.4, color: BODY, margin: 0 }}>{data.summary}</p>}
+        </div>
+
+        {/* Опыт */}
+        {data.experience.length > 0 && (
+          <div style={{ display: 'flex', gap: 16, alignItems: 'stretch' }}>
+            <div style={{ width: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: 0.9, textTransform: 'uppercase', color: INK, whiteSpace: 'nowrap', transform: 'rotate(-90deg)' }}>Experience</span>
+            </div>
+            <div style={{ flex: 1, border: `1px solid ${INK}`, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {data.experience.map((exp, i) => (
+                <div key={i} style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ width: 111, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {exp.period && <p style={{ ...label, letterSpacing: 0, fontSize: 11 }}>{exp.period}</p>}
+                    {exp.company && <p style={{ fontSize: 11, color: BODY, margin: 0, lineHeight: 1.4 }}>{exp.company}</p>}
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <p style={{ ...label, letterSpacing: 0, fontSize: 11 }}>{exp.role}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {exp.achievements?.map((a, j) => (
+                        <div key={j} style={{ display: 'flex', gap: 6 }}>
+                          <span style={{ width: 8, textAlign: 'center', flexShrink: 0, fontSize: 11, color: BODY }}>•</span>
+                          <span style={{ fontSize: 11, color: BODY, lineHeight: 1.4 }}>{a}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Низ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {data.languages && data.languages.length > 0 && (<>
+                <SecHead>Language</SecHead>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {data.languages.map((l, i) => <p key={i} style={{ fontSize: 11, color: BODY, margin: 0 }}>{l}</p>)}
+                </div>
+              </>)}
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {data.education.length > 0 && (<>
+                <SecHead>Education</SecHead>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {data.education.map((ed, i) => (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <p style={label}>{ed.institution}</p>
+                      {ed.degree && <p style={{ fontSize: 11, color: BODY, margin: 0, lineHeight: 1.4 }}>{ed.degree}</p>}
+                    </div>
+                  ))}
+                </div>
+              </>)}
+            </div>
+          </div>
+
+          {skills.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <SecHead>Skills</SecHead>
+              <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: 8, columnGap: 8 }}>
+                {skills.map((s, i) => <span key={i} style={{ fontSize: 11, color: BODY }}>{s}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Public exports ───────────────────────────────────────────────────────────
 
 const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
@@ -2850,7 +3254,8 @@ const TEMPLATE_BG: Partial<Record<TemplateId, string>> = {
   elegant: '#fdfaf5',
   volt:    '#E6FF00',
   atelier: 'linear-gradient(35deg, #ffffff 0%, #d7deff 46%, #ffffff 100%)',
-  prime:   '#f3f3f5',
+  prime:   '#ffffff',
+  nordic:  'linear-gradient(145deg, #e1ffe8 0%, #f3ffe1 100%)',
 }
 // A4 height in px at design width 680
 const A4_H = Math.round(680 * 297 / 210)
@@ -2868,6 +3273,7 @@ export function ResumePreview({ data, template, bare }: { data: ResumeData; temp
     if (template === 'volt')      return <PreviewVolt      data={data} />
     if (template === 'atelier')   return <PreviewAtelier   data={data} />
     if (template === 'prime')     return <PreviewPrime     data={data} />
+    if (template === 'nordic')    return <PreviewNordic    data={data} />
     return <PreviewMinimal data={data} />
   })()
 
