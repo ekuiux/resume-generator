@@ -1112,6 +1112,80 @@ function ResumeDocPreview({ step }) {
   )
 }
 
+// ─── Per-template preview with section indicator ──────────────────────────────
+
+// Bounds expressed as % of the A4 page (top/height — vertical; optional left/right — horizontal
+// inset, used when the highlighted section sits in a sidebar so the overlay shouldn't span full
+// width). Defaults to 10px left/right.
+// Step map: 1=Profile, 2=Experience, 3=Skills, 4=Contact.
+const TEMPLATE_SECTION_BOUNDS = {
+  nordic: {
+    1: { top: '15%',   height: '25%' },   // Profile: name + role + summary
+    2: { top: '40%',   height: '35.3%' }, // Experience box
+    3: { top: '75%',   height: '21.5%' }, // Skills (bottom)
+    4: { top: '2%',    height: '13%' },   // Contact grid (top)
+  },
+  minimal: {
+    1: { top: '2%',    height: '11.5%' },                              // Name + role + summary
+    2: { top: '29.5%',   height: '57.5%',  right: '33.5%' },               // Experience (left col)
+    3: { top: '42.5%',   height: '38%',  left: '66%' },                // Skills (right col)
+    4: { top: '13%',   height: '29.7%',  left: '66%' },                // Contact (right col)
+  },
+  atelier: {
+    1: { top: '2%',    height: '21%',  right: '36%' },               // Name + summary (left frame)
+    2: { top: '43%',   height: '40.5%',  right: '36%' },               // Experience (left frame)
+    3: { top: '32%',   height: '53%',  left: '64.5%' },                // Skills (right col bottom)
+    4: { top: '3%',    height: '25.5%',  left: '64.5%' },                // Contact (right col top)
+  },
+  aurora: {
+    1: { top: '2%',    height: '11.8%',  left: '40%' },                              // Name + summary (full width)
+    2: { top: '29%',   height: '36%',  left: '14%' },                              // Experience
+    3: { top: '77.5%',   height: '20.5%',  left: '33.5%' },                // Skills (right of footer)
+    4: { top: '77.5%',   height: '20.5%',  right: '67%' },               // Contact (left of footer)
+  },
+  volt: {
+    1: { top: '5%',    height: '18%',  left: '5.5%',  right: '5.5%' },                              // Header card + summary
+    2: { top: '39.5%',   height: '42%',  left: '35%',  right: '5.5%' },                // Work Experience (right col)
+    3: { top: '54.5%',   height: '28.5%',  left: '5.5%',  right: '61%' },               // Skills (sidebar mid)
+    4: { top: '23%',   height: '32%',  left: '5.5%',  right: '61%' },               // Personal info (sidebar top)
+  },
+  prime: {
+    1: { top: '5%',    height: '10.1%' },                              // Name + summary (full width)
+    2: { top: '34.5%',   height: '46%',  right: '36%' },               // Experience (left col)
+    3: { top: '63%',   height: '30.5%',  left: '63%' },                // Skills (right col bottom)
+    4: { top: '16.5%',   height: '46.5%',  left: '63%' },                // Contact (right col top)
+  },
+}
+
+function TemplatePreviewWithIndicator({ template, step }) {
+  const tpl = TEMPLATES.find(t => t.id === template)
+  const accent = tpl?.accent ?? '#9DD162'
+  const bounds = TEMPLATE_SECTION_BOUNDS[template]?.[step]
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      {tpl?.image && (
+        <img src={tpl.image} alt={tpl.name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      )}
+      {bounds && (
+        <div style={{
+          position: 'absolute',
+          left:   bounds.left   ?? 10,
+          right:  bounds.right  ?? 10,
+          top: bounds.top, height: bounds.height,
+          borderRadius: 6,
+          background: accent + '1f',
+          border: `1px solid ${accent}`,
+          boxShadow: `0 0 0 4px ${accent}14`,
+          pointerEvents: 'none',
+          transition: 'top 0.35s ease, height 0.35s ease, left 0.35s ease, right 0.35s ease',
+        }} />
+      )}
+    </div>
+  )
+}
+
 // ─── Page shell ───────────────────────────────────────────────────────────────
 
 // Card layout: gray page bg, white rounded card centered, progress in top header
@@ -1182,7 +1256,10 @@ function PageShell({ step, form, children, rightPanel }) {
                 flexShrink: 0,
                 boxShadow: '0px 30px 100px rgba(0, 0, 0, 0.06)',
               }}>
-                <ResumeDocPreview step={step} />
+                {TEMPLATE_SECTION_BOUNDS[form?.template]
+                  ? <TemplatePreviewWithIndicator template={form.template} step={step} />
+                  : <ResumeDocPreview step={step} />
+                }
               </div>
 
               {/* Right panel content (Generate box on summary) */}
