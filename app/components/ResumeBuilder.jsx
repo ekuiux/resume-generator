@@ -1085,26 +1085,23 @@ function HeaderProgress({ step }) {
 function Footer({ step, onBack, onNext, nextLabel, onBackToReview }) {
   const isMobile = useIsMobile()
 
-  // When editing a step reached via "Edit" on the review screen, the Back/Continue
-  // pair is replaced by a single "Back to review" action (changes save live as typed).
-  const reviewBtn = (
-    <BtnPrimary onClick={onBackToReview} style={{ flex: 1 }}><ArrowLeft /> Back to review</BtnPrimary>
-  )
-
+  // When the step was opened via "Edit" on the review screen, keep the normal
+  // Back/Continue nav and add a secondary "Back to review" shortcut alongside it.
   if (isMobile) {
     return (
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
         background: '#fff', padding: '12px 16px 12px',
         borderTop: '1px solid rgba(175,178,178,0.3)',
-        display: 'flex', gap: 10,
+        display: 'flex', flexDirection: 'column', gap: 10,
       }}>
-        {onBackToReview ? reviewBtn : (
-          <>
-            <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
-            <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
-          </>
+        {onBackToReview && (
+          <BtnSecondary onClick={onBackToReview} style={{ width: '100%' }}><ArrowLeft /> Back to review</BtnSecondary>
         )}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+          <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
+        </div>
       </div>
     )
   }
@@ -1112,17 +1109,16 @@ function Footer({ step, onBack, onNext, nextLabel, onBackToReview }) {
   return (
     <>
       <div style={{ height: 1, background: 'rgba(175,178,178,0.3)', margin: '0' }} />
-      {onBackToReview ? (
-        <div style={{ display: 'flex' }}>{reviewBtn}</div>
-      ) : (
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '0',
-        }}>
-          <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '0',
+      }}>
+        <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {onBackToReview && <BtnSecondary onClick={onBackToReview}><ArrowLeft /> Back to review</BtnSecondary>}
           <BtnPrimary onClick={onNext}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
         </div>
-      )}
+      </div>
     </>
   )
 }
@@ -2543,7 +2539,7 @@ function SumRow({ label, value }) {
 }
 
 
-function Summary({ form, goTo, onGenerate, generating, genError }) {
+function Summary({ form, goTo, onEdit, onGenerate, generating, genError }) {
   const tpl = TEMPLATES.find(t => t.id === form.template)
   const isMobile = useIsMobile()
 
@@ -2574,7 +2570,7 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
           </div>
         </SumCard>
 
-        <SumCard icon="👤" title="Profile" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => goTo(1)}>
+        <SumCard icon="👤" title="Profile" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => onEdit(1)}>
           <SumRow label="Target role" value={form.targetRole} />
           <SumRow label="Full name" value={form.name} />
           <SumRow label="Email" value={form.email} />
@@ -2584,7 +2580,7 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
         <SumCard icon="💼" title="Experience"
           statusOk={form.experience.some(e => e.role || e.company)}
           statusText={`${form.experience.length} position${form.experience.length !== 1 ? 's' : ''}`}
-          onEdit={() => goTo(2)}>
+          onEdit={() => onEdit(2)}>
           {form.experience.length === 0
             ? <div style={{ fontSize: 14, color: T.text3 }}>No experience added</div>
             : form.experience.map((e, i) => (
@@ -2610,13 +2606,13 @@ function Summary({ form, goTo, onGenerate, generating, genError }) {
         <SumCard icon="⭐" title="Skills & languages"
           statusOk={form.skills.length > 0 || form.languages.some(l => l.name)}
           statusText={`${form.skills.length} skills, ${form.languages.filter(l => l.name).length} languages`}
-          onEdit={() => goTo(3)}>
+          onEdit={() => onEdit(3)}>
           <SumRow label="Skills" value={form.skills.join(', ')} />
           <SumRow label="Languages" value={form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`).join(', ')} />
           <SumRow label="Education" value={form.education.filter(e => e.text).map(e => e.text).join('; ')} />
         </SumCard>
 
-        <SumCard icon="🔗" title="Contact details" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => goTo(4)}>
+        <SumCard icon="🔗" title="Contact details" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => onEdit(4)}>
           <SumRow label="Phone" value={form.phone} />
           <SumRow label="Location" value={form.location} />
           <SumRow label="LinkedIn" value={form.linkedin} />
@@ -3238,9 +3234,13 @@ export default function ResumeBuilder() {
 
   const patch = useCallback(p => setForm(f => ({ ...f, ...p })), [])
   const goTo = s => { setScreen(s); window.scrollTo(0, 0) }
-  // Edits launched from the review screen flag fromReview (steps 1–4 only).
+  // Edits launched from the review screen flag fromReview (steps 1–4 only) so the
+  // edited step shows a "Back to review" shortcut.
   const goToFromReview = s => { if (s >= 1 && s <= 4) setFromReview(true); goTo(s) }
   const backToReview = () => { setFromReview(false); goTo(0) }
+  // Normal sequential nav (Back/Continue) ends the edit-from-review excursion, so the
+  // shortcut only appears on the single step opened via Edit.
+  const navStep = s => { setFromReview(false); goTo(s) }
 
   useEffect(() => {
     try { localStorage.setItem(LS_KEY, JSON.stringify(form)) } catch {}
@@ -3309,11 +3309,11 @@ export default function ResumeBuilder() {
   const content = (() => {
     if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setPrerenderedPages(null); setForm(INITIAL_FORM); setScreen(-1); setFromReview(false); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} initialPages={prerenderedPages ?? undefined} />
     if (screen === -1) return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
-    if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} onBackToReview={fromReview ? backToReview : null} /></PageShell>
-    if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
-    if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); goTo(4) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
-    if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); goTo(0) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
-    if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goToFromReview} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
+    if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => navStep(-1)} onNext={() => navStep(2)} onBackToReview={fromReview ? backToReview : null} /></PageShell>
+    if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => navStep(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); navStep(3) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
+    if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => navStep(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); navStep(4) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
+    if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => navStep(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); navStep(0) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
+    if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goTo} onEdit={goToFromReview} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
   })()
 
   return (
