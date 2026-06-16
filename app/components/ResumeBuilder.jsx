@@ -2020,11 +2020,13 @@ function SkillChips({ skills, onChange, targetRole }) {
         {skills.map(s => (
           <span
             key={s}
+            onMouseEnter={e => { e.currentTarget.style.background = '#EFF1F4'; e.currentTarget.style.borderColor = 'rgba(175,178,178,0.7)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#F7F8FA'; e.currentTarget.style.borderColor = 'rgba(175,178,178,0.4)' }}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               background: '#F7F8FA', border: '1px solid rgba(175,178,178,0.4)',
               borderRadius: 6, padding: '3px 8px', fontSize: 13, color: '#05070A',
-              userSelect: 'none',
+              userSelect: 'none', transition: 'background .15s, border-color .15s',
             }}
           >
             {s}
@@ -2049,12 +2051,16 @@ function SkillChips({ skills, onChange, targetRole }) {
       {suggestions.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
           {suggestions.slice(0, 8).map(s => (
-            <button key={s} onClick={() => addSkill(s)} style={{
-              fontSize: 12, padding: '4px 12px', borderRadius: 20,
-              border: '1px solid rgba(175,178,178,0.5)', background: '#fff',
-              color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit',
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-            }}><PlusIcon color="#4A4A4D" /> {s}</button>
+            <button key={s} onClick={() => addSkill(s)}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F7F8FA'; e.currentTarget.style.borderColor = 'rgba(175,178,178,0.8)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(175,178,178,0.5)' }}
+              style={{
+                fontSize: 12, padding: '4px 12px', borderRadius: 20,
+                border: '1px solid rgba(175,178,178,0.5)', background: '#fff',
+                color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit',
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                transition: 'background .15s, border-color .15s',
+              }}><PlusIcon color="#4A4A4D" /> {s}</button>
           ))}
         </div>
       )}
@@ -2509,14 +2515,16 @@ function SumCard({ icon, title, statusOk, statusText, onEdit, children }) {
         padding: isMobile ? '0 16px' : '0 24px', gap: 10,
         cursor: 'pointer', userSelect: 'none',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '1 1 auto', minWidth: 0 }}>
           {/* Icon slot — 20×20, черная иконка подставится снаружи */}
           <div style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
-          <span style={{ fontSize: 14, fontWeight: 500, color: '#05070A' }}>{title}</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: '#05070A', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: statusOk ? T.success : T.border1 }} />
-          <span style={{ fontSize: 14, color: T.text3 }}>{statusText}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: statusOk ? '#9DD162' : T.border1 }} />
+            <span style={{ fontSize: 14, color: T.text3, whiteSpace: 'nowrap' }}>{statusText}</span>
+          </div>
           <button onClick={e => { e.stopPropagation(); onEdit() }}
             style={{ fontSize: 14, padding: '4px 12px', borderRadius: 8, border: `1px solid rgba(175,178,178,0.5)`, background: '#fff', color: '#4A4A4D', cursor: 'pointer', fontFamily: 'inherit' }}
             onMouseEnter={e => { e.currentTarget.style.background = '#F7F8FA' }}
@@ -2546,7 +2554,189 @@ function SumRow({ label, value }) {
 }
 
 
-function Summary({ form, goTo, onEdit, onGenerate, generating, genError }) {
+// ─── Match score (local, deterministic) ────────────────────────────────────────
+// The numeric score is computed here on the client by keyword overlap — stable and
+// explainable, no AI involved. The /api/match endpoint only adds qualitative analysis.
+const MATCH_STOPWORDS = new Set(
+  `a an the and or but if then else for to of in on at by with from as is are was were be been being this that these those we you they it our your their work working experience experienced role roles team teams strong good great help build building years year ability able will would should must have has had having looking hiring seeking join joining including include includes etc using use used new who what when where which while across into out up down over under more most least very plus nice want need needs required require requirements responsibilities qualifications about within per via also like such other than each any all some both every minimum preferred bonus position candidate company products product platform customers users people day days month months ideal someone something able`
+    .split(/\s+/),
+)
+
+const MATCH_CASING = {
+  javascript: 'JavaScript', typescript: 'TypeScript', react: 'React', nextjs: 'Next.js', 'next.js': 'Next.js',
+  nodejs: 'Node.js', 'node.js': 'Node.js', node: 'Node.js', graphql: 'GraphQL', css: 'CSS', html: 'HTML',
+  sql: 'SQL', api: 'API', apis: 'APIs', rest: 'REST', aws: 'AWS', gcp: 'GCP', ci: 'CI/CD', cicd: 'CI/CD',
+  'ci/cd': 'CI/CD', ui: 'UI', ux: 'UX', php: 'PHP', sass: 'Sass', scss: 'SCSS', figma: 'Figma',
+  python: 'Python', java: 'Java', kotlin: 'Kotlin', swift: 'Swift', rust: 'Rust', golang: 'Go',
+  kubernetes: 'Kubernetes', docker: 'Docker', git: 'Git', postgresql: 'PostgreSQL', mongodb: 'MongoDB',
+  redis: 'Redis', jest: 'Jest', playwright: 'Playwright', cypress: 'Cypress', agile: 'Agile', scrum: 'Scrum',
+  accessibility: 'Accessibility', seo: 'SEO', redux: 'Redux', vue: 'Vue', angular: 'Angular', svelte: 'Svelte',
+  tailwind: 'Tailwind', webpack: 'Webpack', vite: 'Vite', azure: 'Azure', terraform: 'Terraform', devops: 'DevOps',
+}
+
+const MATCH_VOCAB = new Set([
+  ...Object.keys(MATCH_CASING),
+  'design', 'systems', 'testing', 'frontend', 'backend', 'fullstack', 'mentoring', 'optimization',
+  'performance', 'responsive', 'animation', 'express', 'django', 'flask', 'rails', 'spring', 'dotnet',
+  'linux', 'bash', 'microservices', 'grpc', 'websocket', 'oauth', 'jwt', 'analytics', 'data', 'machine',
+  'learning', 'etl', 'spark', 'tableau', 'excel', 'marketing', 'sales', 'copywriting', 'leadership',
+  'management', 'communication', 'research', 'wireframing', 'prototyping', 'branding', 'illustrator',
+  'photoshop', 'figma', 'architecture', 'scalability', 'security', 'automation', 'deployment',
+])
+
+const MATCH_PHRASES = [
+  'design system', 'design systems', 'unit testing', 'integration testing', 'machine learning',
+  'deep learning', 'continuous integration', 'continuous deployment', 'rest api', 'rest apis',
+  'version control', 'code review', 'test driven', 'data analysis', 'data analytics',
+  'project management', 'product management', 'user research', 'front end', 'back end', 'full stack',
+]
+
+function matchNormToken(t) {
+  return t.replace(/^[.+#/-]+|[.+#/-]+$/g, '').replace(/\.(js|jsx|ts|tsx)$/, '')
+}
+function matchTokenize(text) {
+  // Split on '/' too, so slash-separated lists ("Jest/Playwright", "CI/CD") become individual
+  // tokens. Keep '.', '+', '#' inside tokens for "node.js", "c++", "c#".
+  return (text || '').toLowerCase()
+    .replace(/[^a-z0-9.+#]+/g, ' ')
+    .split(/\s+/)
+    .map(matchNormToken)
+    .filter(t => t.length >= 2 && !MATCH_STOPWORDS.has(t) && !/^\d+$/.test(t))
+}
+function matchPretty(k) {
+  if (MATCH_CASING[k]) return MATCH_CASING[k]
+  return k.split(' ').map(w => MATCH_CASING[w] || (w[0].toUpperCase() + w.slice(1))).join(' ')
+}
+// Light stemmer so experience verbs match JD nouns (mentored/mentoring → mentor,
+// optimization/optimize → optimiz, systems → system). Applied to BOTH sides for matching only;
+// display/vocab still use the surface form.
+function matchStem(w) {
+  if (w.length <= 4) return w
+  return w
+    .replace(/(ization|isation)$/, 'ize')
+    .replace(/(ing|ed)$/, '')
+    .replace(/ment$/, '')
+    .replace(/ies$/, 'y')
+    .replace(/(es|s)$/, '')
+    .replace(/e$/, '')
+}
+
+function computeMatch(form) {
+  const jd = (form.jobDescription || '').trim()
+  if (!jd) return null
+
+  const resumeText = [
+    form.targetRole || '',
+    (form.skills || []).join(' '),
+    (form.experience || []).map(e => `${e.role || ''} ${e.company || ''} ${e.desc || ''}`).join(' '),
+    (form.education || []).map(e => e.text || '').join(' '),
+  ].join(' ')
+
+  const haystackStems = new Set(matchTokenize(resumeText).map(matchStem))
+  const jdRaw = ' ' + jd.toLowerCase().replace(/[^a-z0-9.+#/ ]+/g, ' ').replace(/\s+/g, ' ') + ' '
+
+  const jdTokens = [...new Set(matchTokenize(jd))]
+  const phraseHits = MATCH_PHRASES.filter(p => jdRaw.includes(' ' + p + ' '))
+  const phraseWords = new Set(phraseHits.flatMap(p => p.split(' ')))
+
+  let vocabHits = jdTokens.filter(t => MATCH_VOCAB.has(t) && !phraseWords.has(t))
+  let keywords = [...new Set([...vocabHits, ...phraseHits])]
+  // If the JD exposes few recognisable skills (non-tech roles), broaden to all content words
+  // so we still produce a meaningful denominator.
+  if (keywords.length < 4) {
+    keywords = [...new Set([...keywords, ...jdTokens.filter(t => !phraseWords.has(t))])]
+  }
+  if (!keywords.length) return null
+
+  const isMatched = k => (k.includes(' ')
+    ? k.split(' ').every(w => haystackStems.has(matchStem(w)))
+    : haystackStems.has(matchStem(k)))
+  const matched = keywords.filter(isMatched)
+  const missing = keywords.filter(k => !isMatched(k))
+
+  return {
+    score: Math.round((100 * matched.length) / keywords.length),
+    strengths: matched.map(matchPretty).slice(0, 6),
+    missing: missing.map(matchPretty).slice(0, 8),
+  }
+}
+
+function ScoreRing({ score }) {
+  const r = 27, sw = 4, C = 2 * Math.PI * r
+  const color = score >= 75 ? '#9DD162' : score >= 50 ? '#E0A93B' : '#E5746E'
+  return (
+    <svg width="64" height="64" viewBox="0 0 64 64" style={{ flexShrink: 0 }}>
+      <circle cx="32" cy="32" r={r} fill="none" stroke="#EEF0F2" strokeWidth={sw} />
+      <circle cx="32" cy="32" r={r} fill="none" stroke={color} strokeWidth={sw}
+        strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - score / 100)}
+        transform="rotate(-90 32 32)" style={{ transition: 'stroke-dashoffset .6s ease' }} />
+      <text x="32" y="33" textAnchor="middle" dominantBaseline="central"
+        style={{ fontSize: 16, fontWeight: 600, fill: '#05070A', fontFamily: 'var(--font-onest), system-ui, sans-serif' }}>{score}%</text>
+    </svg>
+  )
+}
+
+function MatchKeyword({ label, onAdd }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <button onClick={onAdd} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12,
+        padding: '4px 12px', borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit',
+        border: '1px solid rgba(175,178,178,0.5)',
+        background: hov ? '#F7F8FA' : '#fff', color: '#4A4A4D',
+      }}>
+      <PlusIcon color="#4A4A4D" /> {label}
+    </button>
+  )
+}
+
+// Pure-local match meter: score ring + the JD keywords your resume is missing. One source of
+// truth — tapping a missing chip adds it to skills and the ring goes up; at 100% there are none.
+// No AI call: the actionable gaps are all local, instant and free.
+function MatchScoreCard({ form, patch }) {
+  const local = computeMatch(form)
+  if (!form.jobDescription || !form.jobDescription.trim() || !local) return null
+
+  const has = kw => form.skills.some(s => s.toLowerCase() === kw.toLowerCase())
+  const addSkill = kw => { if (!has(kw)) patch({ skills: [...form.skills, kw] }) }
+
+  const missing = local.missing.filter(k => !has(k))
+  const strong = local.score >= 85
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid rgba(175,178,178,0.5)', borderRadius: 16, padding: '16px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <ScoreRing score={local.score} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#05070A' }}>
+            {strong ? 'Strong match' : 'Resume match score'}
+          </div>
+          <div style={{ fontSize: 12, color: T.text2, lineHeight: 1.5 }}>
+            {missing.length > 0
+              ? (strong
+                ? 'Strong overall — a few optional keywords to add below.'
+                : 'How well your profile fits this job description.')
+              : 'Your profile lines up well with this job description.'}
+          </div>
+        </div>
+      </div>
+
+      {missing.length > 0 && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: T.f12, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: T.text3, marginBottom: 8 }}>
+            Missing keywords <span style={{ textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>· tap to add if you have it</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {missing.map((k, i) => <MatchKeyword key={i} label={k} onAdd={() => addSkill(k)} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Summary({ form, patch, goTo, onEdit, onGenerate, generating, genError }) {
   const tpl = TEMPLATES.find(t => t.id === form.template)
   const isMobile = useIsMobile()
 
@@ -2569,22 +2759,24 @@ function Summary({ form, goTo, onEdit, onGenerate, generating, genError }) {
         <p style={{ fontSize: 14, color: '#4A4A4D', margin: 0 }}>Expand any section to check details.</p>
       </div>
 
+      <MatchScoreCard form={form} patch={patch} />
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <SumCard icon="🎨" title="Template" statusOk={!!form.template} statusText="Selected" onEdit={() => goTo(-1)}>
+        <SumCard icon={<img src="/template.svg" width={20} height={20} alt="" />} title="Template" statusOk={!!form.template} statusText="Selected" onEdit={() => goTo(-1)}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 30, height: 38, borderRadius: 4, background: tpl?.swatch, border: `0.5px solid ${T.border1}`, flexShrink: 0 }} />
             <span style={{ fontSize: T.f13, fontWeight: 500 }}>{tpl?.name}</span>
           </div>
         </SumCard>
 
-        <SumCard icon="👤" title="Profile" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => onEdit(1)}>
+        <SumCard icon={<img src="/profile.svg" width={20} height={20} alt="" />} title="Profile" statusOk={!!(form.name && form.email)} statusText={form.name ? 'Filled' : 'Empty'} onEdit={() => onEdit(1)}>
           <SumRow label="Target role" value={form.targetRole} />
           <SumRow label="Full name" value={form.name} />
           <SumRow label="Email" value={form.email} />
           <SumRow label="Job description" value={form.jobDescription ? `${form.jobDescription.slice(0, 60)}…` : null} />
         </SumCard>
 
-        <SumCard icon="💼" title="Experience"
+        <SumCard icon={<img src="/case.svg" width={20} height={20} alt="" />} title="Experience"
           statusOk={form.experience.some(e => e.role || e.company)}
           statusText={`${form.experience.length} position${form.experience.length !== 1 ? 's' : ''}`}
           onEdit={() => onEdit(2)}>
@@ -2610,16 +2802,16 @@ function Summary({ form, goTo, onEdit, onGenerate, generating, genError }) {
           }
         </SumCard>
 
-        <SumCard icon="⭐" title="Skills & languages"
+        <SumCard icon={<img src="/star.svg" width={20} height={20} alt="" />} title="Skills & languages"
           statusOk={form.skills.length > 0 || form.languages.some(l => l.name)}
-          statusText={`${form.skills.length} skills, ${form.languages.filter(l => l.name).length} languages`}
+          statusText={`${form.skills.length} skill${form.skills.length !== 1 ? 's' : ''}`}
           onEdit={() => onEdit(3)}>
           <SumRow label="Skills" value={form.skills.join(', ')} />
           <SumRow label="Languages" value={form.languages.filter(l => l.name).map(l => `${l.name} (${LANG_LEVELS[l.level]})`).join(', ')} />
           <SumRow label="Education" value={form.education.filter(e => e.text).map(e => e.text).join('; ')} />
         </SumCard>
 
-        <SumCard icon="🔗" title="Contact details" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => onEdit(4)}>
+        <SumCard icon={<img src="/link.svg" width={20} height={20} alt="" />} title="Contact details" statusOk={!!(form.phone || form.linkedin)} statusText={form.phone || form.linkedin ? 'Filled' : 'Optional'} onEdit={() => onEdit(4)}>
           <SumRow label="Phone" value={form.phone} />
           <SumRow label="Location" value={form.location} />
           <SumRow label="LinkedIn" value={form.linkedin} />
@@ -3320,7 +3512,7 @@ export default function ResumeBuilder() {
     if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => navStep(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); navStep(3) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
     if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => navStep(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); navStep(4) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
     if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => navStep(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); navStep(0) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
-    if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goTo} onEdit={goToFromReview} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
+    if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} patch={patch} goTo={goTo} onEdit={goToFromReview} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
   })()
 
   return (
