@@ -1082,8 +1082,14 @@ function HeaderProgress({ step }) {
   )
 }
 
-function Footer({ step, onBack, onNext, nextLabel }) {
+function Footer({ step, onBack, onNext, nextLabel, onBackToReview }) {
   const isMobile = useIsMobile()
+
+  // When editing a step reached via "Edit" on the review screen, the Back/Continue
+  // pair is replaced by a single "Back to review" action (changes save live as typed).
+  const reviewBtn = (
+    <BtnPrimary onClick={onBackToReview} style={{ flex: 1 }}><ArrowLeft /> Back to review</BtnPrimary>
+  )
 
   if (isMobile) {
     return (
@@ -1093,8 +1099,12 @@ function Footer({ step, onBack, onNext, nextLabel }) {
         borderTop: '1px solid rgba(175,178,178,0.3)',
         display: 'flex', gap: 10,
       }}>
-        <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
-        <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
+        {onBackToReview ? reviewBtn : (
+          <>
+            <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+            <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
+          </>
+        )}
       </div>
     )
   }
@@ -1102,13 +1112,17 @@ function Footer({ step, onBack, onNext, nextLabel }) {
   return (
     <>
       <div style={{ height: 1, background: 'rgba(175,178,178,0.3)', margin: '0' }} />
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '0',
-      }}>
-        <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
-        <BtnPrimary onClick={onNext}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
-      </div>
+      {onBackToReview ? (
+        <div style={{ display: 'flex' }}>{reviewBtn}</div>
+      ) : (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '0',
+        }}>
+          <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+          <BtnPrimary onClick={onNext}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
+        </div>
+      )}
     </>
   )
 }
@@ -1281,7 +1295,7 @@ function TemplatePreviewWithIndicator({ template, step }) {
 // ─── Page shell ───────────────────────────────────────────────────────────────
 
 // Card layout: gray page bg, white rounded card centered, progress in top header
-function PageShell({ step, form, children, rightPanel, onBackToReview }) {
+function PageShell({ step, form, children, rightPanel }) {
   const isDark = false
   const badge = STEP_BADGE[step]
   const isMobile = useIsMobile()
@@ -1326,17 +1340,6 @@ function PageShell({ step, form, children, rightPanel, onBackToReview }) {
             background: '#fff',
             display: 'flex', flexDirection: 'column', gap: 24,
           }}>
-            {onBackToReview && (
-              <button onClick={onBackToReview} style={{
-                alignSelf: 'flex-start',
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: '#F7F8FA', border: '1px solid rgba(175,178,178,0.4)',
-                borderRadius: 20, padding: '6px 14px', cursor: 'pointer',
-                fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: '#05070A',
-              }}>
-                <ArrowLeft /> Back to review
-              </button>
-            )}
             {children}
           </div>
 
@@ -1655,7 +1658,7 @@ function TemplatePicker({ form, patch, onNext }) {
 
 const isValidEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 
-function StepBasic({ form, patch, onBack, onNext }) {
+function StepBasic({ form, patch, onBack, onNext, onBackToReview }) {
   const [showErr, setShowErr] = useState(false)
   const isMobile = useIsMobile()
 
@@ -1702,18 +1705,15 @@ function StepBasic({ form, patch, onBack, onNext }) {
           info="Paste the full job posting. The AI tailors your summary, reorders bullet points, and mirrors the role's keywords — the more detail you give, the more personalized the result.">
           <Textarea value={form.jobDescription} onChange={e => patch({ jobDescription: e.target.value.slice(0, 3000) })}
             placeholder="Paste here…" style={{ minHeight: 120 }} />
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: 4 }}>
-            <p style={{ fontSize: 12, color: '#AFB2B2', margin: 0, lineHeight: 1.5 }}>Paste a job description to generate a more relevant resume.</p>
-            {form.jobDescription?.length > 0 && (
-              <p style={{ fontSize: 12, color: form.jobDescription.length >= 3000 ? '#EF4444' : '#AFB2B2', margin: 0, flexShrink: 0 }}>
-                {form.jobDescription.length} / 3000
-              </p>
-            )}
-          </div>
+          {form.jobDescription?.length > 0 && (
+            <p style={{ fontSize: 12, color: form.jobDescription.length >= 3000 ? '#EF4444' : '#AFB2B2', margin: 0, flexShrink: 0, textAlign: 'right' }}>
+              {form.jobDescription.length} / 3000
+            </p>
+          )}
         </Field>
       </div>
 
-      <Footer step={1} onBack={onBack} onNext={handleNext} />
+      <Footer step={1} onBack={onBack} onNext={handleNext} onBackToReview={onBackToReview} />
     </>
   )
 }
@@ -1816,7 +1816,7 @@ function ExpCard({ exp, isOpen, onToggle, onUpdate, onRemove, onHandleDown }) {
   )
 }
 
-function StepExperience({ form, patch, onBack, onNext }) {
+function StepExperience({ form, patch, onBack, onNext, onBackToReview }) {
   const [openId, setOpenId]       = useState(null)
   const [dragState, setDragState] = useState(null)
   const isMobile = useIsMobile()
@@ -1977,7 +1977,7 @@ function StepExperience({ form, patch, onBack, onNext }) {
         </div>
       )}
 
-      <Footer step={2} onBack={onBack} onNext={onNext} />
+      <Footer step={2} onBack={onBack} onNext={onNext} onBackToReview={onBackToReview} />
     </>
   )
 }
@@ -2314,7 +2314,7 @@ function EduRow({ text, onChange, onRemove, onHandleDown, isDragging, sortKey })
   )
 }
 
-function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
+function StepSkillsLangEdu({ form, patch, onBack, onNext, onBackToReview }) {
   const isMobile = useIsMobile()
   const updLang = (id, p) => patch({ languages: form.languages.map(l => l.id === id ? { ...l, ...p } : l) })
 
@@ -2429,14 +2429,14 @@ function StepSkillsLangEdu({ form, patch, onBack, onNext }) {
         </div>
       )}
 
-      <Footer step={3} onBack={onBack} onNext={onNext} />
+      <Footer step={3} onBack={onBack} onNext={onNext} onBackToReview={onBackToReview} />
     </>
   )
 }
 
 // ─── Step 4: Links & Contact ──────────────────────────────────────────────────
 
-function StepLinks({ form, patch, onBack, onNext }) {
+function StepLinks({ form, patch, onBack, onNext, onBackToReview }) {
   const [showErr, setShowErr] = useState(false)
 
   const phoneDigits = (form.phone || '').replace(/\D/g, '')
@@ -2483,7 +2483,7 @@ function StepLinks({ form, patch, onBack, onNext }) {
         </Field>
       </div>
 
-      <Footer step={4} onBack={onBack} onNext={handleNext} nextLabel="Review" />
+      <Footer step={4} onBack={onBack} onNext={handleNext} nextLabel="Review" onBackToReview={onBackToReview} />
     </>
   )
 }
@@ -3309,10 +3309,10 @@ export default function ResumeBuilder() {
   const content = (() => {
     if (resume)      return <ResumeResult resume={resume} template={PDF_TEMPLATE_MAP[form.template] ?? 'minimal'} onReset={() => { setResume(null); setPrerenderedPages(null); setForm(INITIAL_FORM); setScreen(-1); setFromReview(false); try { localStorage.removeItem(LS_KEY) } catch {} }} downloadRef={downloadRef} initialPages={prerenderedPages ?? undefined} />
     if (screen === -1) return <TemplatePicker form={form} patch={patch} onNext={() => goTo(1)} />
-    if (screen === 1) return <PageShell step={1} form={form} onBackToReview={fromReview ? backToReview : null}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} /></PageShell>
-    if (screen === 2) return <PageShell step={2} form={form} onBackToReview={fromReview ? backToReview : null}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} /></PageShell>
-    if (screen === 3) return <PageShell step={3} form={form} onBackToReview={fromReview ? backToReview : null}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); goTo(4) }} /></PageShell>
-    if (screen === 4) return <PageShell step={4} form={form} onBackToReview={fromReview ? backToReview : null}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); goTo(0) }} /></PageShell>
+    if (screen === 1) return <PageShell step={1} form={form}><StepBasic         form={form} patch={patch} onBack={() => goTo(-1)} onNext={() => goTo(2)} onBackToReview={fromReview ? backToReview : null} /></PageShell>
+    if (screen === 2) return <PageShell step={2} form={form}><StepExperience    form={form} patch={patch} onBack={() => goTo(1)}  onNext={() => { posthog.capture('step_completed', { step: 2 }); goTo(3) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
+    if (screen === 3) return <PageShell step={3} form={form}><StepSkillsLangEdu form={form} patch={patch} onBack={() => goTo(2)}  onNext={() => { posthog.capture('step_completed', { step: 3 }); goTo(4) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
+    if (screen === 4) return <PageShell step={4} form={form}><StepLinks         form={form} patch={patch} onBack={() => goTo(3)}  onNext={() => { posthog.capture('step_completed', { step: 4 }); goTo(0) }} onBackToReview={fromReview ? backToReview : null} /></PageShell>
     if (screen === 0) return <PageShell step={0} form={form}><Summary form={form} goTo={goToFromReview} onGenerate={generate} generating={generating} genError={genError} /></PageShell>
   })()
 
