@@ -1085,23 +1085,26 @@ function HeaderProgress({ step }) {
 function Footer({ step, onBack, onNext, nextLabel, onBackToReview }) {
   const isMobile = useIsMobile()
 
-  // When the step was opened via "Edit" on the review screen, keep the normal
-  // Back/Continue nav and add a secondary "Back to review" shortcut alongside it.
+  // When the step was opened via "Edit" on the review screen, the only action is
+  // "Back to review" (changes save live as typed); the normal Back/Continue nav
+  // is hidden. Reaching a step by normal navigation shows Back/Continue as usual.
   if (isMobile) {
     return (
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10,
-        background: '#fff', padding: '12px 16px 12px',
+        background: '#fff', padding: '12px 16px 28px',
         borderTop: '1px solid rgba(175,178,178,0.3)',
-        display: 'flex', flexDirection: 'column', gap: 10,
+        display: 'flex', gap: 10,
       }}>
-        {onBackToReview && (
-          <BtnSecondary onClick={onBackToReview} style={{ width: '100%' }}><ArrowLeft /> Back to review</BtnSecondary>
+        {onBackToReview ? (
+          // Full width on mobile
+          <BtnSecondary onClick={onBackToReview} style={{ flex: 1 }}><ArrowLeft /> Back to review</BtnSecondary>
+        ) : (
+          <>
+            <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
+            <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
+          </>
         )}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
-          <BtnPrimary onClick={onNext} style={{ flex: 1 }}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
-        </div>
       </div>
     )
   }
@@ -1109,16 +1112,20 @@ function Footer({ step, onBack, onNext, nextLabel, onBackToReview }) {
   return (
     <>
       <div style={{ height: 1, background: 'rgba(175,178,178,0.3)', margin: '0' }} />
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '0',
-      }}>
-        <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {onBackToReview && <BtnSecondary onClick={onBackToReview}><ArrowLeft /> Back to review</BtnSecondary>}
+      {onBackToReview ? (
+        // Narrow on desktop — same auto width / padding as the Back button
+        <div style={{ display: 'flex' }}>
+          <BtnSecondary onClick={onBackToReview}><ArrowLeft /> Back to review</BtnSecondary>
+        </div>
+      ) : (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '0',
+        }}>
+          <BtnSecondary onClick={onBack}><ArrowLeft /> Back</BtnSecondary>
           <BtnPrimary onClick={onNext}>{nextLabel || 'Continue'} <ArrowRight /></BtnPrimary>
         </div>
-      </div>
+      )}
     </>
   )
 }

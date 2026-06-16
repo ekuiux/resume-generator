@@ -917,6 +917,11 @@ function AtelierResume({ data }: { data: ResumeData }) {
 
   const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
 
+  // Name on two lines: first word on line 1, the rest on line 2.
+  const nameParts = (data.name || '').trim().split(/\s+/).filter(Boolean)
+  const nameLine1 = nameParts[0] || data.name || ''
+  const nameLine2 = nameParts.slice(1).join(' ')
+
   const SecHead = ({ children }: { children: React.ReactNode }) => (
     <View style={atelierStyles.secHead}>
       <View style={atelierStyles.iconCell}><AtelierSpark dy={-4.5} /></View>
@@ -946,7 +951,10 @@ function AtelierResume({ data }: { data: ResumeData }) {
             <View style={atelierStyles.leftInner}>
             {/* Хедер */}
             <View style={atelierStyles.header}>
-              <Text style={atelierStyles.name}>{data.name}</Text>
+              <View>
+                <Text style={atelierStyles.name}>{nameLine1}</Text>
+                {nameLine2 ? <Text style={atelierStyles.name}>{nameLine2}</Text> : null}
+              </View>
               {data.title ? <Text style={atelierStyles.role}>{data.title}</Text> : null}
             </View>
 
@@ -2143,7 +2151,9 @@ const nordicStyles = StyleSheet.create({
 })
 
 function NordicResume({ data }: { data: ResumeData }) {
-  const nameWords = (data.name || '').trim().split(/\s+/).filter(Boolean)
+  // Name on two lines: first word on line 1, the rest on line 2.
+  const nameParts = (data.name || '').trim().split(/\s+/).filter(Boolean)
+  const nameWords = [nameParts[0] || '', nameParts.slice(1).join(' ')].filter(Boolean)
 
   const contacts = [
     data.phone    ? { label: 'Phone.',     val: data.phone }    : null,
@@ -2906,12 +2916,19 @@ function PreviewAtelier({ data }: { data: ResumeData }) {
   const contacts = [data.phone, data.email, data.location, data.linkedin, data.github].filter(Boolean) as string[]
   const skills = [...data.skills.technical, ...data.skills.soft].map(skillName)
 
+  // Name on two lines: first word on line 1, the rest on line 2.
+  const nameParts = (data.name || '').trim().split(/\s+/).filter(Boolean)
+  const nameLine1 = nameParts[0] || data.name || ''
+  const nameLine2 = nameParts.slice(1).join(' ')
+
   return (
     <div style={{ padding: 32, display: 'flex', gap: 27, alignItems: 'stretch' }}>
       {/* Левая колонка */}
       <div style={{ width: 394, border: `0.75px solid ${DIV}`, padding: 27, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 27 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-          <div style={{ ...serif, fontSize: 48, lineHeight: 0.9 }}>{data.name}</div>
+          <div style={{ ...serif, fontSize: 48, lineHeight: 0.9 }}>
+            {nameLine1}{nameLine2 ? <><br />{nameLine2}</> : null}
+          </div>
           {data.title && <div style={{ fontFamily: sans, fontSize: 14, fontWeight: 600, color: INK }}>{data.title}</div>}
         </div>
 
@@ -3116,7 +3133,9 @@ function PreviewPrime({ data }: { data: ResumeData }) {
 function PreviewNordic({ data }: { data: ResumeData }) {
   const INK = '#537872', BODY = '#1c2221'
   const font = 'Gabarito, system-ui, sans-serif'
-  const nameWords = (data.name || '').trim().split(/\s+/).filter(Boolean)
+  // Name on two lines: first word on line 1, the rest on line 2.
+  const nameParts = (data.name || '').trim().split(/\s+/).filter(Boolean)
+  const nameWords = [nameParts[0] || '', nameParts.slice(1).join(' ')].filter(Boolean)
 
   const contacts = [
     data.phone    ? { label: 'Phone.',     val: data.phone }    : null,
