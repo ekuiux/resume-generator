@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// ─── Rate limit: 6 generations per IP per hour ──────────────────────────────
+// In-memory sliding window. Note: serverless instances each keep their own map
+// and it resets on cold start, so this caps casual abuse rather than being
+// bulletproof. For hard guarantees move to a shared store (e.g. Upstash Redis).
+const RATE_LIMIT = 6
+const WINDOW_MS = 60 * 60 * 1000
+const hits = new Map<string, number[]>()
+
+function getClientIp(req: NextRequest): string {
+  const fwd = req.headers.get('x-forwarded-for')
+  if (fwd) return fwd.split(',')[0].trim()
+  return req.headers.get('x-real-ip') || 'unknown'
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const recent = (hits.get(ip) || []).filter(t => now - t < WINDOW_MS)
+  if (recent.length >= RATE_LIMIT) {
+    hits.set(ip, recent)
+    return true
+  }
+  recent.push(now)
+  hits.set(ip, recent)
+  return false
+}
+
 const SYSTEM_PROMPT = `You are a senior ATS resume writer and recruiter.
 
 Your task is to transform the user's raw information into a professional, concise, ATS-friendly resume.
@@ -234,6 +260,14 @@ Schema:
 }`
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req)
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: "You've reached the limit of 6 resumes per hour. Please try again later." },
+      { status: 429 }
+    )
+  }
+
   const formData = await req.json()
 
   // Skills: now a plain string array
