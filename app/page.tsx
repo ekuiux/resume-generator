@@ -210,15 +210,15 @@ export default function HomePage() {
       {/* ── HOW IT WORKS ── */}
       <div id="how" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
         <section style={{ paddingTop: 40, paddingBottom: 40 }}>
-          <div style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 32px' }}>
+          <div className="sec-head" style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 32px' }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#20AFDE' }}>How it works</div>
             <h2 className="sec-h2" style={{ fontSize: 38, fontWeight: 600, lineHeight: '112%', letterSpacing: '-0.015em', margin: '8px 0 0' }}>Three steps to a tailored resume</h2>
-            <p style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>No blank-page paralysis. Give rough notes and the posting — the AI does the matching.</p>
+            <p className="sec-body" style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>No blank-page paralysis. Give rough notes and the posting — the AI does the matching.</p>
           </div>
           <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
 
             {/* Step 1 */}
-            <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 32, display: 'flex', flexDirection: 'column' }}>
+            <div className="step-card" style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 32, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 10px', maxWidth: 140 }}>Paste your info + the job post</h3>
                 <span style={{ fontSize: 32, fontWeight: 700, color: 'var(--border)', lineHeight: 1, flexShrink: 0 }}>1</span>
@@ -237,7 +237,7 @@ export default function HomePage() {
             </div>
 
             {/* Step 2 */}
-            <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 32, display: 'flex', flexDirection: 'column' }}>
+            <div className="step-card" style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 32, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 10px', maxWidth: 140 }}>AI tailors and rewrites</h3>
                 <span style={{ fontSize: 32, fontWeight: 700, color: 'var(--border)', lineHeight: 1, flexShrink: 0 }}>2</span>
@@ -256,7 +256,7 @@ export default function HomePage() {
             </div>
 
             {/* Step 3 */}
-            <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 32, display: 'flex', flexDirection: 'column' }}>
+            <div className="step-card" style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 32, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 10px', maxWidth: 140 }}>Pick a template, download PDF</h3>
                 <span style={{ fontSize: 32, fontWeight: 700, color: 'var(--border)', lineHeight: 1, flexShrink: 0 }}>3</span>
@@ -287,7 +287,7 @@ export default function HomePage() {
               <h2 className="sec-h2" style={{ fontSize: 38, fontWeight: 600, lineHeight: '112%', letterSpacing: '-0.015em', margin: '8px 0 0' }}>
                 Most AI tools fill your resume with "results-driven team player." We don't.
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 32 }}>
+              <div className="sec-body" style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 32 }}>
                 {WHY_ITEMS.map(item => (
                   <div key={item.title} style={{ display: 'flex', gap: 14 }}>
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-page)', border: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
@@ -302,13 +302,13 @@ export default function HomePage() {
               </div>
             </div>
             <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-3xl)', padding: 12, boxShadow: 'var(--shadow-card)' }}>
-              <div style={{ padding: '24px 26px', borderBottom: '1px solid var(--border-soft)' }}>
+              <div className="diff-panel" style={{ padding: '24px 26px', borderBottom: '1px solid var(--border-soft)' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '4px 11px', borderRadius: 20, background: 'var(--error-bg)', color: 'var(--danger-soft)' }}>Before · generic AI</span>
                 <p style={{ fontSize: 16, lineHeight: '158%', margin: '14px 0 0', color: 'var(--dim)', textDecoration: 'line-through', textDecorationColor: 'rgba(175,178,178,0.6)' }}>
                   Results-driven team player who leveraged synergies to drive impact across cross-functional stakeholders.
                 </p>
               </div>
-              <div style={{ padding: '24px 26px' }}>
+              <div className="diff-panel" style={{ padding: '24px 26px' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '4px 11px', borderRadius: 20, background: 'var(--green)', color: 'var(--ink)' }}>After · Resumetion</span>
                 <p style={{ fontSize: 16, lineHeight: '158%', margin: '14px 0 0', color: 'var(--ink)', fontWeight: 500 }}>
                   Led a 4-person team to ship a checkout redesign that cut cart abandonment 18% in one quarter.
@@ -322,10 +322,10 @@ export default function HomePage() {
       {/* ── TEMPLATES ── */}
       <div id="templates" style={{ paddingTop: 40, paddingBottom: 40 }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 52px' }}>
+          <div className="sec-head" style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 52px' }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#FF5674' }}>Templates</div>
             <h2 className="sec-h2" style={{ fontSize: 38, fontWeight: 600, lineHeight: '112%', letterSpacing: '-0.015em', margin: '8px 0 0' }}>Designed to get read</h2>
-            <p style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>Every template parses cleanly through applicant tracking systems — pick the look, keep the structure.</p>
+            <p className="sec-body" style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>Every template parses cleanly through applicant tracking systems — pick the look, keep the structure.</p>
           </div>
         </div>
         <LandingCarousel />
@@ -334,24 +334,24 @@ export default function HomePage() {
       {/* ── PRICING ── */}
       <div id="pricing" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
         <section style={{ paddingTop: 40, paddingBottom: 40 }}>
-          <div style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 52px' }}>
+          <div className="sec-head" style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 52px' }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#9DD162' }}>Pricing</div>
             <h2 className="sec-h2" style={{ fontSize: 38, fontWeight: 600, lineHeight: '112%', letterSpacing: '-0.015em', margin: '8px 0 0' }}>Pay once, or go unlimited</h2>
-            <p style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>No hidden fees. Your first draft is always free.</p>
+            <p className="sec-body" style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>No hidden fees. Your first draft is always free.</p>
           </div>
           <div className="plans-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 960, margin: '0 auto' }}>
 
             {/* Single */}
-            <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 16 }}>One-time</div>
+            <div className="plan-card" style={{ background: 'var(--bg)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+              <div className="plan-label" style={{ fontSize: 14, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 16 }}>One-time</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>$4.90</span>
+                <span className="plan-price" style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>$4.90</span>
               </div>
               <div style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 4 }}>one-time · no subscription</div>
-              <div style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px' }}>Single download</div>
-              <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 24 }}>Best for one targeted application.</div>
-              <div style={{ height: 1, background: 'var(--border-soft)', marginBottom: 24 }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
+              <div className="plan-name" style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px' }}>Single download</div>
+              <div className="plan-desc" style={{ fontSize: 14, color: 'var(--text)', marginBottom: 24 }}>Best for one targeted application.</div>
+              <div className="plan-divider" style={{ height: 1, background: 'var(--border-soft)', marginBottom: 24 }} />
+              <div className="plan-features" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
                 {SINGLE_FEATURES.map(f => (
                   <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--text)' }}><Check /> {f}</div>
                 ))}
@@ -362,18 +362,18 @@ export default function HomePage() {
             </div>
 
             {/* Pro */}
-            <div style={{ background: 'var(--bg)', border: '1.5px solid var(--ink)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <span style={{ position: 'absolute', top: -14, left: 28, background: 'var(--ink)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '5px 14px', borderRadius: 20 }}>Most popular</span>
-              <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 16 }}>Monthly</div>
+            <div className="plan-card" style={{ background: 'var(--bg)', border: '1.5px solid var(--ink)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+              <span className="plan-popular" style={{ position: 'absolute', top: -14, left: 28, background: 'var(--ink)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '5px 14px', borderRadius: 20 }}>Most popular</span>
+              <div className="plan-label" style={{ fontSize: 14, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 16 }}>Monthly</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--ink)' }}>$9.90</span>
+                <span className="plan-price" style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--ink)' }}>$9.90</span>
                 <span style={{ fontSize: 16, color: 'var(--dim)', marginBottom: 8 }}>/month</span>
               </div>
               <div style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 4 }}>cancel anytime</div>
-              <div style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px', color: 'var(--ink)' }}>Pro</div>
-              <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 24 }}>For active job seekers applying to multiple roles.</div>
-              <div style={{ height: 1, background: 'var(--border-soft)', marginBottom: 24 }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
+              <div className="plan-name" style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px', color: 'var(--ink)' }}>Pro</div>
+              <div className="plan-desc" style={{ fontSize: 14, color: 'var(--text)', marginBottom: 24 }}>For active job seekers applying to multiple roles.</div>
+              <div className="plan-divider" style={{ height: 1, background: 'var(--border-soft)', marginBottom: 24 }} />
+              <div className="plan-features" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
                 {PRO_FEATURES.map(f => (
                   <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--text)' }}><Check /> {f}</div>
                 ))}
@@ -384,7 +384,7 @@ export default function HomePage() {
             </div>
 
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 32, fontSize: 14, color: 'var(--dim)' }}>
+          <div className="plan-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 32, fontSize: 14, color: 'var(--dim)' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M7 10.5L4.5 8 7 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M4.5 8h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" stroke="currentColor" strokeWidth="1.5"/></svg>
             Payments securely processed by <a href="https://creem.io" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--dim)', textDecoration: 'underline', textUnderlineOffset: 2 }}>Creem</a>
           </div>
@@ -393,13 +393,13 @@ export default function HomePage() {
 
       {/* ── FAQ ── */}
       <div id="faq" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
-        <section style={{ padding: '80px 0 40px' }}>
+        <section style={{ padding: '40px 0 40px' }}>
           <div className="faq-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 80, alignItems: 'start' }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#20AFDE' }}>FAQ</div>
               <h2 className="sec-h2" style={{ fontSize: 38, fontWeight: 600, lineHeight: '112%', letterSpacing: '-0.015em', margin: '8px 0 0', color: 'var(--ink)' }}>Questions, answered.</h2>
-              <p style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '16px 0 0' }}>Everything you need to know. If you don't see your question here, drop us a line.</p>
-              <div style={{ marginTop: 32, background: 'var(--bg)', borderRadius: 16, padding: '22px 24px', boxShadow: 'var(--shadow-card)' }}>
+              <p className="sec-body" style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '16px 0 0' }}>Everything you need to know. If you don't see your question here, drop us a line.</p>
+              <div className="faq-content" style={{ marginTop: 32, background: 'var(--bg)', borderRadius: 16, padding: '22px 24px', boxShadow: 'var(--shadow-card)' }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Still have a question?</div>
                 <div style={{ fontSize: 14, color: 'var(--text)', marginBottom: 14 }}>We reply within a few hours.</div>
                 <a href="mailto:support@resumetion.com" className="email-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 14, fontWeight: 600, color: 'var(--ink)', textDecoration: 'none' }}>
@@ -445,8 +445,8 @@ export default function HomePage() {
                   <Fragment key={stat.label}>
                     {i > 0 && <div className="cta-divider" style={{ width: 1, height: 40, background: 'var(--border-soft)', flexShrink: 0 }} />}
                     <div style={{ flex: 1, paddingLeft: i > 0 ? 48 : 0 }}>
-                      <div style={{ fontSize: 38, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.025em', lineHeight: '100%' }}>{stat.val}</div>
-                      <div style={{ fontSize: 14, color: 'var(--dim)', marginTop: 7 }}>{stat.label}</div>
+                      <div className="stat-val" style={{ fontSize: 38, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.025em', lineHeight: '100%' }}>{stat.val}</div>
+                      <div className="stat-label" style={{ fontSize: 14, color: 'var(--dim)', marginTop: 7 }}>{stat.label}</div>
                     </div>
                   </Fragment>
                 ))}
@@ -458,26 +458,26 @@ export default function HomePage() {
                   <h2 className="sec-h2-lg" style={{ fontSize: 42, fontWeight: 600, lineHeight: '110%', letterSpacing: '-0.02em', margin: 0, color: 'var(--ink)' }}>
                     Get past the filter.<br />Land the interview.
                   </h2>
-                  <p style={{ fontSize: 16, color: 'var(--text)', margin: '18px 0 32px', lineHeight: '165%' }}>
+                  <p className="cta-lead" style={{ fontSize: 16, color: 'var(--text)', margin: '18px 0 32px', lineHeight: '165%' }}>
                     Paste the job posting. Get a keyword-aligned, ATS-ready resume in five minutes — written like a person, not a robot.
                   </p>
-                  <Link href="/build" className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 55, padding: '0 30px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
+                  <Link href="/build" className="cta-btn cta-section-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 55, padding: '0 30px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
                     Build my resume <Arrow />
                   </Link>
                 </div>
 
                 {/* Testimonial */}
-                <div style={{ background: '#fff', border: '1px solid var(--border-soft)', borderRadius: 20, padding: '32px 34px', boxShadow: 'var(--shadow-card)' }}>
-                  <div style={{ display: 'flex', gap: 3, marginBottom: 18 }}>
+                <div className="review-card" style={{ background: '#fff', border: '1px solid var(--border-soft)', borderRadius: 20, padding: '32px 34px', boxShadow: 'var(--shadow-card)' }}>
+                  <div className="review-stars" style={{ display: 'flex', gap: 3, marginBottom: 18 }}>
                     {[...Array(5)].map((_, i) => (
                       <svg key={i} width="15" height="15" viewBox="0 0 16 16" fill="#FFBE18"><path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.5l-3.6 1.9.7-4L2.2 5.7l4-.6L8 1.5z"/></svg>
                     ))}
                   </div>
-                  <p style={{ fontSize: 18, lineHeight: '168%', color: 'var(--ink)', margin: '0 0 24px', fontStyle: 'italic' }}>
+                  <p className="review-text" style={{ fontSize: 18, lineHeight: '168%', color: 'var(--ink)', margin: '0 0 24px', fontStyle: 'italic' }}>
                     "I applied to 12 jobs with my old resume and heard nothing back. Rewrote it with Resumetion and got 3 interview calls in the first week."
                   </p>
-                  <div style={{ height: 1, background: 'var(--border-soft)', marginBottom: 20 }} />
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="review-divider" style={{ height: 1, background: 'var(--border-soft)', marginBottom: 20 }} />
+                  <div className="review-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(32,175,222,0.12)', border: '1px solid rgba(32,175,222,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#20AFDE', flexShrink: 0 }}>MK</div>
                       <div>
@@ -485,7 +485,7 @@ export default function HomePage() {
                         <div style={{ fontSize: 12, color: 'var(--dim)' }}>Marketing Manager</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--bg-page)', border: '1px solid var(--border-soft)', borderRadius: 20, padding: '5px 12px' }}>
+                    <div className="review-hired" style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--bg-page)', border: '1px solid var(--border-soft)', borderRadius: 20, padding: '5px 12px' }}>
                       <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 5" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Hired at Bravura Labs</span>
                     </div>

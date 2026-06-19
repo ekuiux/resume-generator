@@ -4,7 +4,7 @@ html { scroll-behavior: smooth; }
 
 /* 72px nav + 24px gap between header and section heading */
 #how, #why, #templates, #pricing, #faq {
-  scroll-margin-top: 96px;
+  scroll-margin-top: 56px; /* nav 72px - section paddingTop 40px + gap 24px */
 }
 
 .cta-btn { transition: background .15s; }
@@ -46,13 +46,30 @@ details[open] .chev { transform: rotate(180deg); }
 
 /* Responsive */
 @media (max-width: 980px) {
-  .hero-grid { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; padding-top: 72px !important; padding-bottom: 32px !important; }
+  .hero-grid { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; padding-top: 32px !important; padding-bottom: 32px !important; }
   .hero-title-el { font-size: 40px !important; }
-  .hero-visual { order: 1 !important; left: 0 !important; top: 0 !important; align-self: center !important; margin: 28px 0 8px !important; }
+  .hero-visual { order: 1 !important; left: 0 !important; top: 0 !important; align-self: center !important; margin: 64px 0 8px !important; }
   #badge-ats { top: -18px !important; left: -16px !important; }
   #badge-ai  { right: -16px !important; bottom: 50px !important; }
   .diff-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
   .steps-grid { grid-template-columns: 1fr !important; }
+  .step-card { padding: 16px !important; }
+  .sec-body { margin-top: 12px !important; }
+  .sec-head { margin-bottom: 24px !important; }
+  .faq-content { margin-top: 24px !important; }
+  .diff-panel { padding: 16px !important; }
+  .diff-panel p { font-size: 14px !important; }
+  .plan-card { padding: 24px !important; }
+  .plan-label { margin-bottom: 12px !important; }
+  .plan-popular { left: 50% !important; transform: translateX(-50%) !important; }
+  .plan-price { font-size: 36px !important; }
+  .plan-name { margin: 14px 0 4px !important; }
+  .plan-desc { margin-bottom: 16px !important; }
+  .plan-divider { margin-bottom: 16px !important; }
+  .plan-features { margin-bottom: 20px !important; }
+  .plan-note { margin-top: 24px !important; }
+  .step-card p { margin-bottom: 12px !important; }
+  .step-card h3 { margin-bottom: 8px !important; }
   .nav-links-el { display: none !important; }
   .plans-grid { grid-template-columns: 1fr !important; }
   .faq-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
@@ -62,19 +79,35 @@ details[open] .chev { transform: rotate(180deg); }
 
 @media (max-width: 600px) {
   .hero-title-el { font-size: 31px !important; }
-  .sec-h2    { font-size: 27px !important; }
+  .sec-h2    { font-size: 27px !important; margin-top: 8px !important; }
   .sec-h2-lg { font-size: 30px !important; }
   .hero-grid { align-items: stretch !important; }
   .hero-feats { flex-direction: column !important; align-items: flex-start !important; gap: 18px !important; margin-top: 24px !important; margin-bottom: 24px !important; }
   .feat-divider { display: none !important; }
+  .hero-feats span { font-size: 16px !important; }
+  .hero-feats svg { width: 18px !important; height: 18px !important; }
   .hero-cta { flex-direction: column !important; align-items: stretch !important; gap: 14px !important; }
   .hero-cta .cta-btn { width: 100% !important; justify-content: center !important; }
   .hero-microcopy { justify-content: center !important; text-align: center !important; }
   .hero-box { width: 270px !important; height: 270px !important; border-radius: 22px !important; }
   .hero-img { width: 324px !important; height: 324px !important; }
-  #badge-ats { display: flex !important; top: -12px !important; left: -10px !important; }
-  #badge-ai  { display: flex !important; right: -10px !important; bottom: 36px !important; }
-  .cta-inner { padding: 32px 20px !important; }
+  #badge-ats { display: flex !important; top: 138px !important; left: -36px !important; }
+  #badge-ai  { display: flex !important; right: -36px !important; top: 226px !important; bottom: auto !important; }
+  .cta-inner { padding: 24px !important; }
+  .cta-stats { padding-bottom: 24px !important; margin-bottom: 24px !important; }
+  .cta-lead { margin: 12px 0 16px !important; }
+  .cta-section-btn { width: 100% !important; justify-content: center !important; }
+  .cta-cols { grid-template-columns: 1fr !important; gap: 24px !important; }
+  .review-card { padding: 16px !important; box-shadow: none !important; }
+  .review-stars { margin-bottom: 12px !important; }
+  .review-text { font-size: 16px !important; margin: 0 0 16px !important; }
+  .review-divider { margin-bottom: 16px !important; }
+  .review-footer { flex-wrap: wrap !important; gap: 12px !important; }
+  .review-hired { width: 100% !important; }
+  .review-hired span { font-size: 12px !important; }
+  .review-hired svg { width: 12px !important; height: 12px !important; }
+  .stat-val { font-size: 26px !important; }
+  .stat-label { font-size: 12px !important; margin-top: 4px !important; }
   .cta-stats { flex-wrap: wrap !important; gap: 28px 0 !important; }
   .cta-stats > div:not(.cta-divider) { flex: 0 0 50% !important; padding-left: 0 !important; }
   .cta-stats > .cta-divider { display: none !important; }
