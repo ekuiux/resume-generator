@@ -3189,6 +3189,17 @@ export default function ResumeBuilder() {
   const navStep = s => { setFromReview(false); goTo(s) }
 
   useEffect(() => {
+    try {
+      const tpl = new URLSearchParams(window.location.search).get('template')
+      if (tpl && TEMPLATES.some(t => t.id === tpl)) {
+        patch({ template: tpl })
+        setScreen(1)
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
     try { localStorage.setItem(LS_KEY, JSON.stringify(form)) } catch {}
   }, [form])
 

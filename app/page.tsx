@@ -179,9 +179,9 @@ export default function HomePage() {
 
           {/* Hero visual */}
           <div className="hero-visual" style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', left: -40, top: 20, zIndex: 0 }}>
-            <div className="hero-box" style={{ width: 484, height: 484, background: '#F7F8FA', boxShadow: 'inset 0px 0px 114px rgba(0,0,0,0.08)', borderRadius: 28, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', overflow: 'hidden' }}>
+            <div className="hero-box" style={{ width: 484, height: 484, background: '#F7F8FA', boxShadow: 'inset 0px 0px 114px rgba(0,0,0,0.08)', borderRadius: 28, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="hero-img" src="/hero-portrait.png" alt="Job seeker celebrating her tailored, ATS-ready resume" style={{ width: 582, height: 582, objectFit: 'cover' }} />
+              <img className="hero-img" src="/hero-portrait.png" alt="Job seeker celebrating her tailored, ATS-ready resume" style={{ width: 582, height: 582 }} />
             </div>
             {/* ATS badge */}
             <div id="badge-ats" style={{ position: 'absolute', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-pop)', padding: 16, display: 'flex', alignItems: 'center', background: '#fff', gap: 12, top: -40, left: -102, transition: 'transform .05s linear' }}>

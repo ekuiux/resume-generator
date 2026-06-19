@@ -100,7 +100,7 @@ export function LandingCarousel() {
               />
               <div className="tpl-overlay">
                 <a
-                  href="/build"
+                  href={`/build?template=${tpl.id}`}
                   className="tpl-overlay-btn"
                   style={{
                     background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600,
