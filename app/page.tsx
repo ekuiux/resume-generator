@@ -501,7 +501,7 @@ export default function HomePage() {
       {/* ── FOOTER ── */}
       <footer>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ borderTop: '1px solid rgba(175,178,178,0.25)', paddingTop: 32, paddingBottom: 32, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', fontSize: 14, color: 'var(--dim)' }}>
+          <div style={{ paddingTop: 32, paddingBottom: 32, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', fontSize: 14, color: 'var(--dim)' }}>
             <span>© 2026 Resumetion</span>
             <span>·</span>
             <a href="mailto:support@resumetion.com" className="footer-link" style={{ color: 'var(--dim)', textDecoration: 'none' }}>support@resumetion.com</a>

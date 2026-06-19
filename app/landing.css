@@ -2,6 +2,11 @@
 
 html { scroll-behavior: smooth; }
 
+/* 72px nav + 24px gap between header and section heading */
+#how, #why, #templates, #pricing, #faq {
+  scroll-margin-top: 96px;
+}
+
 .cta-btn { transition: background .15s; }
 .cta-btn:hover { background: var(--ink-hover) !important; }
 .cta-btn .cta-arrow { transition: transform .15s ease; }
