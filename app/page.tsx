@@ -46,7 +46,7 @@ const jsonLd = {
       mainEntity: [
         { '@type': 'Question', name: 'Will it pass ATS?', acceptedAnswer: { '@type': 'Answer', text: "Yes. Every template uses a clean, single-column-friendly structure with standard section headings that applicant tracking systems parse reliably — and the AI aligns your wording to the posting's keywords." } },
         { '@type': 'Question', name: 'Is my data safe?', acceptedAnswer: { '@type': 'Answer', text: "Your information is used only to generate your resume. We don't sell it, and we don't share it with third parties for advertising." } },
-        { '@type': 'Question', name: 'Do I need an account?', acceptedAnswer: { '@type': 'Answer', text: 'No. Start building immediately and see your first draft for free — no signup required.' } },
+        { '@type': 'Question', name: 'Do I need an account?', acceptedAnswer: { '@type': 'Answer', text: 'No. Start building immediately and see your tailored resume for free — no signup required. You only pay when you download.' } },
         { '@type': 'Question', name: 'Can I edit after generating?', acceptedAnswer: { '@type': 'Answer', text: 'Always. Edit any field, switch templates, and regenerate as many times as you like — your content carries over.' } },
         { '@type': 'Question', name: 'Refunds?', acceptedAnswer: { '@type': 'Answer', text: "If something goes wrong with a download, reach out to support and we'll make it right. Pro subscriptions can be cancelled anytime from your billing portal." } },
       ],
@@ -99,7 +99,7 @@ const PRO_FEATURES    = ['Unlimited resume downloads', 'All 6 templates, switch 
 const FAQ_ITEMS = [
   { n: '01', q: 'Will it pass ATS?',         a: "Yes. Every template uses a clean, single-column-friendly structure with standard section headings that applicant tracking systems parse reliably — and the AI aligns your wording to the posting's keywords.", open: true },
   { n: '02', q: 'Is my data safe?',           a: "Your information is used only to generate your resume. We don't sell it, and we don't share it with third parties for advertising." },
-  { n: '03', q: 'Do I need an account?',      a: 'No. Start building immediately and see your first draft for free — no signup required.' },
+  { n: '03', q: 'Do I need an account?',      a: 'No. Start building immediately and see your tailored resume for free — no signup required. You only pay when you download.' },
   { n: '04', q: 'Can I edit after generating?', a: 'Always. Edit any field, switch templates, and regenerate as many times as you like — your content carries over.' },
   { n: '05', q: 'Refunds?',                   a: "If something goes wrong with a download, reach out to support and we'll make it right. Pro subscriptions can be cancelled anytime from your billing portal." },
 ]
@@ -107,7 +107,7 @@ const FAQ_ITEMS = [
 const CTA_STATS = [
   { val: '0',      label: 'clichés or invented facts' },
   { val: '6',      label: 'designer templates' },
-  { val: '$4.90',  label: 'to get started' },
+  { val: '4.9',    label: 'average user rating', star: true },
   { val: '10 min', label: 'to a tailored resume' },
 ]
 
@@ -172,7 +172,7 @@ export default function HomePage() {
                 Build my resume <Arrow />
               </Link>
               <span className="hero-microcopy" style={{ fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 7, color: 'var(--text)' }}>
-                No signup. First draft free.
+                No signup. See your tailored resume free.
               </span>
             </div>
           </div>
@@ -191,7 +191,7 @@ export default function HomePage() {
                 <text x="32" y="33" textAnchor="middle" dominantBaseline="central" fontSize="16" fontWeight="600" fill="#05070A" fontFamily="Onest,sans-serif">92%</text>
               </svg>
               <div style={{ paddingRight: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', lineHeight: '100%' }}>ATS match</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', lineHeight: '100%' }}>Match score</div>
                 <div style={{ fontSize: 14, color: 'var(--dim)', lineHeight: '100%' }}>to the job post</div>
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function HomePage() {
           <div className="sec-head" style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 52px' }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#9DD162' }}>Pricing</div>
             <h2 className="sec-h2" style={{ fontSize: 38, fontWeight: 600, lineHeight: '112%', letterSpacing: '-0.015em', margin: '8px 0 0' }}>Pay once, or go unlimited</h2>
-            <p className="sec-body" style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>No hidden fees. Your first draft is always free.</p>
+            <p className="sec-body" style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>No hidden fees. See your tailored resume free — pay only to download.</p>
           </div>
           <div className="plans-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 960, margin: '0 auto' }}>
 
@@ -445,7 +445,12 @@ export default function HomePage() {
                   <Fragment key={stat.label}>
                     {i > 0 && <div className="cta-divider" style={{ width: 1, height: 40, background: 'var(--border-soft)', flexShrink: 0 }} />}
                     <div style={{ flex: 1, paddingLeft: i > 0 ? 48 : 0 }}>
-                      <div className="stat-val" style={{ fontSize: 38, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.025em', lineHeight: '100%' }}>{stat.val}</div>
+                      <div className="stat-val" style={{ fontSize: 38, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.025em', lineHeight: '100%', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {stat.val}
+                        {stat.star && (
+                          <svg width="28" height="28" viewBox="0 0 16 16" fill="#FFBE18" style={{ flexShrink: 0, transform: 'translateY(1px)' }}><path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.5l-3.6 1.9.7-4L2.2 5.7l4-.6L8 1.5z" /></svg>
+                        )}
+                      </div>
                       <div className="stat-label" style={{ fontSize: 14, color: 'var(--dim)', marginTop: 7 }}>{stat.label}</div>
                     </div>
                   </Fragment>
@@ -474,7 +479,7 @@ export default function HomePage() {
                     ))}
                   </div>
                   <p className="review-text" style={{ fontSize: 18, lineHeight: '168%', color: 'var(--ink)', margin: '0 0 24px', fontStyle: 'italic' }}>
-                    "I applied to 12 jobs with my old resume and heard nothing back. Rewrote it with Resumetion and got 3 interview calls in the first week."
+                    "My old resume read like every other template. I pasted the job post, and it rewrote everything around the actual role — specific, and finally in my own voice."
                   </p>
                   <div className="review-divider" style={{ height: 1, background: 'var(--border-soft)', marginBottom: 20 }} />
                   <div className="review-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -487,7 +492,7 @@ export default function HomePage() {
                     </div>
                     <div className="review-hired" style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--bg-page)', border: '1px solid var(--border-soft)', borderRadius: 20, padding: '5px 12px' }}>
                       <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 5" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Hired at Bravura Labs</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Tailored to the role</span>
                     </div>
                   </div>
                 </div>
