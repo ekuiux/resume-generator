@@ -82,10 +82,11 @@ export function LandingCarousel() {
         style={{ display: 'flex', gap: 32, willChange: 'transform', padding: '8px 0', cursor: 'grab', userSelect: 'none' }}
       >
         {ITEMS.map((tpl, i) => (
-          <div
+          <a
             key={i}
+            href={`/build?template=${tpl.id}`}
             className="tpl-item"
-            style={{ flexShrink: 0, width: 380, borderRadius: 14, overflow: 'visible', cursor: 'pointer' }}
+            style={{ flexShrink: 0, width: 380, borderRadius: 14, overflow: 'visible', cursor: 'pointer', textDecoration: 'none', display: 'block' }}
           >
             <div style={{ position: 'relative', borderRadius: 14 }}>
               <img
@@ -99,18 +100,17 @@ export function LandingCarousel() {
                 loading="lazy"
               />
               <div className="tpl-overlay">
-                <a
-                  href={`/build?template=${tpl.id}`}
+                <span
                   className="tpl-overlay-btn"
                   style={{
                     background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600,
                     padding: '12px 22px', borderRadius: 100, whiteSpace: 'nowrap',
-                    boxShadow: '0 4px 16px rgba(5,7,10,0.25)', textDecoration: 'none',
+                    boxShadow: '0 4px 16px rgba(5,7,10,0.25)',
                     display: 'inline-block',
                   }}
                 >
                   Use this template
-                </a>
+                </span>
               </div>
             </div>
             <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--ink)', marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
@@ -121,7 +121,7 @@ export function LandingCarousel() {
                 </span>
               )}
             </div>
-          </div>
+          </a>
         ))}
       </div>
     </div>
