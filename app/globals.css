@@ -5,18 +5,51 @@
 }
 
 :root {
-  --ink:        #05070A;
-  --ink-hov:    #1f2024;
-  --text:       #4A4A4D;
-  --dim:        #AFB2B2;
-  --bg:         #ffffff;
-  --bg-page:    #F7F8FA;
-  --border:     rgba(175,178,178,0.5);
-  --green:      #9DD162;
-  --error:      #EF4444;
-  --error-text: #DC2626;
-  --radius-md:  8px;
-  --radius-lg:  12px;
+  /* Neutrals */
+  --ink:          #05070A;
+  --ink-hov:      #1F2024;
+  --ink-hover:    #1F2024;
+  --text:         #4A4A4D;
+  --dim:          #AFB2B2;
+  --bg:           #FFFFFF;
+  --bg-page:      #F7F8FA;
+  --border:       rgba(175,178,178,0.5);
+  --border-soft:  rgba(175,178,178,0.3);
+  --border-faint: rgba(175,178,178,0.15);
+
+  /* Accents */
+  --green:   #9DD162;
+  --yellow:  #FFBE18;
+  --blue:    #20AFDE;
+  --magenta: #FF5674;
+
+  /* Status */
+  --error:       #EF4444;
+  --error-text:  #DC2626;
+  --error-bg:    #FEF2F2;
+  --error-border:#FECACA;
+  --warn:        #E0A93B;
+  --danger-soft: #E5746E;
+
+  /* Radii */
+  --radius-sm:   8px;
+  --radius-md:   10px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  20px;
+  --radius-3xl:  32px;
+  --radius-pill: 38px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-card:    0 30px 100px rgba(0,0,0,0.06);
+  --shadow-card-hv: 0 30px 80px  rgba(0,0,0,0.13);
+  --shadow-pop:     0 8px  24px  rgba(0,0,0,0.12);
+  --shadow-pop-lg:  0 8px  32px  rgba(0,0,0,0.12);
+  --shadow-float:   0 6px  32px  rgba(0,0,0,0.14);
+
+  /* Font alias (Next.js sets --font-onest via layout) */
+  --font-sans: var(--font-onest), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 body {

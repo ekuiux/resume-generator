@@ -1,0 +1,77 @@
+/* Landing page — hover states, responsive overrides, carousel & FAQ animations */
+
+html { scroll-behavior: smooth; }
+
+.cta-btn { transition: background .15s; }
+.cta-btn:hover { background: var(--ink-hover) !important; }
+.cta-btn .cta-arrow { transition: transform .15s ease; }
+.cta-btn:hover .cta-arrow { transform: translateX(3px); }
+
+.nav-link { transition: color .15s; }
+.nav-link:hover { color: var(--ink) !important; }
+
+.email-link .cta-arrow { transition: transform .15s ease; }
+.email-link:hover .cta-arrow { transform: translateX(3px); }
+
+.footer-link { transition: color .15s; }
+.footer-link:hover { color: var(--ink) !important; }
+
+/* FAQ */
+summary::-webkit-details-marker { display: none; }
+details .chev { transition: transform .2s; flex-shrink: 0; }
+details[open] .chev { transform: rotate(180deg); }
+.faq-body { display: grid; grid-template-rows: 0fr; }
+.faq-body-inner { min-height: 0; overflow: hidden; }
+
+/* Template carousel */
+.tpl-item img { transition: transform .2s, box-shadow .2s; transform-origin: center center; }
+.tpl-item:hover img { transform: scale(1.05); box-shadow: var(--shadow-card-hv); }
+.tpl-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s; border-radius: 14px;
+}
+.tpl-item:hover .tpl-overlay { opacity: 1; }
+.tpl-overlay-btn {
+  transform: scale(0.9);
+  transition: transform .22s cubic-bezier(.34,1.4,.64,1), opacity .18s;
+  opacity: 0;
+}
+.tpl-item:hover .tpl-overlay-btn { transform: scale(1); opacity: 1; }
+
+/* Responsive */
+@media (max-width: 980px) {
+  .hero-grid { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; padding-top: 72px !important; padding-bottom: 32px !important; }
+  .hero-title-el { font-size: 40px !important; }
+  .hero-visual { order: 1 !important; left: 0 !important; top: 0 !important; align-self: center !important; margin: 28px 0 8px !important; }
+  #badge-ats { top: -18px !important; left: -16px !important; }
+  #badge-ai  { right: -16px !important; bottom: 50px !important; }
+  .diff-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+  .steps-grid { grid-template-columns: 1fr !important; }
+  .nav-links-el { display: none !important; }
+  .plans-grid { grid-template-columns: 1fr !important; }
+  .faq-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+  .cta-cols { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .cta-inner { padding: 48px 40px !important; }
+}
+
+@media (max-width: 600px) {
+  .hero-title-el { font-size: 31px !important; }
+  .sec-h2    { font-size: 27px !important; }
+  .sec-h2-lg { font-size: 30px !important; }
+  .hero-grid { align-items: stretch !important; }
+  .hero-feats { flex-direction: column !important; align-items: flex-start !important; gap: 18px !important; margin-top: 24px !important; margin-bottom: 24px !important; }
+  .feat-divider { display: none !important; }
+  .hero-cta { flex-direction: column !important; align-items: stretch !important; gap: 14px !important; }
+  .hero-cta .cta-btn { width: 100% !important; justify-content: center !important; }
+  .hero-microcopy { justify-content: center !important; text-align: center !important; }
+  .hero-box { width: 270px !important; height: 270px !important; border-radius: 22px !important; }
+  .hero-img { width: 324px !important; height: 324px !important; }
+  #badge-ats { display: flex !important; top: -12px !important; left: -10px !important; }
+  #badge-ai  { display: flex !important; right: -10px !important; bottom: 36px !important; }
+  .cta-inner { padding: 32px 20px !important; }
+  .cta-stats { flex-wrap: wrap !important; gap: 28px 0 !important; }
+  .cta-stats > div:not(.cta-divider) { flex: 0 0 50% !important; padding-left: 0 !important; }
+  .cta-stats > .cta-divider { display: none !important; }
+  .tpl-item { width: 258px !important; }
+}

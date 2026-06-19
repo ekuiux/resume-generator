@@ -140,7 +140,7 @@ export default function PricingPage() {
 
         {/* CTA below cards */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 24px 80px' }}>
-          <Link href="/" className="cta-btn" style={{
+          <Link href="/build" className="cta-btn" style={{
             fontSize: 14, fontWeight: 600, color: '#fff',
             textDecoration: 'none', padding: '20px 32px',
             background: '#05070A', borderRadius: 38,
