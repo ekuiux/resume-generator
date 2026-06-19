@@ -25,33 +25,48 @@ export function LandingCarousel() {
     const track = trackRef.current
     if (!track) return
 
+    let moved = 0
+
     const onEnter = () => { paused.current = true }
-    const onLeave = () => { paused.current = false }
-    const onDown  = (e: MouseEvent) => {
+    const onLeave = () => { if (!dragging.current) paused.current = false }
+    const onDown  = (e: PointerEvent) => {
       dragging.current = true
+      paused.current = true
+      moved = 0
       dragStartX.current = e.clientX
       dragStartOffset.current = offset.current
       track.style.cursor = 'grabbing'
-      e.preventDefault()
+      track.setPointerCapture(e.pointerId)
     }
-    const onMove = (e: MouseEvent) => {
+    const onMove = (e: PointerEvent) => {
       if (!dragging.current) return
       const half = track.scrollWidth / 2
       const dx = dragStartX.current - e.clientX
+      moved = Math.max(moved, Math.abs(dx))
       offset.current = ((dragStartOffset.current + dx) % half + half) % half
       track.style.transform = `translateX(-${offset.current}px)`
     }
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
       if (!dragging.current) return
       dragging.current = false
+      paused.current = false
       track.style.cursor = 'grab'
+      try { track.releasePointerCapture(e.pointerId) } catch {}
+    }
+    // Suppress the card's navigation click when the gesture was a drag, not a tap.
+    const onClick = (e: MouseEvent) => {
+      if (moved > 6) { e.preventDefault(); e.stopPropagation() }
+      moved = 0
     }
 
-    track.addEventListener('mouseenter', onEnter)
-    track.addEventListener('mouseleave', onLeave)
-    track.addEventListener('mousedown', onDown)
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+    track.style.touchAction = 'pan-y'
+    track.addEventListener('pointerenter', onEnter)
+    track.addEventListener('pointerleave', onLeave)
+    track.addEventListener('pointerdown', onDown)
+    track.addEventListener('pointermove', onMove)
+    track.addEventListener('pointerup', onUp)
+    track.addEventListener('pointercancel', onUp)
+    track.addEventListener('click', onClick, true)
 
     const animate = () => {
       if (!paused.current && !dragging.current) {
@@ -67,11 +82,13 @@ export function LandingCarousel() {
 
     return () => {
       cancelAnimationFrame(animRef.current)
-      track.removeEventListener('mouseenter', onEnter)
-      track.removeEventListener('mouseleave', onLeave)
-      track.removeEventListener('mousedown', onDown)
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      track.removeEventListener('pointerenter', onEnter)
+      track.removeEventListener('pointerleave', onLeave)
+      track.removeEventListener('pointerdown', onDown)
+      track.removeEventListener('pointermove', onMove)
+      track.removeEventListener('pointerup', onUp)
+      track.removeEventListener('pointercancel', onUp)
+      track.removeEventListener('click', onClick, true)
     }
   }, [])
 

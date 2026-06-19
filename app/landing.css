@@ -92,7 +92,7 @@ details[open] .chev { transform: rotate(180deg); }
   .hero-box { width: 270px !important; height: 270px !important; border-radius: 22px !important; }
   .hero-img { width: 324px !important; height: 324px !important; }
   #badge-ats { display: flex !important; top: 138px !important; left: -36px !important; }
-  #badge-ai  { display: flex !important; right: -36px !important; top: 226px !important; bottom: auto !important; }
+  #badge-ai  { display: flex !important; right: -36px !important; top: 234px !important; bottom: auto !important; }
   .cta-inner { padding: 24px !important; }
   .cta-stats { padding-bottom: 24px !important; margin-bottom: 24px !important; }
   .cta-lead { margin: 12px 0 16px !important; }
