@@ -747,7 +747,7 @@ function AppHeader({ children }) {
   return (
     <div style={{
       background: T.bgPage,
-      height: 68,
+      height: 72,
       flexShrink: 0,
       display: 'flex',
       alignItems: 'center',
@@ -756,7 +756,7 @@ function AppHeader({ children }) {
         width: '100%',
         maxWidth: 1280,
         margin: '0 auto',
-        padding: isMobile ? '0 16px' : '0',
+        padding: isMobile ? '0 16px' : '0 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -773,7 +773,7 @@ function AppHeader({ children }) {
 function LogoMark({ style }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, ...style }}>
-      <img src="/logo.svg" alt="Resumetion" width={154} height={34} style={{ display: 'block' }} />
+      <img src="/logo.svg" alt="Resumetion" height={32} style={{ display: 'block', width: 'auto' }} />
     </div>
   )
 }
@@ -1065,13 +1065,13 @@ function PageShell({ step, form, children, rightPanel }) {
 
       {/* Card */}
       <div style={{
-        flex: 1,
-        padding: isMobile ? '12px 0 0' : '16px 80px 40px',
-        display: 'flex', alignItems: isMobile ? 'stretch' : 'flex-start', justifyContent: 'center',
+        flex: 1, width: '100%', maxWidth: 1280, margin: '0 auto',
+        padding: isMobile ? '12px 0 0' : '16px 24px 40px',
+        display: 'flex', alignItems: isMobile ? 'stretch' : 'flex-start',
         boxSizing: 'border-box',
       }}>
         <div style={{
-          width: '100%', maxWidth: 1280,
+          width: '100%',
           borderRadius: isMobile ? '24px 24px 0 0' : 32,
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
@@ -1177,8 +1177,6 @@ function TemplatePicker({ form, patch, onNext }) {
   const [hovered, setHovered] = useState(null)
   const isMobile = useIsMobile()
 
-  const rows = [TEMPLATES.slice(0, 3), TEMPLATES.slice(3, 6)]
-
   if (isMobile) {
     return (
       <div style={{ minHeight: '100vh', background: T.bgPage }}>
@@ -1260,12 +1258,12 @@ function TemplatePicker({ form, patch, onNext }) {
 
       {/* Navbar — 1280 grid, normal flow */}
       <nav style={{
-        width: '100%', height: 68,
+        width: '100%', height: 72,
         display: 'flex', alignItems: 'center',
         background: T.bgPage,
       }}>
         <div style={{
-          width: 1280, margin: '0 auto',
+          width: '100%', maxWidth: 1280, margin: '0 auto', padding: '0 24px', boxSizing: 'border-box',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <LogoMark />
@@ -1274,11 +1272,10 @@ function TemplatePicker({ form, patch, onNext }) {
 
       {/* Content wrapper */}
       <div style={{
-        position: 'relative',
-        width: 1280,
-        left: '50%', transform: 'translateX(-50%)',
-        paddingTop: 16,
-        paddingBottom: 80,
+        width: '100%', maxWidth: 1280, margin: '0 auto',
+        paddingTop: 16, paddingBottom: 80,
+        paddingLeft: 24, paddingRight: 24,
+        boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', gap: 40,
       }}>
 
@@ -1304,13 +1301,12 @@ function TemplatePicker({ form, patch, onNext }) {
           </p>
         </div>
 
-        {/* Template rows */}
-        {rows.map((row, ri) => (
-          <div key={ri} style={{
-            display: 'flex', flexDirection: 'row',
-            alignItems: 'center', gap: 40, width: 1280,
-          }}>
-            {row.map(tpl => {
+        {/* Template grid — responsive 3×2, fills the content grid, A4 ratio preserved */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+          columnGap: 40, rowGap: 32,
+        }}>
+            {TEMPLATES.map(tpl => {
               const isHov = hovered === tpl.id
               const pdfTemplate = PDF_TEMPLATE_MAP[tpl.id] ?? 'minimal'
               return (
@@ -1322,12 +1318,12 @@ function TemplatePicker({ form, patch, onNext }) {
                   style={{
                     display: 'flex', flexDirection: 'column',
                     justifyContent: 'center', alignItems: 'center',
-                    gap: 16, width: 400, flexShrink: 0, cursor: 'pointer',
+                    gap: 16, width: '100%', cursor: 'pointer',
                   }}
                 >
                   {/* Card */}
                   <div style={{
-                    width: 400, height: 566,
+                    width: '100%', aspectRatio: '210 / 297',
                     borderRadius: 16, overflow: 'hidden',
                     position: 'relative',
                     boxShadow: isHov
@@ -1384,8 +1380,7 @@ function TemplatePicker({ form, patch, onNext }) {
                 </div>
               )
             })}
-          </div>
-        ))}
+        </div>
       </div>
 
       {/* Desktop footer */}
@@ -2926,13 +2921,13 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
       </AppHeader>
 
       <div style={{
-        flex: 1,
-        padding: isMobile ? '12px 16px 120px' : '16px 1.5rem 3rem',
+        flex: 1, width: '100%', maxWidth: 1280, margin: '0 auto',
+        padding: isMobile ? '12px 16px 120px' : '16px 24px 3rem',
         display: 'flex', justifyContent: 'center',
         boxSizing: 'border-box',
       }}>
         <div style={{
-          width: '100%', maxWidth: 1280,
+          width: '100%',
           display: isMobile ? 'block' : 'flex',
           gap: '2rem', alignItems: 'flex-start',
         }}>
@@ -3109,8 +3104,22 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
 }
 
 // Post-download thank-you screen, styled to match the builder.
+// Trustpilot's standard review-writing URL. Replace the domain if the Trustpilot
+// business profile uses a different one.
+const TRUSTPILOT_URL = 'https://www.trustpilot.com/evaluate/resumetion.com'
+
 function FinishScreen({ onDownloadAgain, onReset, downloadSlot }) {
   const isMobile = useIsMobile()
+  // null = not voted yet; 'up' | 'down' once the user reacts. We invite a public
+  // Trustpilot review either way (Trustpilot forbids gating incentives on positive
+  // sentiment), and keep the thumb as a private quality signal in PostHog.
+  const [feedback, setFeedback] = useState(null)
+
+  function vote(sentiment) {
+    setFeedback(sentiment)
+    posthog.capture('finish_feedback', { sentiment })
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: T.bgPage, display: 'flex', flexDirection: 'column' }}>
       <AppHeader>
@@ -3146,6 +3155,38 @@ function FinishScreen({ onDownloadAgain, onReset, downloadSlot }) {
               Thanks for using Resumetion. We hope it helps you land the job of your dreams —
               good luck out there! 🚀
             </p>
+          </div>
+
+          <div style={{ width: '100%', maxWidth: 320, borderTop: `1px solid ${T.border}`, paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            {feedback === null ? (
+              <>
+                <span style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>How was your experience?</span>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => vote('up')} aria-label="Good" style={{ width: 46, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, cursor: 'pointer' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3Zm0 0 4.2-7.4a1 1 0 0 1 1.7.1l.5 1a3 3 0 0 1 .2 2.2L13 9h5.5a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7" stroke={T.ink} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                  <button onClick={() => vote('down')} aria-label="Bad" style={{ width: 46, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, cursor: 'pointer' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 13V4h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-3Zm0 0-4.2 7.4a1 1 0 0 1-1.7-.1l-.5-1a3 3 0 0 1-.2-2.2L11 15H5.5a2 2 0 0 1-2-2.4l1.2-6a2 2 0 0 1 2-1.6H17" stroke={T.ink} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: 14, color: T.text, textAlign: 'center', lineHeight: 1.5 }}>
+                  {feedback === 'up' ? 'Glad it helped! 🙌' : 'Thanks — we read every note.'} Mind sharing a quick public review?
+                </span>
+                <a
+                  href={TRUSTPILOT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => posthog.capture('trustpilot_click', { sentiment: feedback })}
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 44, borderRadius: 10, background: T.bg, border: `1px solid ${T.border}`, color: T.ink, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="#00B67A"><path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.5l-3.6 1.9.7-4L2.2 5.7l4-.6L8 1.5z"/></svg>
+                  Review us on Trustpilot
+                </a>
+              </>
+            )}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
@@ -3190,7 +3231,12 @@ export default function ResumeBuilder() {
 
   useEffect(() => {
     try {
-      const tpl = new URLSearchParams(window.location.search).get('template')
+      const params = new URLSearchParams(window.location.search)
+      const tpl = params.get('template')
+      const role = params.get('role')
+      // Role landing pages (/resume/[role]) deep-link here with the target role
+      // prefilled so the funnel carries the intent through.
+      if (role) patch({ targetRole: role.slice(0, 80) })
       if (tpl && TEMPLATES.some(t => t.id === tpl)) {
         patch({ template: tpl })
         setScreen(1)
