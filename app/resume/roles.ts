@@ -659,3 +659,29 @@ export const ROLES: Role[] = [
 
 export const ROLE_SLUGS = ROLES.map(r => r.slug)
 export const getRole = (slug: string): Role | undefined => ROLES.find(r => r.slug === slug)
+
+// Category grouping — powers the /resume hub and "related roles" links.
+// Order here is the display order on the hub page.
+export const CATEGORIES: { name: string; slugs: string[] }[] = [
+  { name: 'Engineering & IT', slugs: ['software-engineer', 'frontend-developer', 'backend-developer', 'full-stack-developer', 'devops-engineer', 'qa-engineer', 'cybersecurity-analyst'] },
+  { name: 'Data', slugs: ['data-analyst', 'data-scientist', 'business-analyst'] },
+  { name: 'Design', slugs: ['ux-designer', 'graphic-designer'] },
+  { name: 'Product & Project', slugs: ['product-manager', 'project-manager'] },
+  { name: 'Marketing & Sales', slugs: ['marketing-manager', 'sales-representative'] },
+  { name: 'Finance & Accounting', slugs: ['accountant', 'financial-analyst'] },
+  { name: 'Operations & Admin', slugs: ['operations-manager', 'customer-service-representative', 'administrative-assistant', 'human-resources-manager'] },
+  { name: 'Healthcare', slugs: ['registered-nurse', 'medical-assistant'] },
+  { name: 'Education', slugs: ['teacher'] },
+]
+
+// The category a given role belongs to (or undefined if unmapped).
+export const getCategory = (slug: string) => CATEGORIES.find(c => c.slugs.includes(slug))
+
+// Up to `limit` sibling roles from the same category, then filled from other
+// categories so every page still surfaces a healthy set of internal links.
+export const getRelatedRoles = (slug: string, limit = 6): Role[] => {
+  const cat = getCategory(slug)
+  const siblings = cat ? cat.slugs.filter(s => s !== slug) : []
+  const others = ROLE_SLUGS.filter(s => s !== slug && !siblings.includes(s))
+  return [...siblings, ...others].slice(0, limit).map(s => getRole(s)!).filter(Boolean)
+}

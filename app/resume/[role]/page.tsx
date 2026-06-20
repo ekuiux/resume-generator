@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ROLES, ROLE_SLUGS, getRole } from '../roles'
+import { ROLE_SLUGS, getRole, getRelatedRoles } from '../roles'
 import { RoleChips } from './RoleChips'
 import { FaqAccordion } from './FaqAccordion'
 import '../../landing.css'
@@ -212,7 +212,7 @@ export default async function RolePage({ params }: Params) {
         {/* Related roles — internal linking for SEO */}
         <section style={{ paddingBottom: 56 }}>
           <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 12 }}>Other resumes</div>
-          <RoleChips roles={ROLES} currentSlug={role.slug} />
+          <RoleChips roles={getRelatedRoles(role.slug, 6)} />
         </section>
       </div>
 
