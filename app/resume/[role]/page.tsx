@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ROLES, ROLE_SLUGS, getRole } from '../roles'
+import { RoleChips } from './RoleChips'
+import { FaqAccordion } from './FaqAccordion'
 import '../../landing.css'
 
 // Build a static page per role at build time.
@@ -63,6 +65,14 @@ export default async function RolePage({ params }: Params) {
     ],
   }
 
+  const Arrow = (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="cta-arrow" style={{ flexShrink: 0 }}>
+      <path d="M10.9998 6L8.6665 8.99998" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <path d="M10.9998 5.99998L8.6665 3" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <path d="M1 6L11 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -74,7 +84,7 @@ export default async function RolePage({ params }: Params) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="Resumetion" height={32} />
           </Link>
-          <Link href={buildHref} className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: 44, padding: '0 22px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
+          <Link href={buildHref} className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 44, padding: '0 22px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
             Build my resume
           </Link>
         </div>
@@ -85,7 +95,7 @@ export default async function RolePage({ params }: Params) {
         {/* HERO */}
         <section style={{ paddingTop: 64, paddingBottom: 24 }}>
           <div style={{ fontSize: 13, color: 'var(--dim)' }}>
-            <Link href="/" style={{ color: 'var(--dim)', textDecoration: 'none' }}>Home</Link>
+            <Link href="/" className="breadcrumb-home" style={{ color: 'var(--dim)', textDecoration: 'none' }}>Home</Link>
             <span> › </span>
             <span>{role.title} Resume</span>
           </div>
@@ -100,7 +110,7 @@ export default async function RolePage({ params }: Params) {
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', marginTop: 28 }}>
             <Link href={buildHref} className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 55, padding: '0 30px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
-              Build my {role.title.toLowerCase()} resume
+              Build my {role.title.toLowerCase()} resume{Arrow}
             </Link>
             <span style={{ fontSize: 14, color: 'var(--text)' }}>No signup. See your tailored resume free.</span>
           </div>
@@ -109,7 +119,7 @@ export default async function RolePage({ params }: Params) {
         {/* WHAT MATTERS */}
         <section style={{ paddingTop: 40, paddingBottom: 24 }}>
           <h2 style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.015em', margin: 0 }}>What makes a strong {role.title.toLowerCase()} resume</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginTop: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginTop: 24 }}>
             {role.whatMatters.map((m, i) => (
               <div key={i} style={{ background: 'var(--bg)', border: '1px solid var(--border-soft)', borderRadius: 'var(--radius-xl)', padding: 22, display: 'flex', gap: 12 }}>
                 <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--bg-page)', color: 'var(--ink)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</div>
@@ -151,16 +161,30 @@ export default async function RolePage({ params }: Params) {
         </section>
 
         {/* TEMPLATES */}
+        <style>{`
+          .tpl-card { position: relative; aspect-ratio: 210/297; border-radius: 12px; overflow: hidden; outline: 1px solid var(--border-soft); box-shadow: var(--shadow-card); }
+          .tpl-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.28); opacity: 0; transition: opacity 0.18s; border-radius: 12px; }
+          .tpl-card:hover .tpl-overlay { opacity: 1; }
+          .role-chip { transition: background .15s; }
+          .role-chip:hover { background: var(--bg-page) !important; color: var(--ink) !important; }
+          .breadcrumb-home { transition: color .15s; }
+          .breadcrumb-home:hover { color: var(--ink) !important; }
+        `}</style>
         <section style={{ paddingTop: 40, paddingBottom: 24 }}>
           <h2 style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.015em', margin: '0 0 24px' }}>Templates that suit a {role.title.toLowerCase()} resume</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             {role.templates.map(id => (
               <Link key={id} href={`${buildHref}&template=${id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                <div style={{ aspectRatio: '210/297', borderRadius: 12, overflow: 'hidden', outline: '1px solid var(--border-soft)', boxShadow: 'var(--shadow-card)' }}>
+                <div className="tpl-card">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/templates/${id}.jpg`} alt={`${TEMPLATE_NAMES[id]} resume template`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div className="tpl-overlay">
+                    <span style={{ display: 'inline-flex', alignItems: 'center', height: 44, padding: '0 22px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      Use this template
+                    </span>
+                  </div>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>{TEMPLATE_NAMES[id]}</div>
+                <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: 'var(--ink)', textAlign: 'center' }}>{TEMPLATE_NAMES[id]}</div>
               </Link>
             ))}
           </div>
@@ -169,14 +193,7 @@ export default async function RolePage({ params }: Params) {
         {/* FAQ */}
         <section style={{ paddingTop: 40, paddingBottom: 24 }}>
           <h2 style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.015em', margin: '0 0 16px' }}>{role.title} resume FAQ</h2>
-          <div style={{ maxWidth: 760 }}>
-            {role.faqs.map((f, i) => (
-              <details key={i} style={i < role.faqs.length - 1 ? { borderBottom: '1px solid var(--border-soft)' } : undefined}>
-                <summary style={{ listStyle: 'none', cursor: 'pointer', padding: '22px 0', fontSize: 17, fontWeight: 600, color: 'var(--ink)' }}>{f.q}</summary>
-                <p style={{ fontSize: 16, lineHeight: '170%', color: 'var(--text)', margin: '0 0 22px' }}>{f.a}</p>
-              </details>
-            ))}
-          </div>
+          <FaqAccordion faqs={role.faqs} />
         </section>
 
         {/* BOTTOM CTA */}
@@ -187,7 +204,7 @@ export default async function RolePage({ params }: Params) {
               Paste the job posting and your notes — get a keyword-aligned, ATS-ready resume in minutes. Preview free.
             </p>
             <Link href={buildHref} className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 55, padding: '0 30px', borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
-              Build my resume
+              Build my resume{Arrow}
             </Link>
           </div>
         </section>
@@ -195,13 +212,7 @@ export default async function RolePage({ params }: Params) {
         {/* Related roles — internal linking for SEO */}
         <section style={{ paddingBottom: 56 }}>
           <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 12 }}>Other resumes</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            {ROLES.filter(r => r.slug !== role.slug).map(r => (
-              <Link key={r.slug} href={`/resume/${r.slug}`} style={{ fontSize: 14, color: 'var(--text)', background: 'var(--bg)', border: '1px solid var(--border-soft)', borderRadius: 'var(--radius-pill)', padding: '8px 16px', textDecoration: 'none' }}>
-                {r.title} resume
-              </Link>
-            ))}
-          </div>
+          <RoleChips roles={ROLES} currentSlug={role.slug} />
         </section>
       </div>
 
