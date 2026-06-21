@@ -27,13 +27,22 @@ export function RoleChips({ roles, showAll = true }: { roles: Role[]; showAll?: 
       {showAll && (
         <a
           href="/resume"
-          className="role-chip"
+          className="see-all-chip"
           onClick={(e) => go(e, '/resume')}
-          style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', background: 'var(--bg-page)', border: '1px solid var(--border-soft)', borderRadius: 'var(--radius-pill)', padding: '8px 16px', textDecoration: 'none', cursor: 'pointer' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--ink)', background: 'var(--bg-page)', border: 'none', borderRadius: 'var(--radius-pill)', padding: '9px 17px', textDecoration: 'none', cursor: 'pointer' }}
         >
-          See all resumes →
+          See all resumes
+          <svg className="chip-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M10.9998 6L8.6665 8.99998" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M10.9998 5.99998L8.6665 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M1 6L11 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
         </a>
       )}
+      <style>{`
+        .chip-arrow { transition: transform .15s ease; }
+        .see-all-chip:hover .chip-arrow { transform: translateX(3px); }
+      `}</style>
     </div>
   )
 }
