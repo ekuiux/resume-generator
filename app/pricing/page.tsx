@@ -17,9 +17,10 @@ const PLANS = [
   {
     id: 'single',
     name: 'Single download',
-    price: '$4.90',
+    price: '$9.90',
     period: null,
     priceNote: 'one-time · no subscription',
+    billedNote: null,
     badge: null,
     forWho: 'For one-time job applications',
     features: [
@@ -31,18 +32,36 @@ const PLANS = [
     highlight: false,
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    price: '$9.90',
+    id: 'monthly',
+    name: 'Monthly',
+    price: '$14.90',
     period: '/month',
     priceNote: 'cancel anytime',
-    badge: 'Most popular',
-    forWho: 'For active job seekers',
+    billedNote: null,
+    badge: null,
+    forWho: 'For a single, focused job search',
     features: [
       'Unlimited resume downloads',
       'All 6 templates, switch anytime',
       'Edit & regenerate unlimited times',
       'Tailored to any job description',
+    ],
+    highlight: false,
+  },
+  {
+    id: 'annual',
+    name: 'Annual',
+    price: '$6.66',
+    period: '/month',
+    priceNote: 'cancel anytime',
+    billedNote: 'billed annually · $79.90/year',
+    badge: 'Most Popular',
+    forWho: 'Best value — save 55% vs monthly',
+    features: [
+      'Everything in Monthly',
+      'Unlimited resume downloads',
+      'All 6 templates, switch anytime',
+      'Edit & regenerate unlimited times',
     ],
     highlight: true,
   },
@@ -54,16 +73,16 @@ export default function PricingPage() {
       <style>{`
         .plans-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(3, 1fr);
           gap: 24px;
           padding: 40px 24px 0;
-          max-width: 880px;
+          max-width: 1080px;
           width: 100%;
           margin: 0 auto;
           box-sizing: border-box;
         }
-        @media (max-width: 680px) {
-          .plans-grid { grid-template-columns: 1fr; }
+        @media (max-width: 920px) {
+          .plans-grid { grid-template-columns: 1fr; max-width: 460px; }
         }
         .cta-btn:hover { background: #1f2024 !important; }
         .cta-btn:hover .cta-arrow { transform: translateX(3px); }
@@ -119,7 +138,10 @@ export default function PricingPage() {
                     {plan.period && <span style={{ fontSize: 14, color: '#AFB2B2' }}>{plan.period}</span>}
                   </div>
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: '#AFB2B2' }}>{plan.priceNote}</p>
+                {plan.billedNote
+                  ? <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#05070A' }}>{plan.billedNote}</p>
+                  : <p style={{ margin: 0, fontSize: 13, color: '#AFB2B2' }}>{plan.priceNote}</p>}
+                {plan.billedNote && <p style={{ margin: '2px 0 0', fontSize: 13, color: '#AFB2B2' }}>{plan.priceNote}</p>}
                 <p style={{ margin: '8px 0 0', fontSize: 13, color: '#4A4A4D' }}>{plan.forWho}</p>
               </div>
 

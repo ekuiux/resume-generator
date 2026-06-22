@@ -55,8 +55,9 @@ export default function TermsPage() {
             <h2 style={{ fontSize: 18, fontWeight: 600, color: '#05070A', marginBottom: 10 }}>3. Payments and Pricing</h2>
             <p style={{ margin: '0 0 10px' }}>Resumetion offers the following paid plans:</p>
             <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <li><strong>Single Download</strong> — $4.90 one-time payment. Includes one PDF resume download. No subscription.</li>
-              <li><strong>Pro</strong> — $9.90 per month. Includes unlimited resume downloads, all templates, and unlimited edits. You may cancel at any time.</li>
+              <li><strong>Single Download</strong> — $9.90 one-time payment. Includes one PDF resume download. No subscription.</li>
+              <li><strong>Monthly</strong> — $14.90 per month. Includes unlimited resume downloads, all templates, and unlimited edits. You may cancel at any time.</li>
+              <li><strong>Annual</strong> — $79.90 per year ($6.66/month, billed annually). Includes unlimited resume downloads, all templates, and unlimited edits. You may cancel at any time.</li>
             </ul>
             <p style={{ margin: '10px 0 0' }}>All payments are processed securely by Creem. Prices are listed in USD. We reserve the right to change pricing with reasonable notice.</p>
           </section>

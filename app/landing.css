@@ -7,6 +7,8 @@ html { scroll-behavior: smooth; }
   scroll-margin-top: 56px; /* nav 72px - section paddingTop 40px + gap 24px */
 }
 
+.creem-link { transition: color .15s; }
+.creem-link:hover { color: var(--ink) !important; }
 .cta-btn { transition: background .15s; }
 .cta-btn:hover { background: var(--ink-hover) !important; }
 .cta-btn .cta-arrow { transition: transform .15s ease; }

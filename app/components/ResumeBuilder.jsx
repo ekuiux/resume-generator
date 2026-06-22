@@ -1239,16 +1239,6 @@ function TemplatePicker({ form, patch, onNext }) {
             })}
           </div>
         </div>
-        {/* Mobile footer */}
-        <footer style={{ borderTop: '1px solid rgba(175,178,178,0.25)', padding: '20px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', fontSize: 12, color: T.dim }}>
-          <a href="mailto:support@resumetion.com" style={{ color: T.dim, textDecoration: 'none' }}>support@resumetion.com</a>
-          <span>·</span>
-          <a href="/pricing" style={{ color: T.dim, textDecoration: 'none' }}>Pricing</a>
-          <span>·</span>
-          <a href="/terms" style={{ color: T.dim, textDecoration: 'none' }}>Terms</a>
-          <span>·</span>
-          <a href="/privacy" style={{ color: T.dim, textDecoration: 'none' }}>Privacy</a>
-        </footer>
       </div>
     )
   }
@@ -1383,18 +1373,6 @@ function TemplatePicker({ form, patch, onNext }) {
         </div>
       </div>
 
-      {/* Desktop footer */}
-      <footer style={{ borderTop: '1px solid rgba(175,178,178,0.25)', padding: '24px 0', display: 'flex', gap: 20, justifyContent: 'center', fontSize: 13, color: T.dim }}>
-        <span>© {new Date().getFullYear()} Resumetion</span>
-        <span>·</span>
-        <a href="mailto:support@resumetion.com" style={{ color: T.dim, textDecoration: 'none' }}>support@resumetion.com</a>
-        <span>·</span>
-        <a href="/pricing" style={{ color: T.dim, textDecoration: 'none' }}>Pricing</a>
-        <span>·</span>
-        <a href="/terms" style={{ color: T.dim, textDecoration: 'none' }}>Terms</a>
-        <span>·</span>
-        <a href="/privacy" style={{ color: T.dim, textDecoration: 'none' }}>Privacy</a>
-      </footer>
     </div>
   )
 }
@@ -2696,7 +2674,7 @@ const CREEM_PLANS = [
     id: 'single',
     productId: 'prod_4uHUOnjg0iut37LzFdoMfs',
     label: 'Single download',
-    price: '$4.90',
+    price: '$9.90',
     period: null,
     priceNote: 'one-time',
     badge: null,
@@ -2709,15 +2687,31 @@ const CREEM_PLANS = [
     ],
   },
   {
-    id: 'pro',
+    id: 'monthly',
     productId: 'prod_64GMyqt8VGNgiaQkRbPpmE',
-    label: 'Pro',
-    price: '$9.90',
+    label: 'Monthly',
+    price: '$14.90',
     period: '/month',
     priceNote: 'cancel anytime',
-    badge: 'Most popular',
-    cta: 'Start Pro',
-    forWho: 'For active job seekers',
+    badge: null,
+    cta: 'Start Monthly',
+    forWho: 'For a single, focused job search',
+    features: [
+      'Unlimited resume downloads',
+      'All 6 templates, switch anytime',
+      'Tailored to any job description',
+    ],
+  },
+  {
+    id: 'annual',
+    productId: 'prod_4u8Pkrsouh4KfJR4MYOAB8',
+    label: 'Annual',
+    price: '$6.66',
+    period: '/month',
+    priceNote: 'billed annually · $79.90/yr',
+    badge: 'Most Popular',
+    cta: 'Start Annual',
+    forWho: 'Best value — save 55% vs monthly',
     features: [
       'Unlimited resume downloads',
       'All 6 templates, switch anytime',
@@ -2728,7 +2722,7 @@ const CREEM_PLANS = [
 
 function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) {
   const isMobile = useIsMobile()
-  const [selectedPlan, setSelectedPlan] = useState('pro')
+  const [selectedPlan, setSelectedPlan] = useState('annual')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState(null)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -2773,7 +2767,7 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
           posthog.capture('payment_success', { plan: selectedPlan })
           window.Creem.close()
           setSheetOpen(false)
-          if (selectedPlan === 'pro') {
+          if (selectedPlan === 'monthly' || selectedPlan === 'annual') {
             localStorage.setItem('pro_unlocked', '1')
             setProUnlocked(true)
           }

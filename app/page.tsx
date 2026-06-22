@@ -36,8 +36,9 @@ const jsonLd = {
       operatingSystem: 'Web',
       url: 'https://resumetion.com',
       offers: [
-        { '@type': 'Offer', price: '4.90', priceCurrency: 'USD', name: 'Single download' },
-        { '@type': 'Offer', price: '9.90', priceCurrency: 'USD', name: 'Pro monthly' },
+        { '@type': 'Offer', price: '9.90', priceCurrency: 'USD', name: 'Single download' },
+        { '@type': 'Offer', price: '14.90', priceCurrency: 'USD', name: 'Monthly' },
+        { '@type': 'Offer', price: '79.90', priceCurrency: 'USD', name: 'Annual' },
       ],
       description: 'AI-powered resume builder that tailors your resume to each job posting — ATS-ready, no clichés.',
     },
@@ -339,13 +340,13 @@ export default function HomePage() {
             <h2 className="sec-h2" style={{ fontSize: 38, fontWeight: 600, lineHeight: '112%', letterSpacing: '-0.015em', margin: '8px 0 0' }}>Pay once, or go unlimited</h2>
             <p className="sec-body" style={{ fontSize: 16, lineHeight: '168%', color: 'var(--text)', margin: '14px 0 0' }}>No hidden fees. See your tailored resume free — pay only to download.</p>
           </div>
-          <div className="plans-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 960, margin: '0 auto' }}>
+          <div className="plans-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24, maxWidth: 1140, margin: '0 auto' }}>
 
             {/* Single */}
             <div className="plan-card" style={{ background: 'var(--bg)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
               <div className="plan-label" style={{ fontSize: 14, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 16 }}>One-time</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-                <span className="plan-price" style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>$4.90</span>
+                <span className="plan-price" style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>$9.90</span>
               </div>
               <div style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 4 }}>one-time · no subscription</div>
               <div className="plan-name" style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px' }}>Single download</div>
@@ -361,17 +362,16 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Pro */}
-            <div className="plan-card" style={{ background: 'var(--bg)', border: '1.5px solid var(--ink)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <span className="plan-popular" style={{ position: 'absolute', top: -14, left: 28, background: 'var(--ink)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '5px 14px', borderRadius: 20 }}>Most popular</span>
+            {/* Monthly */}
+            <div className="plan-card" style={{ background: 'var(--bg)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
               <div className="plan-label" style={{ fontSize: 14, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 16 }}>Monthly</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
-                <span className="plan-price" style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--ink)' }}>$9.90</span>
+                <span className="plan-price" style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>$14.90</span>
                 <span style={{ fontSize: 16, color: 'var(--dim)', marginBottom: 8 }}>/month</span>
               </div>
               <div style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 4 }}>cancel anytime</div>
-              <div className="plan-name" style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px', color: 'var(--ink)' }}>Pro</div>
-              <div className="plan-desc" style={{ fontSize: 14, color: 'var(--text)', marginBottom: 24 }}>For active job seekers applying to multiple roles.</div>
+              <div className="plan-name" style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px' }}>Monthly</div>
+              <div className="plan-desc" style={{ fontSize: 14, color: 'var(--text)', marginBottom: 24 }}>For a single, focused job search.</div>
               <div className="plan-divider" style={{ height: 1, background: 'var(--border-soft)', marginBottom: 24 }} />
               <div className="plan-features" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
                 {PRO_FEATURES.map(f => (
@@ -379,14 +379,37 @@ export default function HomePage() {
                 ))}
               </div>
               <Link href="/build" className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 55, borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none', marginTop: 'auto' }}>
-                Start Pro <Arrow />
+                Start Monthly
+              </Link>
+            </div>
+
+            {/* Annual */}
+            <div className="plan-card" style={{ background: 'var(--bg)', border: '1.5px solid var(--ink)', borderRadius: 'var(--radius-2xl)', padding: 36, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+              <span className="plan-popular" style={{ position: 'absolute', top: -14, left: 28, background: 'var(--ink)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '5px 14px', borderRadius: 20 }}>Most Popular</span>
+              <div className="plan-label" style={{ fontSize: 14, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 16 }}>Annual</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 6 }}>
+                <span className="plan-price" style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--ink)' }}>$6.66</span>
+                <span style={{ fontSize: 16, color: 'var(--dim)', marginBottom: 8 }}>/month</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 2 }}>billed annually · $79.90/year</div>
+              <div style={{ fontSize: 14, color: 'var(--dim)', marginBottom: 4 }}>save 55% vs monthly</div>
+              <div className="plan-name" style={{ fontSize: 18, fontWeight: 600, margin: '20px 0 6px', color: 'var(--ink)' }}>Annual</div>
+              <div className="plan-desc" style={{ fontSize: 14, color: 'var(--text)', marginBottom: 24 }}>Best value for an ongoing job hunt.</div>
+              <div className="plan-divider" style={{ height: 1, background: 'var(--border-soft)', marginBottom: 24 }} />
+              <div className="plan-features" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
+                {PRO_FEATURES.map(f => (
+                  <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--text)' }}><Check /> {f}</div>
+                ))}
+              </div>
+              <Link href="/build" className="cta-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 55, borderRadius: 'var(--radius-pill)', background: 'var(--ink)', color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none', marginTop: 'auto' }}>
+                Start Annual
               </Link>
             </div>
 
           </div>
           <div className="plan-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 32, fontSize: 14, color: 'var(--dim)' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M7 10.5L4.5 8 7 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M4.5 8h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" stroke="currentColor" strokeWidth="1.5"/></svg>
-            Payments securely processed by <a href="https://creem.io" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--dim)', textDecoration: 'underline', textUnderlineOffset: 2 }}>Creem</a>
+            Payments securely processed by <a href="https://creem.io" target="_blank" rel="noopener noreferrer" className="creem-link" style={{ color: 'var(--dim)', textDecoration: 'none' }}>Creem</a>
           </div>
         </section>
       </div>
