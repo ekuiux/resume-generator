@@ -192,30 +192,24 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], selectedVal
       ).slice(0, 12)
     : []
 
+  // The dropdown is positioned with `position: absolute` relative to the input
+  // wrapper (see render) — that keeps it glued to the field with zero viewport
+  // math, so iOS keyboard offsets can't detach it. We only read the visual
+  // viewport here to DECIDE the flip direction and cap the height; positioning
+  // itself is pure CSS relative to the input.
   function calcRect() {
     if (!wrapRef.current) return
     const r = wrapRef.current.getBoundingClientRect()
-    // getBoundingClientRect() is in the LAYOUT-viewport frame, but `position: fixed`
-    // resolves against the VISUAL viewport — which iOS offsets when the keyboard
-    // opens. Convert rect → visual-viewport frame so the list stays glued to the
-    // input (and the keyboard-shrunk height is used for the flip/space math).
     const vv = typeof window !== 'undefined' ? window.visualViewport : null
     const offTop = vv ? vv.offsetTop : 0
-    const offLeft = vv ? vv.offsetLeft : 0
     const vH = vv ? vv.height : (typeof window !== 'undefined' ? window.innerHeight : 800)
-    const GAP = 4
-    const inputTop = r.top - offTop
-    const inputBottom = r.bottom - offTop
-    const spaceBelow = vH - inputBottom
-    const spaceAbove = inputTop
+    const spaceBelow = vH - (r.bottom - offTop)   // room beneath input, inside visible area
+    const spaceAbove = r.top - offTop             // room above input, inside visible area
     // Flip above the input when there isn't enough room beneath it (keyboard open).
     const flipUp = spaceBelow < 200 && spaceAbove > spaceBelow
-    const avail = (flipUp ? spaceAbove : spaceBelow) - GAP - 8
+    const avail = (flipUp ? spaceAbove : spaceBelow) - 12
     setDropRect({
-      left: r.left - offLeft,
-      width: r.width,
       flipUp,
-      top: flipUp ? inputTop - GAP : inputBottom + GAP,
       maxHeight: Math.max(120, Math.min(240, avail)),
     })
   }
@@ -257,18 +251,17 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], selectedVal
   }
 
   return (
-    <div ref={wrapRef}>
+    <div ref={wrapRef} style={{ position: 'relative' }}>
       <Input value={value} onChange={handleChange} placeholder={placeholder} style={style}
         onFocus={() => { calcRect(); setOpen(true); setIsTyping(false) }}
         {...rest}
       />
       {open && hits.length > 0 && dropRect && (
         <div ref={dropRef} style={{
-          position: 'fixed',
-          top: dropRect.top,
-          left: dropRect.left,
-          width: dropRect.width,
-          transform: dropRect.flipUp ? 'translateY(-100%)' : 'none',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          ...(dropRect.flipUp ? { bottom: 'calc(100% + 4px)' } : { top: 'calc(100% + 4px)' }),
           zIndex: 9999,
           background: T.bg,
           borderRadius: 12,
