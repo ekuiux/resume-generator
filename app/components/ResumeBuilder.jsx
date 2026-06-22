@@ -195,22 +195,27 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], selectedVal
   function calcRect() {
     if (!wrapRef.current) return
     const r = wrapRef.current.getBoundingClientRect()
-    // Use the *visual* viewport so the on-screen keyboard (which shrinks it on
-    // mobile) is taken into account — otherwise the list lands behind the keyboard.
+    // getBoundingClientRect() is in the LAYOUT-viewport frame, but `position: fixed`
+    // resolves against the VISUAL viewport — which iOS offsets when the keyboard
+    // opens. Convert rect → visual-viewport frame so the list stays glued to the
+    // input (and the keyboard-shrunk height is used for the flip/space math).
     const vv = typeof window !== 'undefined' ? window.visualViewport : null
-    const vTop = vv ? vv.offsetTop : 0
+    const offTop = vv ? vv.offsetTop : 0
+    const offLeft = vv ? vv.offsetLeft : 0
     const vH = vv ? vv.height : (typeof window !== 'undefined' ? window.innerHeight : 800)
     const GAP = 4
-    const spaceBelow = (vTop + vH) - r.bottom
-    const spaceAbove = r.top - vTop
+    const inputTop = r.top - offTop
+    const inputBottom = r.bottom - offTop
+    const spaceBelow = vH - inputBottom
+    const spaceAbove = inputTop
     // Flip above the input when there isn't enough room beneath it (keyboard open).
     const flipUp = spaceBelow < 200 && spaceAbove > spaceBelow
     const avail = (flipUp ? spaceAbove : spaceBelow) - GAP - 8
     setDropRect({
-      left: r.left,
+      left: r.left - offLeft,
       width: r.width,
       flipUp,
-      top: flipUp ? r.top - GAP : r.bottom + GAP,
+      top: flipUp ? inputTop - GAP : inputBottom + GAP,
       maxHeight: Math.max(120, Math.min(240, avail)),
     })
   }
