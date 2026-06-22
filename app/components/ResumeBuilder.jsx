@@ -193,7 +193,26 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], selectedVal
     : []
 
   function calcRect() {
-    if (wrapRef.current) setDropRect(wrapRef.current.getBoundingClientRect())
+    if (!wrapRef.current) return
+    const r = wrapRef.current.getBoundingClientRect()
+    // Use the *visual* viewport so the on-screen keyboard (which shrinks it on
+    // mobile) is taken into account — otherwise the list lands behind the keyboard.
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null
+    const vTop = vv ? vv.offsetTop : 0
+    const vH = vv ? vv.height : (typeof window !== 'undefined' ? window.innerHeight : 800)
+    const GAP = 4
+    const spaceBelow = (vTop + vH) - r.bottom
+    const spaceAbove = r.top - vTop
+    // Flip above the input when there isn't enough room beneath it (keyboard open).
+    const flipUp = spaceBelow < 200 && spaceAbove > spaceBelow
+    const avail = (flipUp ? spaceAbove : spaceBelow) - GAP - 8
+    setDropRect({
+      left: r.left,
+      width: r.width,
+      flipUp,
+      top: flipUp ? r.top - GAP : r.bottom + GAP,
+      maxHeight: Math.max(120, Math.min(240, avail)),
+    })
   }
 
   useEffect(() => {
@@ -206,12 +225,17 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], selectedVal
       if (wrapRef.current?.contains(e.target) || dropRef.current?.contains(e.target)) return
       setOpen(false)
     }
+    const vv = window.visualViewport
     window.addEventListener('scroll', calcRect, true)
     window.addEventListener('resize', calcRect)
+    vv?.addEventListener('resize', calcRect)
+    vv?.addEventListener('scroll', calcRect)
     document.addEventListener('pointerdown', onDocDown)
     return () => {
       window.removeEventListener('scroll', calcRect, true)
       window.removeEventListener('resize', calcRect)
+      vv?.removeEventListener('resize', calcRect)
+      vv?.removeEventListener('scroll', calcRect)
       document.removeEventListener('pointerdown', onDocDown)
     }
   }, [open])
@@ -236,14 +260,15 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], selectedVal
       {open && hits.length > 0 && dropRect && (
         <div ref={dropRef} style={{
           position: 'fixed',
-          top: dropRect.bottom + 4,
+          top: dropRect.top,
           left: dropRect.left,
           width: dropRect.width,
+          transform: dropRect.flipUp ? 'translateY(-100%)' : 'none',
           zIndex: 9999,
           background: T.bg,
           borderRadius: 12,
           boxShadow: '0 8px 24px rgba(0,0,0,.12)',
-          maxHeight: 240,
+          maxHeight: dropRect.maxHeight,
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain',
@@ -252,7 +277,7 @@ function AutoInput({ value, onChange, placeholder, suggestions = [], selectedVal
             const isSelected = selectedSet.has(s.toLowerCase())
             return (
               <div key={s}
-                onPointerDown={isSelected ? undefined : (e) => { e.preventDefault(); pick(s) }}
+                onClick={isSelected ? undefined : () => pick(s)}
                 style={{
                   padding: '10px 14px', fontSize: T.f13,
                   cursor: isSelected ? 'default' : 'pointer',
@@ -3038,6 +3063,12 @@ function ResumeResult({ resume, template, onReset, downloadRef, initialPages }) 
             borderRadius: '24px 24px 0 0',
             padding: '12px 16px 40px',
             display: 'flex', flexDirection: 'column', gap: 16,
+            // Cap to the viewport (dvh = excludes mobile browser chrome) and scroll
+            // internally so a tall sheet on a short screen stays fully reachable.
+            maxHeight: '92dvh',
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
             transform: sheetOpen ? 'translateY(0)' : 'translateY(100%)',
             transition: 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
           }}>
